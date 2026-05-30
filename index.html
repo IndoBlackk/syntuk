@@ -3,454 +3,301 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SYNT OS // TECHNOLOGIES</title>
+    <title>SYNT_NODE_91</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap');
 
         :root {
-            /* Whimsigoth / Dark Medieval OS Palette */
-            --os-bg: #0d0914; /* Deep, dark purple-black */
-            --os-window: #1e1a24;
-            --os-border-light: #483d59;
-            --os-border-dark: #0a080d;
-            --os-titlebar: linear-gradient(90deg, #4a0e1c, #1f050b); /* Dark crimson velvet */
-            --text-main: #d3c4d1;
-            --text-terminal: #a89f91; /* Tarnished silver/parchment */
-            --accent-gold: #b89947;
-            --scanline: rgba(0, 0, 0, 0.2);
+            --bg-void: #020104;
+            --os-window: #110d14;
+            --border-light: #382b42;
+            --border-dark: #070509;
+            --text-main: #bdaebf;
+            --text-dim: #6e5e70;
+            --accent-blood: #6b0512;
+            --accent-gold: #8f793b;
         }
 
         body, html {
-            margin: 0;
-            padding: 0;
+            margin: 0; padding: 0;
             background-color: #000;
-            height: 100vh;
-            overflow: hidden;
-            user-select: none;
-            font-family: 'Press Start 2P', cursive; /* Blocky 90s OS font */
-        }
-
-        /* The Physical Monitor / CRT Effect */
-        #monitor {
-            position: relative;
-            width: 100vw;
-            height: 100vh;
-            background-color: var(--os-bg);
-            overflow: hidden;
-            /* Suble CRT Flicker */
-            animation: flicker 0.15s infinite;
-        }
-
-        /* Scanlines */
-        #monitor::after {
-            content: "";
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: linear-gradient(
-                to bottom,
-                rgba(255,255,255,0),
-                rgba(255,255,255,0) 50%,
-                var(--scanline) 50%,
-                var(--scanline)
-            );
-            background-size: 100% 4px;
-            pointer-events: none;
-            z-index: 9999;
-        }
-
-        /* Screen Glare */
-        #monitor::before {
-            content: " ";
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: radial-gradient(circle at center, rgba(255,255,255,0.05) 0%, rgba(0,0,0,0.6) 100%);
-            pointer-events: none;
-            z-index: 9998;
-        }
-
-        @keyframes flicker {
-            0% { opacity: 0.98; }
-            50% { opacity: 1; }
-            100% { opacity: 0.99; }
-        }
-
-        /* =========================================
-           BOOT SCREEN STYLES
-           ========================================= */
-        #boot-screen {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background-color: #000;
-            color: var(--text-terminal);
+            height: 100vh; overflow: hidden;
             font-family: 'VT323', monospace;
-            padding: 20px;
-            box-sizing: border-box;
-            z-index: 1000;
-            display: flex;
-            flex-direction: column;
-            font-size: 1.2rem;
+            user-select: none;
         }
 
-        .boot-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px;
+        /* CRT Effects */
+        #monitor {
+            position: relative; width: 100vw; height: 100vh;
+            background-color: var(--bg-void); overflow: hidden;
+        }
+        #monitor::after {
+            content: ""; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0.3));
+            background-size: 100% 4px; pointer-events: none; z-index: 9999;
+        }
+        #monitor::before {
+            content: " "; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: radial-gradient(circle at center, transparent 30%, rgba(0,0,0,0.8) 100%);
+            pointer-events: none; z-index: 9998;
         }
 
-        .boot-logo {
-            white-space: pre;
-            color: var(--accent-gold);
-            font-size: 1rem;
-            line-height: 1;
+        /* Professional / Dark Web Boot Screen */
+        #boot-screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #000; color: #a1a1a1;
+            padding: 30px; box-sizing: border-box; z-index: 1000;
+            font-size: 1.4rem; letter-spacing: 1px;
         }
-
-        .boot-specs { align-self: flex-end; text-align: right; }
-        #terminal-output { white-space: pre-wrap; margin-top: 10px; }
+        #terminal-output { white-space: pre-wrap; line-height: 1.4; }
         .blink { animation: blinker 1s step-start infinite; }
         @keyframes blinker { 50% { opacity: 0; } }
 
-        /* =========================================
-           DESKTOP OS STYLES
-           ========================================= */
+        /* Maximalist Desktop Environment */
         #desktop {
-            display: none; /* Hidden until boot completes */
-            width: 100%; height: calc(100% - 35px); /* Leave room for taskbar */
-            position: relative;
-            background: radial-gradient(circle at center, #1a1423 0%, var(--os-bg) 100%);
+            display: none; width: 100%; height: calc(100% - 40px); position: relative;
+            /* Corrupted, repeating dark texture */
+            background-color: #050308;
+            background-image: 
+                radial-gradient(var(--border-dark) 1px, transparent 1px),
+                radial-gradient(var(--border-dark) 1px, transparent 1px);
+            background-size: 20px 20px; background-position: 0 0, 10px 10px;
         }
 
-        /* Desktop Background Art (Subtle) */
-        .desktop-bg-art {
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            white-space: pre;
-            font-family: 'VT323', monospace;
-            font-size: 1.5rem;
-            color: rgba(255, 255, 255, 0.03);
-            text-align: center;
-            pointer-events: none;
-        }
-
-        /* Desktop Icons */
+        /* Desktop Icons - 90s Blocky OS Style */
         .icon-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 30px;
-            padding: 20px;
-            width: 120px;
+            display: flex; flex-direction: column; gap: 40px; padding: 30px; width: 150px;
         }
-
         .desktop-icon {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            cursor: pointer;
-            width: 100px;
+            display: flex; flex-direction: column; align-items: center; text-align: center; cursor: pointer;
         }
-
-        .desktop-icon:hover .icon-text {
-            background-color: var(--accent-gold);
-            color: #000;
+        .icon-graphic {
+            width: 48px; height: 48px;
+            background: var(--os-window);
+            border-top: 3px solid var(--border-light);
+            border-left: 3px solid var(--border-light);
+            border-bottom: 3px solid var(--border-dark);
+            border-right: 3px solid var(--border-dark);
+            box-shadow: 4px 4px 0 rgba(0,0,0,0.8);
+            display: flex; justify-content: center; align-items: center;
+            margin-bottom: 10px; font-family: 'Press Start 2P', cursive; font-size: 1.5rem; color: var(--accent-gold);
+            transition: all 0.1s;
         }
-
-        .icon-art {
-            font-family: 'VT323', monospace;
-            font-size: 1.2rem;
-            line-height: 1.1;
-            white-space: pre;
-            color: var(--text-main);
-            margin-bottom: 8px;
-            text-shadow: 2px 2px 0 #000;
+        .desktop-icon:active .icon-graphic {
+            border-top: 3px solid var(--border-dark); border-left: 3px solid var(--border-dark);
+            border-bottom: 3px solid var(--border-light); border-right: 3px solid var(--border-light);
         }
-
         .icon-text {
-            font-size: 0.6rem;
-            padding: 4px;
-            border: 1px dotted transparent;
+            font-family: 'Press Start 2P', cursive; font-size: 0.6rem; color: var(--text-main);
+            background-color: rgba(0,0,0,0.5); padding: 4px;
         }
 
-        /* OS Taskbar */
+        /* 90s Taskbar with extra functionality */
         #taskbar {
-            display: none;
-            position: absolute;
-            bottom: 0; left: 0; width: 100%; height: 35px;
-            background-color: var(--os-window);
-            border-top: 2px solid var(--os-border-light);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 10px;
-            box-sizing: border-box;
-            z-index: 500;
+            display: none; position: absolute; bottom: 0; left: 0; width: 100%; height: 40px;
+            background-color: #1a1622;
+            border-top: 3px solid var(--border-light);
+            display: flex; align-items: center; justify-content: space-between; padding: 0 10px; box-sizing: border-box; z-index: 500;
         }
-
         .start-btn {
-            background-color: var(--os-window);
-            border-top: 2px solid var(--os-border-light);
-            border-left: 2px solid var(--os-border-light);
-            border-bottom: 2px solid var(--os-border-dark);
-            border-right: 2px solid var(--os-border-dark);
-            padding: 5px 15px;
-            font-size: 0.7rem;
-            color: var(--text-main);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            font-family: 'Press Start 2P', cursive; background-color: var(--os-window);
+            border-top: 2px solid var(--border-light); border-left: 2px solid var(--border-light);
+            border-bottom: 2px solid var(--border-dark); border-right: 2px solid var(--border-dark);
+            padding: 8px 15px; font-size: 0.7rem; color: var(--text-main); cursor: crosshair; font-weight: bold;
         }
-
-        .start-btn:active {
-            border-top: 2px solid var(--os-border-dark);
-            border-left: 2px solid var(--os-border-dark);
-            border-bottom: 2px solid var(--os-border-light);
-            border-right: 2px solid var(--os-border-light);
+        .taskbar-widgets { display: flex; gap: 15px; align-items: center; }
+        .widget-box {
+            font-size: 1.1rem; border: 2px inset var(--border-dark);
+            padding: 5px 15px; background-color: #000; color: var(--accent-gold);
         }
-
-        .start-logo { color: var(--accent-gold); font-size: 0.9rem; }
-        .clock {
-            font-size: 0.6rem;
-            border-top: 2px solid var(--os-border-dark);
-            border-left: 2px solid var(--os-border-dark);
-            border-bottom: 2px solid var(--os-border-light);
-            border-right: 2px solid var(--os-border-light);
-            padding: 5px 10px;
-            background-color: #000;
-            color: var(--accent-gold);
-        }
+        #ping-tracker { color: var(--accent-blood); }
 
         /* Draggable Window */
         .window {
-            display: none;
-            position: absolute;
-            top: 20%; left: 30%;
-            width: 400px;
+            display: none; position: absolute; top: 15%; left: 30%; width: 500px;
             background-color: var(--os-window);
-            border-top: 2px solid var(--os-border-light);
-            border-left: 2px solid var(--os-border-light);
-            border-bottom: 2px solid var(--os-border-dark);
-            border-right: 2px solid var(--os-border-dark);
-            box-shadow: 5px 5px 0 rgba(0,0,0,0.5);
-            z-index: 100;
+            border-top: 3px solid var(--border-light); border-left: 3px solid var(--border-light);
+            border-bottom: 3px solid var(--border-dark); border-right: 3px solid var(--border-dark);
+            box-shadow: 10px 10px 0 rgba(0,0,0,0.9); z-index: 100;
         }
-
         .title-bar {
-            background: var(--os-titlebar);
-            padding: 5px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid var(--os-border-dark);
-            cursor: grab;
+            background: linear-gradient(90deg, #1f1f1f, #0a0a0a);
+            padding: 8px; display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 2px solid var(--border-dark); cursor: grab;
         }
-
-        .title-text { font-size: 0.6rem; color: #fff; text-shadow: 1px 1px 0 #000; }
-        
+        .title-text { font-family: 'Press Start 2P', cursive; font-size: 0.6rem; color: var(--text-dim); }
         .close-btn {
-            background-color: var(--os-window);
-            border-top: 2px solid var(--os-border-light);
-            border-left: 2px solid var(--os-border-light);
-            border-bottom: 2px solid var(--os-border-dark);
-            border-right: 2px solid var(--os-border-dark);
-            font-family: sans-serif;
-            font-weight: bold;
-            font-size: 0.6rem;
-            width: 18px; height: 18px;
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer; color: var(--text-main);
+            background-color: var(--accent-blood); border: 2px outset #ff4d4d;
+            width: 20px; height: 20px; cursor: pointer;
         }
         .close-btn:active { border-style: inset; }
-
+        
         .window-content {
-            padding: 20px;
-            font-family: 'VT323', monospace;
-            font-size: 1.2rem;
-            color: var(--text-main);
-            line-height: 1.5;
-            background-color: #0b0710;
-            border-top: 2px solid var(--os-border-dark);
-            border-left: 2px solid var(--os-border-dark);
-            border-bottom: 2px solid var(--os-border-light);
-            border-right: 2px solid var(--os-border-light);
-            margin: 5px;
+            padding: 25px; font-size: 1.4rem; color: var(--text-main);
+            background-color: #0b080f; margin: 5px; border: 2px inset var(--border-dark);
         }
+
+        /* Riddle Specifics */
+        .riddle-text { color: var(--accent-gold); margin-bottom: 20px; font-style: italic; }
+        .riddle-input {
+            width: 100%; background: #000; color: #fff; border: 2px inset var(--border-light);
+            padding: 10px; font-family: 'VT323', monospace; font-size: 1.5rem; outline: none; box-sizing: border-box; text-transform: uppercase;
+        }
+        #riddle-response { color: var(--accent-blood); margin-top: 15px; font-weight: bold; }
+        
+        .hidden-content { display: none; margin-top: 20px; color: var(--text-main); border-top: 1px dashed var(--text-dim); padding-top: 15px;}
     </style>
 </head>
 <body>
 
 <div id="monitor">
     
-    <!-- BOOT SEQUENCE SCREEN -->
     <div id="boot-screen">
-        <div class="boot-header">
-            <div class="boot-logo">
-      /\
-     /  \
-    |SYNT|
-    |TECH|
-   /|    |\
-   \|____|/
-            </div>
-            <div class="boot-specs">
-                SYNT TECHNOLOGIES INC.<br>
-                GOTHIC OS v.95 BIOS<br>
-                64,000 KB RAM System
-            </div>
-        </div>
         <div id="terminal-output"></div>
-        <div id="cursor" class="blink">_</div>
+        <span class="blink" style="display:inline-block; margin-top: 10px;">█</span>
     </div>
 
-    <!-- DESKTOP ENVIRONMENT -->
     <div id="desktop">
-        <!-- Giant Faded Background Art -->
-        <div class="desktop-bg-art">
-               .
-              / \
-             /   \
-            |  O  |
-           /|     |\
-          / |  +  | \
-         |  |_____|  |
-        </div>
-
+        
         <div class="icon-grid">
-            <!-- Icon 1: Grimoire -->
-            <div class="desktop-icon" onclick="openWindow('Grimoire.exe', 'Welcome to Synt OS. \n\nThe old magics have been digitized. Browse the archives, run the rituals, and ensure the alchemy co-processor does not overheat.')">
-                <div class="icon-art">
-  ___
- |   |
- | + |
- |___|
-                </div>
-                <div class="icon-text">Grimoire.exe</div>
+            <div class="desktop-icon" onclick="openWindow('GATEWAY_PROTOCOL.exe', 'riddle')">
+                <div class="icon-graphic">♆</div>
+                <div class="icon-text">GATEWAY.exe</div>
             </div>
 
-            <!-- Icon 2: Potions -->
-            <div class="desktop-icon" onclick="openWindow('Alchemy.bat', 'ERROR 0x00A7: Vial depleted. Please insert a fresh soul coin into the A: Drive to continue.')">
-                <div class="icon-art">
-   ( )
-   )-(
-  /   \
- |~~~~~|
-  \___/
-                </div>
-                <div class="icon-text">Alchemy.bat</div>
-            </div>
-
-            <!-- Icon 3: Ravens -->
-            <div class="desktop-icon" onclick="openWindow('Ravens.net', 'ESTABLISHING CONNECTION...\n\nAwaiting signal from the spire network. No incoming messages.')">
-                <div class="icon-art">
-   /\
-  <  >
-   \/
-  /||\
-                </div>
-                <div class="icon-text">Ravens.net</div>
+            <div class="desktop-icon" onclick="openWindow('ARCHIVE_NODE.sys', 'text')">
+                <div class="icon-graphic">🖿</div>
+                <div class="icon-text">ARCHIVES.sys</div>
             </div>
         </div>
 
-        <!-- The Draggable Window -->
         <div id="os-window" class="window">
             <div class="title-bar" id="window-header">
-                <div class="title-text" id="window-title">Window</div>
-                <div class="close-btn" onclick="closeWindow()">X</div>
+                <div class="title-text" id="window-title">WINDOW_NAME</div>
+                <div class="close-btn" onclick="closeWindow()"></div>
             </div>
             <div class="window-content" id="window-body">
-                Content goes here...
-            </div>
+                </div>
         </div>
     </div>
 
-    <!-- TASKBAR -->
-    <div id="taskbar" style="display: none;">
-        <div class="start-btn">
-            <span class="start-logo">♱</span> SYNT
+    <div id="taskbar">
+        <div class="start-btn">SYNT_SYS</div>
+        <div class="taskbar-widgets">
+            <div class="widget-box" id="ping-tracker">PING: 24ms</div>
+            <div class="widget-box" id="os-clock">00:00</div>
         </div>
-        <div class="clock" id="os-clock">00:00 AM</div>
     </div>
 
 </div>
 
 <script>
     // ==========================================
-    // BOOT SEQUENCE LOGIC
+    // PROFESSIONAL TERMINAL BOOT SEQUENCE
     // ==========================================
     const bootLines = [
-        "ROM BIOS (C) 1995 SYNT TECHNOLOGIES",
-        "INITIALIZING MOON-PHASE PROTOCOLS... OK",
-        "LOADING ALCHEMY CO-PROCESSOR... OK",
-        "MEMORY TEST: 64000K OK",
+        "SYNT MAINFRAME TERMINAL [VERSION 3.1.91]",
+        "ESTABLISHING SECURE CONNECTION...",
+        "NODE RESOLVED: UNKNOWN DOMAIN",
         "",
-        "MOUNTING C: [THE_CATACOMBS]",
-        "AUTOEXEC.BAT RUNNING...",
-        "LOADING NECROMANCY MODULE (EMM386)...",
-        "DETECTED VGA DISPLAY: GOTHIC COLOR PALETTE LOADED.",
-        "Summoning OS Environment..."
+        "HANDSHAKE PROTOCOL INITIATED...",
+        "WARNING: ENCRYPTION LAYER EXCEEDS STANDARD PARAMETERS",
+        "DECRYPTING CATACOMBS...",
+        "ACCESS GRANTED.",
+        "",
+        "LOADING DESKTOP ENVIRONMENT..."
     ];
 
     const terminal = document.getElementById('terminal-output');
-    const bootScreen = document.getElementById('boot-screen');
-    const desktop = document.getElementById('desktop');
-    const taskbar = document.getElementById('taskbar');
     let lineIndex = 0;
 
     function typeBootLines() {
         if (lineIndex < bootLines.length) {
             terminal.innerHTML += bootLines[lineIndex] + "<br>";
             lineIndex++;
-            // Randomize delay to look like a real computer loading
-            let delay = bootLines[lineIndex - 1] === "" ? 100 : Math.random() * 400 + 100;
-            if (lineIndex === 4 || lineIndex === 8) delay = 800; // Fake loading pauses
+            let delay = Math.random() * 200 + 50; 
+            if (lineIndex === 2 || lineIndex === 6) delay = 900; // Artificial lag
             setTimeout(typeBootLines, delay);
         } else {
-            // Finish Boot
             setTimeout(() => {
-                bootScreen.style.display = 'none';
-                desktop.style.display = 'block';
-                taskbar.style.display = 'flex';
+                document.getElementById('boot-screen').style.display = 'none';
+                document.getElementById('desktop').style.display = 'block';
+                document.getElementById('taskbar').style.display = 'flex';
                 updateClock();
-            }, 1000);
+                updatePing();
+            }, 800);
         }
     }
-
-    // Start boot sequence on load
-    window.onload = () => { setTimeout(typeBootLines, 800); };
+    window.onload = () => { setTimeout(typeBootLines, 500); };
 
     // ==========================================
-    // OS DESKTOP LOGIC (Clock & Windows)
+    // TASKBAR WIDGETS
     // ==========================================
-    
-    // Taskbar Clock
     function updateClock() {
         const now = new Date();
-        let hours = now.getHours();
-        let minutes = now.getMinutes();
-        const ampm = hours >= 12 ? 'PM' : 'AM';
-        hours = hours % 12;
-        hours = hours ? hours : 12; 
-        minutes = minutes < 10 ? '0' + minutes : minutes;
-        document.getElementById('os-clock').innerText = hours + ':' + minutes + ' ' + ampm;
+        let hours = now.getHours().toString().padStart(2, '0');
+        let minutes = now.getMinutes().toString().padStart(2, '0');
+        document.getElementById('os-clock').innerText = `${hours}:${minutes}`;
         setTimeout(updateClock, 1000);
     }
 
-    // Window Management
+    function updatePing() {
+        // Simulates an erratic, dark-web network ping
+        const ping = Math.floor(Math.random() * 150) + 12;
+        document.getElementById('ping-tracker').innerText = `NODE: ${ping}ms`;
+        setTimeout(updatePing, Math.random() * 3000 + 1000);
+    }
+
+    // ==========================================
+    // WINDOW & RIDDLE LOGIC
+    // ==========================================
     const win = document.getElementById('os-window');
     const winTitle = document.getElementById('window-title');
     const winBody = document.getElementById('window-body');
 
-    function openWindow(title, content) {
+    function openWindow(title, type) {
         winTitle.innerText = title;
-        winBody.innerText = content;
+        
+        if (type === 'riddle') {
+            winBody.innerHTML = `
+                <div class="riddle-text">
+                    "I am the frozen lake at the very bottom of the abyss. The treacherous are locked within my ice, kept cold by the beating wings of the three-faced king. Speak my name to proceed."
+                </div>
+                <input type="text" id="riddle-answer" class="riddle-input" placeholder="ENTER SOLUTION..." onkeypress="checkRiddle(event)">
+                <div id="riddle-response"></div>
+                <div id="secret-content" class="hidden-content">
+                    CONNECTION SECURED.<br><br>
+                    Welcome to the Synt hidden directory. You have bypassed the outer rings. The architecture here is unstable. Proceed with caution.
+                </div>
+            `;
+        } else if (type === 'text') {
+            winBody.innerHTML = `ERROR 0x0091: ARCHIVE CORRUPTED.<br><br>Most files were purged during the '94 server collapse. Only fragments of the old gothic framework remain.`;
+        }
+
         win.style.display = 'block';
     }
 
-    function closeWindow() {
-        win.style.display = 'none';
+    function closeWindow() { win.style.display = 'none'; }
+
+    function checkRiddle(event) {
+        if (event.key === 'Enter') {
+            const input = document.getElementById('riddle-answer').value.toLowerCase().trim();
+            const responseDiv = document.getElementById('riddle-response');
+            
+            // The answer to the Dante's Inferno 9th Circle riddle is Cocytus
+            if (input === "cocytus") {
+                responseDiv.style.color = "#8f793b"; // Turn gold
+                responseDiv.innerText = "ACCESS GRANTED.";
+                document.getElementById('riddle-answer').disabled = true;
+                document.getElementById('secret-content').style.display = "block";
+            } else {
+                responseDiv.innerText = "ACCESS DENIED. THE ICE REMAINS UNBROKEN.";
+                document.getElementById('riddle-answer').value = '';
+            }
+        }
     }
 
-    // Basic Dragging Logic for the Window
+    // Draggable Window Logic
     const header = document.getElementById('window-header');
     let isDragging = false, xOffset = 0, yOffset = 0, initialX, initialY;
 
@@ -461,21 +308,14 @@
     function dragStart(e) {
         initialX = e.clientX - xOffset;
         initialY = e.clientY - yOffset;
-        if (e.target === header || e.target === winTitle) {
-            isDragging = true;
-        }
+        if (e.target === header || e.target === winTitle) { isDragging = true; }
     }
-    function dragEnd() {
-        initialX = xOffset;
-        initialY = yOffset;
-        isDragging = false;
-    }
+    function dragEnd() { initialX = xOffset; initialY = yOffset; isDragging = false; }
     function drag(e) {
         if (isDragging) {
             e.preventDefault();
             xOffset = e.clientX - initialX;
             yOffset = e.clientY - initialY;
-            // Bound to screen somewhat
             win.style.transform = `translate3d(${xOffset}px, ${yOffset}px, 0)`;
         }
     }
