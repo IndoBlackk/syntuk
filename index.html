@@ -3,19 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>synt</title>
+    <title>SYNT // GENERATIVE ARCHIVE</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,400;1,600&family=Space+Mono:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,400;1,600&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
 
         :root {
-            --void-black: #000000;
-            --stone-dark: #050506;
-            --bone-white: #f4f4f5;
-            --torch-glow: #ffd185; /* Shifted to an amber/gold for better visibility */
-            --tomb-bronze: #3d372e; 
+            --void: #020202;
+            --ash: #ececec;
+            --pure-light: #ffffff;
+            --ghost: rgba(255, 255, 255, 0.06);
             
-            --serif-font: 'Cormorant Garamond', serif;
             --mono-font: 'Space Mono', monospace;
+            --serif-font: 'Cormorant Garamond', serif;
+
+            /* Dynamic CSS Variables for the Flashlight */
+            --beam-angle: 0rad;
+            --cursor-x: 50vw;
+            --cursor-y: 50vh;
         }
 
         * {
@@ -27,105 +31,140 @@
         }
 
         body {
-            background-color: var(--void-black);
-            color: var(--bone-white);
+            background-color: var(--void);
+            color: var(--ash);
             font-family: var(--mono-font);
-            letter-spacing: -0.5px;
             overflow: hidden;
             height: 100vh;
             width: 100vw;
             position: relative;
-            transition: background-color 0.3s ease;
+            background-image: radial-gradient(circle at center, transparent 20%, #000000 120%);
         }
 
-        /* --- HARDWARE ACCELERATED CANVAS NOISE --- */
-        #tomb-dust {
+        /* --- HEAVY B&W NOISE --- */
+        #lo-fi-grain {
             position: fixed;
             top: 0; left: 0;
             width: 100vw; height: 100vh;
             pointer-events: none;
             z-index: 9999;
-            opacity: 0.04;
+            opacity: 0.15;
             mix-blend-mode: overlay;
-            transition: opacity 0.15s ease;
         }
 
-        /* --- INFINITE SCROLLING TOMB TEXT --- */
-        .infinite-inferno {
+        /* --- LAYERED GEOMETRY ENGINE --- */
+        .parallax-layer {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            display: flex; justify-content: center; align-items: center;
+            z-index: 0; pointer-events: none;
+        }
+
+        .sacred-matrix-svg {
+            width: 120vh; height: 120vh;
+            animation: slow-matrix-rotate 300s linear infinite;
+            fill: none;
+        }
+
+        /* The dormant matrix in the background */
+        .dim-style {
+            opacity: 0.12;
+            stroke: rgba(255, 255, 255, 0.4);
+            stroke-width: 1.5;
+        }
+
+        /* The hidden, supercharged relic */
+        .glow-style {
+            stroke: var(--pure-light);
+            stroke-width: 2.5;
+            filter: drop-shadow(0 0 12px var(--pure-light));
+        }
+
+        /* The Flashlight Mask Layer */
+        #relic-reveal-mask {
             position: fixed;
             top: 0; left: 0; width: 100vw; height: 100vh;
-            z-index: 1;
-            pointer-events: none;
-            font-family: var(--serif-font);
-            font-style: italic;
-            font-size: 1.4rem; 
-            line-height: 1.4;
-            text-align: justify;
-            color: var(--tomb-bronze); 
-            opacity: 0; 
-            padding: 40px; 
-            overflow: hidden;
-            transition: transform 1.5s cubic-bezier(0.25, 1, 0.5, 1), filter 1.5s ease;
-            transform-origin: center center;
-            -webkit-mask-image: radial-gradient(circle var(--mask-radius, 120px) at var(--mask-x, 50%) var(--mask-y, 50%), rgba(0,0,0,var(--mask-opacity, 1)) 0%, rgba(0,0,0,0) 100%);
-            mask-image: radial-gradient(circle var(--mask-radius, 120px) at var(--mask-x, 50%) var(--mask-y, 50%), rgba(0,0,0,var(--mask-opacity, 1)) 0%, rgba(0,0,0,0) 100%);
+            z-index: 1; pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+            
+            /* Combines a glowing core under the cursor with a trapezium/conic beam */
+            -webkit-mask-image: 
+                radial-gradient(circle at var(--cursor-x) var(--cursor-y), black 5px, transparent 120px),
+                conic-gradient(from calc(var(--beam-angle) - 35deg) at var(--cursor-x) var(--cursor-y), transparent 0deg, black 20deg, black 50deg, transparent 70deg);
+            mask-image: 
+                radial-gradient(circle at var(--cursor-x) var(--cursor-y), black 5px, transparent 120px),
+                conic-gradient(from calc(var(--beam-angle) - 35deg) at var(--cursor-x) var(--cursor-y), transparent 0deg, black 20deg, black 50deg, transparent 70deg);
         }
 
-        .scroll-content {
-            animation: scroll-up-tomb 600s linear infinite;
-            will-change: transform;
+        body.active-resonation #relic-reveal-mask {
+            opacity: 1;
         }
 
-        @keyframes scroll-up-tomb {
-            0% { transform: translateY(0%); }
-            100% { transform: translateY(-50%); } 
+        @keyframes slow-matrix-rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
-        /* --- POLISHED FLICKERING TORCH CURSOR --- */
-        #tomb-lantern-cursor {
+        /* --- CROSSHAIR / SCANNER CURSOR --- */
+        #crosshair-cursor {
             position: fixed;
             top: 0; left: 0;
-            width: 150px; 
-            height: 150px;
-            border-radius: 50%;
+            width: 40px; 
+            height: 40px;
             transform: translate(-50%, -50%);
             pointer-events: none;
             z-index: 10000;
             display: flex;
-            align-items: center;
             justify-content: center;
-            filter: blur(1px); 
-            transition: width 0.3s, height 0.3s;
+            align-items: center;
+            border-radius: 50%;
+            border: 1px solid transparent;
+            transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1), height 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s;
         }
 
-        #cursor-text-svg {
-            width: 120px;
-            height: 120px;
-            animation: spin 16s linear infinite;
-            fill: var(--torch-glow); 
-            opacity: var(--mask-opacity, 0.7); 
-            transition: opacity 0.1s, fill 0.5s ease;
-            /* Added drop shadow to separate cursor from the background text */
-            filter: drop-shadow(0 0 4px rgba(0,0,0,0.9));
-        }
-
-        .hovering #cursor-text-svg { fill: #fff; }
-
-        /* --- ACTIVE RESONATION VISUALS (CLICK & HOLD) --- */
-        body.active-resonation .infinite-inferno {
-            transform: scale(1.04); 
-            filter: brightness(1.4) contrast(1.1);
+        #crosshair-cursor::before, #crosshair-cursor::after {
+            content: '';
+            position: absolute;
+            background-color: rgba(255,255,255,0.5);
+            transition: all 0.2s ease;
         }
         
-        body.active-resonation #cursor-text-svg {
-            fill: #ffffff; 
-            filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.6));
+        #crosshair-cursor::before { width: 100%; height: 1px; }
+        #crosshair-cursor::after { height: 100%; width: 1px; }
+
+        .hovering #crosshair-cursor { width: 80px; height: 80px; }
+        .hovering #crosshair-cursor::before, .hovering #crosshair-cursor::after { background-color: var(--pure-light); }
+
+        /* Scanner mode active */
+        body.active-resonation #crosshair-cursor {
+            width: 120px; height: 120px;
+            border-color: rgba(255,255,255,0.2);
+            transform: translate(-50%, -50%) rotate(45deg);
+        }
+        body.active-resonation #crosshair-cursor::before, body.active-resonation #crosshair-cursor::after {
+            background-color: var(--pure-light);
+            box-shadow: 0 0 20px var(--pure-light);
+            height: 2px; width: 40%;
         }
 
-        /* --- ASYMMETRIC GRID LAYOUT --- */
-        .cathedral-layout {
+        body.active-resonation { background-color: #060606; }
+        
+        /* Subtle matrix shake when scanning */
+        body.active-resonation .sacred-matrix-svg {
+            animation: slow-matrix-rotate 300s linear infinite, violent-shake 0.08s infinite;
+        }
+
+        @keyframes violent-shake {
+            0% { transform: translate(2px, 2px); }
+            50% { transform: translate(-2px, -2px); }
+            100% { transform: translate(2px, -2px); }
+        }
+
+        /* --- PROFESSIONAL ARCHITECTURE GRID --- */
+        .brutalist-grid {
             display: grid;
-            grid-template-columns: 120px 1fr 480px;
+            grid-template-columns: 80px 1fr 450px;
             height: 100vh;
             width: 100vw;
             position: relative;
@@ -133,7 +172,7 @@
         }
 
         .panel {
-            border-right: 1px solid rgba(255, 255, 255, 0.03);
+            border-right: 1px solid var(--ghost);
             position: relative;
             height: 100%;
             display: flex;
@@ -141,218 +180,211 @@
             justify-content: space-between;
         }
 
-        .left-axis { padding: 40px 0; align-items: center; }
-        .sigil { font-size: 1.5rem; font-weight: bold; color: var(--bone-white); text-decoration: none; transition: text-shadow 0.3s ease; }
-        .sigil:hover { text-shadow: 0 0 15px var(--bone-white); }
-        .vertical-marker { transform: rotate(-90deg); white-space: nowrap; font-size: 0.65rem; color: rgba(255, 255, 255, 0.25); letter-spacing: 4px; text-transform: uppercase; }
+        .left-axis { padding: 40px 0; align-items: center; border-right: 1px solid rgba(255,255,255,0.08); }
+        .sigil { font-family: var(--serif-font); font-style: italic; font-size: 1.8rem; color: rgba(255,255,255,0.4); text-decoration: none; transition: color 0.2s; }
+        .sigil:hover { color: var(--pure-light); text-shadow: 0 0 15px var(--pure-light); }
+        .vertical-marker { transform: rotate(-90deg); white-space: nowrap; font-size: 0.55rem; color: rgba(255, 255, 255, 0.3); letter-spacing: 6px; text-transform: uppercase;}
 
         .center-nave { padding: 80px; justify-content: flex-start; }
         .header-block { display: flex; justify-content: space-between; align-items: center; width: 100%; }
 
-        .audio-ritual-info { display: flex; align-items: center; gap: 15px; font-size: 0.7rem; letter-spacing: 2px; color: rgba(255, 255, 255, 0.4); text-transform: uppercase; }
-        .pulse-indicator { width: 8px; height: 8px; background-color: rgba(255,255,255,0.15); border-radius: 50%; }
+        .audio-toggle { display: flex; align-items: center; gap: 12px; font-size: 0.65rem; font-weight: 700; letter-spacing: 2px; color: rgba(255, 255, 255, 0.4); text-transform: uppercase; padding: 10px 0;}
+        .pulse { width: 8px; height: 8px; background-color: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); border-radius: 50%; }
         
-        .ritual-active .pulse-indicator {
-            background-color: var(--bone-white);
-            box-shadow: 0 0 12px rgba(255,255,255,0.8);
-            animation: pulse 0.6s infinite alternate;
+        .engine-awake .pulse {
+            background-color: var(--ash);
+            border-color: var(--pure-light);
+            animation: harsh-blink 1.2s infinite steps(2);
         }
+
+        @keyframes harsh-blink { 0% { opacity: 1; } 100% { opacity: 0.2; } }
 
         .monolith-title { margin-top: 15vh; position: relative; }
         
         .brand-name {
             font-family: var(--serif-font);
-            font-size: 13vw; font-style: italic; font-weight: 400; line-height: 0.75;
-            color: var(--bone-white);
-            /* Removed the transition so JS can control the jitter in real time */
+            font-style: italic;
+            font-size: 14vw; 
+            font-weight: 400; 
+            line-height: 0.7;
+            letter-spacing: -2px;
+            color: var(--ash);
             position: relative;
             z-index: 2;
             display: inline-block;
         }
 
         .title-subtext {
-            font-size: 0.75rem; color: rgba(255, 255, 255, 0.35); margin-top: 30px; max-width: 400px; line-height: 1.8;
+            font-size: 0.7rem; color: rgba(255, 255, 255, 0.4); margin-top: 50px; max-width: 400px; line-height: 1.8; letter-spacing: 0.5px;
         }
 
-        /* --- BRUTALIST DIRECTORY (MONOCHROME INVERSION) --- */
-        .right-cloisters { border-right: none; padding: 60px 40px; justify-content: space-between; background: linear-gradient(to right, rgba(0,0,0,0), rgba(3,3,4,0.4)); }
-        .section-header { font-size: 0.65rem; color: rgba(255, 255, 255, 0.25); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 40px; }
+        /* --- INDEX ARCHIVE --- */
+        .right-cloisters { border-right: none; padding: 60px 50px; justify-content: center; background: linear-gradient(to right, rgba(0,0,0,0), rgba(2,2,2,0.9)); }
+        .section-header { font-size: 0.6rem; color: rgba(255, 255, 255, 0.3); letter-spacing: 4px; text-transform: uppercase; margin-bottom: 50px; }
 
-        .directory-list { display: flex; flex-direction: column; gap: 16px; }
+        .directory-list { display: flex; flex-direction: column; gap: 0; border-top: 1px solid var(--ghost); }
 
         .dir-node {
             display: grid;
-            grid-template-columns: 50px 1fr 30px;
+            grid-template-columns: 40px 1fr;
             align-items: center;
-            padding: 30px 24px;
-            background: transparent;
-            border: 1px solid rgba(255,255,255,0.03);
+            padding: 30px 0;
+            border-bottom: 1px solid var(--ghost);
             text-decoration: none;
             color: rgba(255, 255, 255, 0.4);
-            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
             position: relative;
-            overflow: hidden;
-            will-change: transform;
         }
 
         .dir-node::before {
             content: '';
             position: absolute;
-            top: 0; left: 0; width: 0%; height: 100%;
-            background: var(--bone-white);
-            transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            z-index: -1;
+            left: -20px; top: 50%;
+            transform: translateY(-50%);
+            width: 0px; height: 1px;
+            background-color: var(--pure-light);
+            transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1), left 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .dir-node:hover {
-            color: var(--void-black);
-            border-color: var(--bone-white);
+            color: var(--pure-light);
+            padding-left: 20px; 
+            background: linear-gradient(90deg, rgba(255, 255, 255, 0.04) 0%, transparent 100%);
         }
 
-        .dir-node:hover::before { 
-            width: 100%; 
+        .dir-node:hover::before {
+            width: 30px;
+            left: -10px;
         }
 
-        .dir-index { 
-            font-family: var(--serif-font); 
-            font-style: italic; 
-            font-size: 1.4rem; 
-            color: rgba(255,255,255,0.15);
-            transition: color 0.3s ease;
-        }
-        .dir-node:hover .dir-index { color: rgba(0,0,0,0.4); }
+        .dir-index { font-family: var(--serif-font); font-style: italic; font-size: 1.2rem; transition: color 0.3s; }
+        .dir-node:hover .dir-index { color: var(--pure-light); }
+        
+        .dir-title { font-size: 1.1rem; font-weight: 700; letter-spacing: -0.5px; transition: letter-spacing 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        .dir-node:hover .dir-title { letter-spacing: 2px; }
+        
+        .dir-spec { font-size: 0.55rem; margin-top: 6px; letter-spacing: 2px; text-transform: uppercase; opacity: 0.5; }
 
-        .dir-title { 
-            font-size: 1.1rem; 
-            font-weight: 700; 
-            letter-spacing: 3px; 
-            color: var(--bone-white);
-            transition: color 0.3s ease;
-        }
-        .dir-node:hover .dir-title { color: var(--void-black); }
+        .jagged-glitch { animation: tear 0.08s infinite; color: var(--pure-light) !important; text-shadow: -4px 0 rgba(255,255,255,0.5), 4px 0 rgba(255,255,255,0.5); }
 
-        .dir-spec { 
-            font-size: 0.6rem; 
-            margin-top: 6px; 
-            letter-spacing: 1.5px; 
-            text-transform: uppercase;
-            color: rgba(255, 255, 255, 0.35);
-            transition: color 0.3s ease;
+        @keyframes tear {
+            0% { transform: translate(0, 0) skew(0deg); }
+            25% { transform: translate(-4px, 2px) skew(-8deg); }
+            50% { transform: translate(4px, -2px) skew(8deg); }
+            75% { transform: translate(-2px, -4px) skew(0deg); }
+            100% { transform: translate(0, 0) skew(0deg); }
         }
-        .dir-node:hover .dir-spec { color: rgba(0, 0, 0, 0.55); }
-
-        .dir-arrow { 
-            font-size: 1.2rem; 
-            opacity: 0; 
-            transform: translateX(-10px); 
-            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); 
-        }
-        .dir-node:hover .dir-arrow { 
-            opacity: 1; 
-            transform: translateX(0); 
-            color: var(--void-black); 
-        }
-
-        /* --- SECRETS & ANIMATIONS --- */
-        .glitch-reveal {
-            animation: text-glitch 0.2s 3 forwards;
-            color: var(--bone-white) !important;
-            text-shadow: 0 0 20px var(--bone-white);
-        }
-
-        @keyframes text-glitch {
-            0% { transform: translate(0) }
-            20% { transform: translate(-2px, 2px) }
-            40% { transform: translate(-2px, -2px) }
-            60% { transform: translate(2px, 2px) }
-            80% { transform: translate(2px, -2px) }
-            100% { transform: translate(0) }
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        @keyframes pulse { 0% { transform: scale(1); opacity: 0.6; } 100% { transform: scale(1.3); opacity: 1; } }
 
         @media (max-width: 1024px) {
-            .cathedral-layout { grid-template-columns: 1fr; height: auto; }
+            .brutalist-grid { grid-template-columns: 1fr; height: auto; }
             .left-axis { display: none; }
             .right-cloisters { height: auto; padding: 40px 20px;}
             .center-nave { padding: 40px 20px; }
             body { overflow: auto; cursor: auto;}
-            #tomb-lantern-cursor, #tomb-dust, .infinite-inferno { display: none; }
+            #crosshair-cursor, #lo-fi-grain, .parallax-layer, #relic-reveal-mask { display: none; }
         }
     </style>
 </head>
 <body>
 
-    <canvas id="tomb-dust"></canvas>
-
-    <div class="infinite-inferno" id="tomb-wall">
-        <div class="scroll-content" id="scroll-tomb-content"></div>
-    </div>
-
-    <div id="tomb-lantern-cursor">
-        <svg id="cursor-text-svg" viewBox="0 0 100 100">
-            <path id="textPath" d="M 50,50 m -35,0 a 35,35 0 1,1 70,0 a 35,35 0 1,1 -70,0" fill="none"></path>
-            <text font-family="var(--serif-font)" font-style="italic" font-size="0.67rem" letter-spacing="2.2px">
-                <textPath href="#textPath" startOffset="0%">• SYNT // AUDIO ARCHITECTURE • EMBEDDED GENERATIVE MATRIX •</textPath>
-            </text>
+    <canvas id="lo-fi-grain"></canvas>
+    
+    <div class="parallax-layer">
+        <svg class="sacred-matrix-svg dim-style" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg">
+            <g>
+                <circle cx="500" cy="500" r="100"/>
+                <circle cx="500" cy="500" r="250"/>
+                <circle cx="500" cy="500" r="400"/>
+                <circle cx="500" cy="250" r="250"/>
+                <circle cx="500" cy="750" r="250"/>
+                <circle cx="250" cy="500" r="250"/>
+                <circle cx="750" cy="500" r="250"/>
+                <line x1="100" y1="500" x2="900" y2="500"/>
+                <line x1="500" y1="100" x2="500" y2="900"/>
+                <line x1="217" y1="217" x2="783" y2="783"/>
+                <line x1="217" y1="783" x2="783" y2="217"/>
+                <polygon points="500,50 950,500 500,950 50,500"/>
+                <polygon points="181,181 819,181 819,819 181,819"/>
+            </g>
         </svg>
     </div>
 
-    <div class="cathedral-layout">
+    <div id="relic-reveal-mask">
+        <div class="parallax-layer">
+            <svg class="sacred-matrix-svg glow-style" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg">
+                <g>
+                    <circle cx="500" cy="500" r="100"/>
+                    <circle cx="500" cy="500" r="250"/>
+                    <circle cx="500" cy="500" r="400"/>
+                    <circle cx="500" cy="250" r="250"/>
+                    <circle cx="500" cy="750" r="250"/>
+                    <circle cx="250" cy="500" r="250"/>
+                    <circle cx="750" cy="500" r="250"/>
+                    <line x1="100" y1="500" x2="900" y2="500"/>
+                    <line x1="500" y1="100" x2="500" y2="900"/>
+                    <line x1="217" y1="217" x2="783" y2="783"/>
+                    <line x1="217" y1="783" x2="783" y2="217"/>
+                    <polygon points="500,50 950,500 500,950 50,500"/>
+                    <polygon points="181,181 819,181 819,819 181,819"/>
+                </g>
+            </svg>
+        </div>
+    </div>
+
+    <div id="crosshair-cursor"></div>
+
+    <div class="brutalist-grid">
         <div class="panel left-axis">
             <a href="#" class="sigil interactive">†</a>
-            <div class="vertical-marker">ELEVATION // DEVOTION</div>
-            <div class="vertical-marker" style="color: var(--bone-white);">MXXVI</div>
+            <div class="vertical-marker">AUDIO // ARCHITECTURE</div>
+            <div class="vertical-marker" style="color: rgba(255,255,255,0.8);">0X1900</div>
         </div>
 
         <div class="panel center-nave">
             <div class="header-block">
-                <div class="audio-ritual-info interactive" id="audio-ritual-toggle">
-                    <div class="pulse-indicator"></div>
-                    <span id="audio-status-text">[ INTENSIONS UNKNOWN / EXHUME ]</span>
+                <div class="audio-toggle" id="audio-status">
+                    <div class="pulse"></div>
+                    <span id="audio-status-text">[ ENGINE DORMANT / CLICK ANYWHERE TO WAKE ]</span>
                 </div>
             </div>
 
             <div class="monolith-title">
                 <h1 class="brand-name interactive" id="core-monolith">synt.</h1>
                 <p class="title-subtext">
-                    An interactive, generative sonic monument.<br>
-                    Y-axis governs spectral dampening. X-axis shifts panoramic spatial depth.<br>
-                    <strong>[ WELCOME... ]</strong>
+                    Generative monochrome drone architecture.<br>
+                    Cursor momentum tears frequency. Hover directory to alter matrix.<br>
+                    <strong style="color: rgba(255,255,255,0.8);">[ CLICK + HOLD TO REVEAL RELIC ]</strong>
                 </p>
             </div>
         </div>
 
         <div class="panel right-cloisters">
             <div>
-                <div class="section-header">// SYSTEM DIRECTORY // MANIFEST</div>
+                <div class="section-header">// ROOT DIRECTORY</div>
                 <nav class="directory-list">
                     
-                    <a href="player.html" class="dir-node interactive" data-root="55.00" data-harm="82.41" data-wave="sawtooth">
-                        <div class="dir-index">001</div>
+                    <a href="player.html" class="dir-node interactive" data-profile="tracks">
+                        <div class="dir-index">01</div>
                         <div class="dir-content">
-                            <div class="dir-title">RESONANCE</div>
-                            <div class="dir-spec">Sonic Artifacts &  Audio</div>
+                            <div class="dir-title">TRACKS</div>
+                            <div class="dir-spec">Master Audio & Stems</div>
                         </div>
-                        <div class="dir-arrow">↗</div>
                     </a>
                     
-                    <a href="visuals.html" class="dir-node interactive" data-root="41.20" data-harm="61.74" data-wave="triangle">
-                        <div class="dir-index">002</div>
+                    <a href="visuals.html" class="dir-node interactive" data-profile="optics">
+                        <div class="dir-index">02</div>
                         <div class="dir-content">
-                            <div class="dir-title">APPARITIONS</div>
-                            <div class="dir-spec">Visual Archives & Optics</div>
+                            <div class="dir-title">OPTICS</div>
+                            <div class="dir-spec">Visual Archives & Graphics</div>
                         </div>
-                        <div class="dir-arrow">↗</div>
                     </a>
 
-                    <a href="writing.html" class="dir-node interactive" data-root="65.41" data-harm="98.00" data-wave="square">
-                        <div class="dir-index">003</div>
+                    <a href="writing.html" class="dir-node interactive" data-profile="logs">
+                        <div class="dir-index">03</div>
                         <div class="dir-content">
-                            <div class="dir-title">INSCRIPTIONS</div>
-                            <div class="dir-spec">Textual Manifestos</div>
+                            <div class="dir-title">LOGS</div>
+                            <div class="dir-spec">Inscriptions & Text</div>
                         </div>
-                        <div class="dir-arrow">↗</div>
                     </a>
 
                 </nav>
@@ -361,22 +393,38 @@
     </div>
 
     <script>
-        // --- 1. OPTIMIZED GPU CANVAS NOISE ENGINE ---
-        const canvas = document.getElementById('tomb-dust');
+        // GLOBAL VARIABLES 
+        const crosshairCursor = document.getElementById('crosshair-cursor');
+        const brandMonolith = document.getElementById('core-monolith');
+        const parallaxLayers = document.querySelectorAll('.parallax-layer');
+        const audioStatusToggle = document.getElementById('audio-status');
+        const statusText = document.getElementById('audio-status-text');
+        
+        let curX = window.innerWidth / 2, curY = window.innerHeight / 2;
+        let tarX = curX, tarY = curY;
+        let lastX = curX, lastY = curY;
+        
+        let cursorSpeed = 0;
+        let smoothedSpeed = 0; 
+        let beamAngle = 0;
+
+        let audioCtx, masterGain, lowpassFilter, waveShaper, stereoPanner;
+        let oscSub, oscHarmonic, noiseOsc;
+        let isEngineAwake = false;
+
+        // --- 1. HARSH B&W NOISE ENGINE ---
+        const canvas = document.getElementById('lo-fi-grain');
         const ctx = canvas.getContext('2d', { alpha: false });
         let noiseCacheCanvas = null;
         
         function initNoiseEngine() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
-            
             const idata = ctx.createImageData(canvas.width, canvas.height);
             const buffer32 = new Uint32Array(idata.data.buffer);
-            const len = buffer32.length;
-            for (let i = 0; i < len; i++) {
-                buffer32[i] = Math.random() < 0.5 ? 0xff000000 : 0xffffffff;
+            for (let i = 0; i < buffer32.length; i++) {
+                buffer32[i] = Math.random() < 0.2 ? 0xff000000 : 0xffffffff; 
             }
-            
             noiseCacheCanvas = document.createElement('canvas');
             noiseCacheCanvas.width = canvas.width;
             noiseCacheCanvas.height = canvas.height;
@@ -385,359 +433,268 @@
 
         function drawBlitNoise() {
             if (!noiseCacheCanvas) return;
-            const jitterX = Math.floor((Math.random() * 100) - 50);
-            const jitterY = Math.floor((Math.random() * 100) - 50);
-            
+            const jitterX = Math.floor((Math.random() * 30) - 15);
+            const jitterY = Math.floor((Math.random() * 30) - 15);
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.drawImage(noiseCacheCanvas, jitterX, jitterY);
         }
-
         window.addEventListener('resize', initNoiseEngine);
         initNoiseEngine();
-        setInterval(drawBlitNoise, 45);
+        setInterval(drawBlitNoise, 40); 
 
-        // --- 2. ARCANE TEXT WALL INJECTION ---
-        const tombContent = document.getElementById('scroll-tomb-content');
-        const arcanePhrases = [
-            "De profundis clamavi ad te Domine",
-            "Shadows from our bodies cast against the stone",
-            "Musica est exercitium arithmeticae occultum",
-            "Ars sine scientia nihil est",
-            "Tenebrae eam non comprehenderunt",
-            "Vox clamantis in deserto",
-            "six seven frequencies alignment"
-        ];
-        const sigils = ["𓃵", "ꑭ", "ᛝ", "✴", "𓄃", "†", "§"];
-
-        let textBlockHTML = "";
-        for (let i = 0; i < 800; i++) {
-            let phrase = arcanePhrases[Math.floor(Math.random() * arcanePhrases.length)];
-            let symbolInsert = (Math.random() > 0.85) ? ` <span style="opacity:0.6; margin: 0 8px;">${sigils[Math.floor(Math.random() * sigils.length)]}</span> ` : " • ";
-            textBlockHTML += phrase + symbolInsert;
-        }
-        tombContent.innerHTML = `<div>${textBlockHTML}</div><div>${textBlockHTML}</div>`;
-
-        // --- 3. LANTERN PHYSICS & MAGNETIC DIRECTORY ---
-        const lanternCursor = document.getElementById('tomb-lantern-cursor');
-        const wallElement = document.getElementById('tomb-wall');
-        const dirNodes = document.querySelectorAll('.dir-node');
-        const brandMonolith = document.getElementById('core-monolith');
-        
-        let curX = window.innerWidth / 2, curY = window.innerHeight / 2;
-        let tarX = curX, tarY = curY;
-        let time = 0;
-        
-        // Torch Lerping Variables
-        let currentRadius = 130;
-        let targetRadius = 130;
-
+        // --- 2. CURSOR PHYSICS & FLASHLIGHT TRACKING ---
         document.addEventListener('mousemove', (e) => {
             tarX = e.clientX;
             tarY = e.clientY;
-            wallElement.style.opacity = 1; 
-
-            dirNodes.forEach(node => {
-                const rect = node.getBoundingClientRect();
-                const nodeCenterY = rect.top + rect.height / 2;
-                const distanceY = Math.abs(tarY - nodeCenterY);
-                
-                if (distanceY < 120 && tarX > rect.left - 250) {
-                    const pull = (120 - distanceY) * 0.18;
-                    node.style.transform = `translateX(-${pull}px)`;
-                } else {
-                    node.style.transform = `translateX(0px)`;
-                }
-            });
-
-            mapAudioToGeometry(tarX, tarY);
         });
 
-        function renderTombAtmosphere() {
-            curX += (tarX - curX) * 0.08; 
-            curY += (tarY - curY) * 0.08;
-            time += 0.05; 
+        function renderAtmosphere() {
+            // Calculate cursor speed and momentum
+            cursorSpeed = Math.abs(tarX - lastX) + Math.abs(tarY - lastY);
+            smoothedSpeed += (cursorSpeed - smoothedSpeed) * 0.12; 
+            lastX = tarX; lastY = tarY;
 
-            // Proximity Glitch Engine for "synt."
+            // Flashlight Aiming Logic: Point beam towards movement direction
+            let dx = tarX - curX;
+            let dy = tarY - curY;
+            if (Math.abs(dx) > 1 || Math.abs(dy) > 1) {
+                let targetAngle = Math.atan2(dy, dx);
+                // Smooth angle interpolation
+                let angleDiff = targetAngle - beamAngle;
+                while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+                while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+                beamAngle += angleDiff * 0.15;
+            }
+
+            // Sync CSS variables for the CSS Mask Engine
+            document.documentElement.style.setProperty('--beam-angle', beamAngle + 'rad');
+            document.documentElement.style.setProperty('--cursor-x', curX + 'px');
+            document.documentElement.style.setProperty('--cursor-y', curY + 'px');
+
+            curX += (tarX - curX) * 0.25; 
+            curY += (tarY - curY) * 0.25;
+
+            // Brand Proximity Disturbance
             const brandRect = brandMonolith.getBoundingClientRect();
-            const brandCenterX = brandRect.left + brandRect.width / 2;
-            const brandCenterY = brandRect.top + brandRect.height / 2;
-            const distToBrand = Math.hypot(tarX - brandCenterX, tarY - brandCenterY);
+            const distToBrand = Math.hypot(tarX - (brandRect.left + brandRect.width / 2), tarY - (brandRect.top + brandRect.height / 2));
 
-            if (distToBrand < 350) {
-                const intensity = Math.pow(1 - (distToBrand / 350), 2); 
-                if (Math.random() < intensity * 0.6) {
-                    const skewX = (Math.random() * 8 - 4) * intensity;
-                    const transX = (Math.random() * 6 - 3) * intensity;
-                    const transY = (Math.random() * 4 - 2) * intensity;
-                    brandMonolith.style.transform = `translate(${transX}px, ${transY}px) skew(${skewX}deg)`;
-                    brandMonolith.style.textShadow = `${transX}px ${transY * -1}px 0 rgba(255,255,255,0.6)`;
+            if (distToBrand < 250 && !document.body.classList.contains('active-resonation')) {
+                if (Math.random() < 0.2) {
+                    const tearX = (Math.random() * 4 - 2);
+                    brandMonolith.style.transform = `translateX(${tearX}px)`;
                 }
-            } else {
-                brandMonolith.style.transform = 'translate(0,0) skew(0deg)';
-                brandMonolith.style.textShadow = 'none';
+            } else if (!document.body.classList.contains('active-resonation')) {
+                brandMonolith.style.transform = 'translateX(0)';
             }
 
-            // Torch Physics & Lerping
-            const flicker = Math.sin(time * 1.5) * 0.05 + Math.sin(time * 2.8) * 0.03;
-            const currentOpacity = 0.8 + flicker + ((Math.random() * 0.04) - 0.02);
-            
-            if (document.body.classList.contains('active-resonation')) {
-                targetRadius = 240 + Math.sin(time * 0.5) * 25; 
-            } else if (document.body.classList.contains('hovering')) {
-                targetRadius = 160;
-            } else {
-                targetRadius = 130;
+            // Parallax Matrix Layers
+            const xOffset = (tarX / window.innerWidth - 0.5) * 40;
+            const yOffset = (tarY / window.innerHeight - 0.5) * 40;
+            if (!document.body.classList.contains('active-resonation')) {
+                parallaxLayers.forEach(layer => {
+                    layer.style.transform = `translate(${xOffset}px, ${yOffset}px)`;
+                });
             }
 
-            // Slows down the speed the mask grows and shrinks
-            currentRadius += (targetRadius - currentRadius) * 0.04; 
+            crosshairCursor.style.left = curX + 'px';
+            crosshairCursor.style.top = curY + 'px';
 
-            lanternCursor.style.left = curX + 'px';
-            lanternCursor.style.top = curY + 'px';
+            modulateAudioWithVelocity(smoothedSpeed);
 
-            wallElement.style.setProperty('--mask-x', curX + 'px');
-            wallElement.style.setProperty('--mask-y', curY + 'px');
-            wallElement.style.setProperty('--mask-opacity', Math.max(0.4, currentOpacity)); 
-            wallElement.style.setProperty('--mask-radius', (currentRadius + (Math.random() * 4 - 2)) + 'px');
-
-            requestAnimationFrame(renderTombAtmosphere);
+            requestAnimationFrame(renderAtmosphere);
         }
-        renderTombAtmosphere();
+        renderAtmosphere();
 
         document.querySelectorAll('.interactive').forEach(el => {
-            el.addEventListener('mouseenter', () => {
-                document.body.classList.add('hovering');
-                triggerPhysicalChime(); // Sound feedback on standard hover items
-            });
+            el.addEventListener('mouseenter', () => document.body.classList.add('hovering'));
             el.addEventListener('mouseleave', () => document.body.classList.remove('hovering'));
         });
 
-
-        // --- 4. ADVANCED GENERATIVE SYNTHESIS ENGINE ---
-        let audioCtx, masterGain, cathedralFilter, stereoPanner, waveShaper;
-        let oscRoot, oscHarmonic, oscLFO;
-        let subGain, harmGain, saturationGain;
-        let isRitualActive = false;
-        
-        const ritualToggle = document.getElementById('audio-ritual-toggle');
-        const statusText = document.getElementById('audio-status-text');
-
-        function generateDistortionCurve(amount = 40) {
+        // --- 3. DYNAMIC REACTIVE AUDIO ENGINE ---
+        function generateHardClipCurve(amount = 100) {
             const k = amount;
             const n_samples = 44100;
             const curve = new Float32Array(n_samples);
-            const deg = Math.PI / 180;
             for (let i = 0; i < n_samples; ++i) {
                 const x = (i * 2) / n_samples - 1;
-                curve[i] = ((3 + k) * x * 20 * deg) / (Math.PI + k * Math.abs(x));
+                curve[i] = Math.tanh(x * k) / Math.tanh(k);
             }
             return curve;
         }
 
-        function initSynthesisEngine() {
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            
-            masterGain = audioCtx.createGain();
-            stereoPanner = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : null;
-            cathedralFilter = audioCtx.createBiquadFilter();
-            waveShaper = audioCtx.createWaveShaper();
-            saturationGain = audioCtx.createGain();
-            
-            subGain = audioCtx.createGain();
-            harmGain = audioCtx.createGain();
+        const audioProfiles = {
+            base: { wave1: 'sine', wave2: 'sawtooth', subFreq: 32.70, harmFreq: 65.41, filterBase: 150 }, 
+            tracks: { wave1: 'sawtooth', wave2: 'square', subFreq: 43.65, harmFreq: 43.65, filterBase: 600 }, 
+            optics: { wave1: 'square', wave2: 'triangle', subFreq: 130.81, harmFreq: 261.63, filterBase: 1200 }, 
+            logs: { wave1: 'triangle', wave2: 'sawtooth', subFreq: 55.00, harmFreq: 82.41, filterBase: 300 } 
+        };
 
-            cathedralFilter.type = 'lowpass';
-            cathedralFilter.frequency.value = 1200;
-            cathedralFilter.Q.value = 2;
+        let currentProfile = 'base';
 
-            waveShaper.curve = generateDistortionCurve(80);
-            waveShaper.oversample = '4x';
+        function wakeEngine() {
+            if (isEngineAwake) return;
+            try {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                
+                masterGain = audioCtx.createGain();
+                lowpassFilter = audioCtx.createBiquadFilter();
+                waveShaper = audioCtx.createWaveShaper();
+                stereoPanner = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : null;
 
-            oscRoot = audioCtx.createOscillator();
-            oscRoot.type = 'sawtooth';
-            oscRoot.frequency.value = 55.00; 
+                lowpassFilter.type = 'lowpass';
+                lowpassFilter.frequency.value = audioProfiles.base.filterBase;
+                lowpassFilter.Q.value = 2;
 
-            oscHarmonic = audioCtx.createOscillator();
-            oscHarmonic.type = 'sine';
-            oscHarmonic.frequency.value = 82.41; 
+                waveShaper.curve = generateHardClipCurve(20); 
+                waveShaper.oversample = '4x';
 
-            oscLFO = audioCtx.createOscillator();
-            const lfoGain = audioCtx.createGain();
-            oscLFO.type = 'sine';
-            oscLFO.frequency.value = 0.35; 
-            lfoGain.gain.value = 1.5; 
+                oscSub = audioCtx.createOscillator();
+                oscSub.type = audioProfiles.base.wave1;
+                oscSub.frequency.value = audioProfiles.base.subFreq; 
 
-            oscLFO.connect(lfoGain);
-            lfoGain.connect(oscRoot.frequency);
-            lfoGain.connect(oscHarmonic.frequency);
+                oscHarmonic = audioCtx.createOscillator();
+                oscHarmonic.type = audioProfiles.base.wave2;
+                oscHarmonic.frequency.value = audioProfiles.base.harmFreq; 
 
-            oscRoot.connect(subGain);
-            oscHarmonic.connect(harmGain);
+                const bufferSize = audioCtx.sampleRate * 2; 
+                const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                const output = noiseBuffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) { output[i] = Math.random() * 2 - 1; }
+                noiseOsc = audioCtx.createBufferSource();
+                noiseOsc.buffer = noiseBuffer;
+                noiseOsc.loop = true;
 
-            subGain.gain.value = 0.25;
-            harmGain.gain.value = 0.15;
+                const subGain = audioCtx.createGain();
+                const harmGain = audioCtx.createGain();
+                const hissGain = audioCtx.createGain();
 
-            subGain.connect(cathedralFilter);
-            harmGain.connect(cathedralFilter);
+                oscSub.connect(subGain);
+                oscHarmonic.connect(harmGain);
+                noiseOsc.connect(hissGain);
 
-            cathedralFilter.connect(masterGain);
-            cathedralFilter.connect(waveShaper);
-            waveShaper.connect(saturationGain);
-            saturationGain.connect(masterGain);
-            saturationGain.gain.value = 0.0; 
+                subGain.gain.value = 0.6;
+                harmGain.gain.value = 0.2;
+                hissGain.gain.value = 0.015;
 
-            if (stereoPanner) {
-                masterGain.connect(stereoPanner);
-                stereoPanner.connect(audioCtx.destination);
-            } else {
+                subGain.connect(lowpassFilter);
+                harmGain.connect(lowpassFilter);
+                hissGain.connect(lowpassFilter);
+
+                lowpassFilter.connect(waveShaper);
+                
+                if (stereoPanner) {
+                    waveShaper.connect(stereoPanner);
+                    stereoPanner.connect(masterGain);
+                } else {
+                    waveShaper.connect(masterGain);
+                }
+                
                 masterGain.connect(audioCtx.destination);
+                masterGain.gain.value = 0.06; 
+
+                oscSub.start();
+                oscHarmonic.start();
+                noiseOsc.start();
+
+                audioCtx.resume();
+                isEngineAwake = true;
+                
+                audioStatusToggle.classList.add('engine-awake');
+                statusText.innerText = "[ ENGINE RESONATING ]";
+            } catch (e) {
+                console.error("Audio Context could not be created.");
             }
-
-            masterGain.gain.value = 0.0; 
-
-            oscRoot.start();
-            oscHarmonic.start();
-            oscLFO.start();
         }
 
-        function mapAudioToGeometry(x, y) {
-            if (!audioCtx || !isRitualActive) return;
-
-            const yPercentage = 1 - (y / window.innerHeight);
-            const targetCutoff = 80 + (Math.pow(yPercentage, 2) * 2400); 
-            cathedralFilter.frequency.setTargetAtTime(targetCutoff, audioCtx.currentTime, 0.1);
+        function modulateAudioWithVelocity(speed) {
+            if (!audioCtx || !isEngineAwake || document.body.classList.contains('active-resonation')) return;
+            
+            const profile = audioProfiles[currentProfile];
+            
+            const dynamicCutoff = profile.filterBase + (speed * 30);
+            const clampedCutoff = Math.min(dynamicCutoff, 5000); 
+            lowpassFilter.frequency.setTargetAtTime(clampedCutoff, audioCtx.currentTime, 0.05);
+            
+            const spatialPitch = 1 + ((tarX / window.innerWidth) - 0.5) * 0.06;
+            const velocityPitch = 1 + Math.min(speed / 150, 0.15); 
+            
+            oscSub.frequency.setTargetAtTime(profile.subFreq * spatialPitch * velocityPitch, audioCtx.currentTime, 0.1);
+            oscHarmonic.frequency.setTargetAtTime(profile.harmFreq * spatialPitch * velocityPitch, audioCtx.currentTime, 0.1);
 
             if (stereoPanner) {
-                const panTarget = (x / window.innerWidth) * 2 - 1; 
-                stereoPanner.pan.setTargetAtTime(panTarget * 0.7, audioCtx.currentTime, 0.15);
+                const panValue = (tarX / window.innerWidth) * 2 - 1; 
+                stereoPanner.pan.setTargetAtTime(panValue * 0.8, audioCtx.currentTime, 0.1); 
             }
-        }
 
-        // PHYSICAL SOUND SYNTHESIS CHIMES
-        function triggerPhysicalChime(baseFreq = 220) {
-            if (!audioCtx || !isRitualActive) return;
-            
-            const now = audioCtx.currentTime;
-            const chimeOsc = audioCtx.createOscillator();
-            const chimeGain = audioCtx.createGain();
-            
-            // Generate subtle frequency randomness so it feels organic on entry
-            const pitchJitter = (Math.random() * 0.3) + 0.85;
-            const targetPitch = baseFreq * pitchJitter * 3; 
-
-            chimeOsc.type = 'triangle'; 
-            chimeOsc.frequency.setValueAtTime(targetPitch, now);
-            chimeOsc.frequency.exponentialRampToValueAtTime(targetPitch * 0.5, now + 0.2);
-
-            chimeGain.gain.setValueAtTime(0.06, now);
-            chimeGain.gain.exponentialRampToValueAtTime(0.00001, now + 0.25);
-
-            chimeOsc.connect(chimeGain);
-            chimeGain.connect(cathedralFilter);
-
-            chimeOsc.start(now);
-            chimeOsc.stop(now + 0.3);
-        }
-
-        ritualToggle.addEventListener('click', async () => {
-            if (!audioCtx) initSynthesisEngine();
-            if (audioCtx.state === 'suspended') await audioCtx.resume();
-
-            isRitualActive = !isRitualActive;
-            
-            if (isRitualActive) {
-                ritualToggle.classList.add('ritual-active');
-                statusText.innerText = "[ TOMB RESONATING ]";
-                masterGain.gain.setTargetAtTime(0.35, audioCtx.currentTime, 0.4);
+            if (speed > 40) {
+                waveShaper.curve = generateHardClipCurve(40 + speed);
             } else {
-                ritualToggle.classList.remove('ritual-active');
-                statusText.innerText = "[ EXHUME MONUMENT ]";
-                masterGain.gain.setTargetAtTime(0.0, audioCtx.currentTime, 0.3);
+                waveShaper.curve = generateHardClipCurve(20);
             }
-        });
+        }
 
-        // Interactive Matrix: System Nav Directory Hooked directly into Synth Arrays
-        dirNodes.forEach(node => {
+        document.querySelectorAll('.dir-node').forEach(node => {
             node.addEventListener('mouseenter', () => {
-                if (!audioCtx || !isRitualActive) return;
+                if (!audioCtx || !isEngineAwake) return;
+                
+                const profileId = node.getAttribute('data-profile');
+                const p = audioProfiles[profileId];
+                currentProfile = profileId;
 
-                const rootFreq = parseFloat(node.getAttribute('data-root'));
-                const harmFreq = parseFloat(node.getAttribute('data-harm'));
-                const waveType = node.getAttribute('data-wave');
-
-                oscRoot.frequency.exponentialRampToValueAtTime(rootFreq, audioCtx.currentTime + 0.4);
-                oscHarmonic.frequency.exponentialRampToValueAtTime(harmFreq, audioCtx.currentTime + 0.5);
-                oscRoot.type = waveType;
-
-                triggerPhysicalChime(rootFreq);
+                oscSub.type = p.wave1;
+                oscHarmonic.type = p.wave2;
+                oscSub.frequency.exponentialRampToValueAtTime(p.subFreq, audioCtx.currentTime + 0.1);
+                oscHarmonic.frequency.exponentialRampToValueAtTime(p.harmFreq, audioCtx.currentTime + 0.1);
+                
+                waveShaper.curve = generateHardClipCurve(100);
+                setTimeout(() => { if(!document.body.classList.contains('active-resonation')) waveShaper.curve = generateHardClipCurve(20); }, 100);
+            });
+            
+            node.addEventListener('mouseleave', () => {
+                if (!audioCtx || !isEngineAwake) return;
+                currentProfile = 'base';
+                const p = audioProfiles.base;
+                oscSub.type = p.wave1;
+                oscHarmonic.type = p.wave2;
+                oscSub.frequency.exponentialRampToValueAtTime(p.subFreq, audioCtx.currentTime + 0.5);
+                oscHarmonic.frequency.exponentialRampToValueAtTime(p.harmFreq, audioCtx.currentTime + 0.5);
             });
         });
 
-        // --- BRAND MONOLITH INTERACTIVITY (REALITY DISTORTION) ---
-        // (Audio feedback remains on hover, visual glitch is now controlled by proximity in render loop)
-        brandMonolith.addEventListener('mouseenter', () => {
-            canvas.style.opacity = '0.28'; 
-            
-            if (audioCtx && isRitualActive) {
-                saturationGain.gain.setTargetAtTime(0.7, audioCtx.currentTime, 0.05);
-                cathedralFilter.Q.setTargetAtTime(6, audioCtx.currentTime, 0.05);
-                oscLFO.frequency.setTargetAtTime(32.0, audioCtx.currentTime, 0.1); 
-            }
-        });
-
-        brandMonolith.addEventListener('mouseleave', () => {
-            canvas.style.opacity = '0.04'; 
-            
-            if (audioCtx && isRitualActive) {
-                saturationGain.gain.setTargetAtTime(0.0, audioCtx.currentTime, 0.2);
-                cathedralFilter.Q.setTargetAtTime(2, audioCtx.currentTime, 0.2);
-                oscLFO.frequency.setTargetAtTime(0.35, audioCtx.currentTime, 0.4); 
-            }
-        });
-
-        // Blown-Out Overdrive Trigger
+        // --- 4. ENGINE WAKE & RELIC FLASHLIGHT SCAN ---
         document.addEventListener('mousedown', (e) => {
+            if(!isEngineAwake) {
+                wakeEngine();
+                return; 
+            }
+
             if (e.target.closest('.interactive')) return;
             document.body.classList.add('active-resonation');
+            brandMonolith.classList.add('jagged-glitch');
+            canvas.style.opacity = '0.35'; 
             
-            if (audioCtx && isRitualActive) {
-                saturationGain.gain.setTargetAtTime(0.6, audioCtx.currentTime, 0.1);
-                cathedralFilter.Q.setTargetAtTime(8, audioCtx.currentTime, 0.1);
-                subGain.gain.setTargetAtTime(0.5, audioCtx.currentTime, 0.2);
+            if (audioCtx && isEngineAwake) {
+                waveShaper.curve = generateHardClipCurve(800); 
+                lowpassFilter.frequency.setTargetAtTime(12000, audioCtx.currentTime, 0.05);
+                lowpassFilter.Q.setTargetAtTime(20, audioCtx.currentTime, 0.05);
+                oscHarmonic.frequency.exponentialRampToValueAtTime(oscHarmonic.frequency.value * 4, audioCtx.currentTime + 0.1);
+                masterGain.gain.setTargetAtTime(0.2, audioCtx.currentTime, 0.1); 
             }
         });
 
         document.addEventListener('mouseup', () => {
-            document.body.classList.remove('active-resonation');
+            if(!isEngineAwake) return;
             
-            if (audioCtx && isRitualActive) {
-                saturationGain.gain.setTargetAtTime(0.0, audioCtx.currentTime, 0.3);
-                cathedralFilter.Q.setTargetAtTime(2, audioCtx.currentTime, 0.4);
-                subGain.gain.setTargetAtTime(0.25, audioCtx.currentTime, 0.3);
-            }
-        });
-
-        // --- 5. THE SIX SEVEN ACCESS ENVELOPE ---
-        let keystrokes = '';
-        const secretCode = 'sixseven';
-        
-        document.addEventListener('keydown', (e) => {
-            keystrokes += e.key.toLowerCase();
-            if (keystrokes.length > secretCode.length) {
-                keystrokes = keystrokes.slice(-secretCode.length);
-            }
-            if (keystrokes === secretCode) {
-                const monolith = document.getElementById('core-monolith');
-                monolith.innerText = "[ LINK ESTABLISHED ]";
-                monolith.classList.add('glitch-reveal');
-                
-                if (audioCtx && isRitualActive) {
-                    oscHarmonic.frequency.setValueAtTime(880, audioCtx.currentTime);
-                    oscHarmonic.frequency.exponentialRampToValueAtTime(82.41, audioCtx.currentTime + 1.2);
-                }
-                setTimeout(() => {
-                    window.location.href = "mailto:exhumation@synt.com"; 
-                }, 1500);
+            document.body.classList.remove('active-resonation');
+            brandMonolith.classList.remove('jagged-glitch');
+            canvas.style.opacity = '0.15';
+            
+            if (audioCtx && isEngineAwake) {
+                const p = audioProfiles[currentProfile];
+                waveShaper.curve = generateHardClipCurve(20); 
+                lowpassFilter.Q.setTargetAtTime(2, audioCtx.currentTime, 0.2);
+                oscHarmonic.frequency.exponentialRampToValueAtTime(p.harmFreq, audioCtx.currentTime + 0.3);
+                masterGain.gain.setTargetAtTime(0.06, audioCtx.currentTime, 0.3); 
             }
         });
     </script>
