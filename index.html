@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SYNT // GENERATIVE EXHUMATION</title>
+    <title>synt</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,400;1,600&family=Space+Mono:wght@400;700&display=swap');
 
@@ -11,7 +11,7 @@
             --void-black: #000000;
             --stone-dark: #050506;
             --bone-white: #f4f4f5;
-            --torch-glow: #fff5e1; 
+            --torch-glow: #ffd185; /* Shifted to an amber/gold for better visibility */
             --tomb-bronze: #3d372e; 
             
             --serif-font: 'Cormorant Garamond', serif;
@@ -35,6 +35,7 @@
             height: 100vh;
             width: 100vw;
             position: relative;
+            transition: background-color 0.3s ease;
         }
 
         /* --- HARDWARE ACCELERATED CANVAS NOISE --- */
@@ -46,6 +47,7 @@
             z-index: 9999;
             opacity: 0.04;
             mix-blend-mode: overlay;
+            transition: opacity 0.15s ease;
         }
 
         /* --- INFINITE SCROLLING TOMB TEXT --- */
@@ -103,6 +105,8 @@
             fill: var(--torch-glow); 
             opacity: var(--mask-opacity, 0.7); 
             transition: opacity 0.1s, fill 0.5s ease;
+            /* Added drop shadow to separate cursor from the background text */
+            filter: drop-shadow(0 0 4px rgba(0,0,0,0.9));
         }
 
         .hovering #cursor-text-svg { fill: #fff; }
@@ -110,18 +114,18 @@
         /* --- ACTIVE RESONATION VISUALS (CLICK & HOLD) --- */
         body.active-resonation .infinite-inferno {
             transform: scale(1.04); 
-            filter: brightness(1.5) contrast(1.2) hue-rotate(45deg);
+            filter: brightness(1.4) contrast(1.1);
         }
         
         body.active-resonation #cursor-text-svg {
-            fill: #ff3300; 
-            filter: drop-shadow(0 0 15px rgba(255, 51, 0, 0.8));
+            fill: #ffffff; 
+            filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.6));
         }
 
-        /* --- ASYMMETRIC GRID LAYER --- */
+        /* --- ASYMMETRIC GRID LAYOUT --- */
         .cathedral-layout {
             display: grid;
-            grid-template-columns: 120px 1fr 450px;
+            grid-template-columns: 120px 1fr 480px;
             height: 100vh;
             width: 100vw;
             position: relative;
@@ -149,8 +153,8 @@
         .pulse-indicator { width: 8px; height: 8px; background-color: rgba(255,255,255,0.15); border-radius: 50%; }
         
         .ritual-active .pulse-indicator {
-            background-color: #ff3300;
-            box-shadow: 0 0 12px rgba(255,51,0,0.8);
+            background-color: var(--bone-white);
+            box-shadow: 0 0 12px rgba(255,255,255,0.8);
             animation: pulse 0.6s infinite alternate;
         }
 
@@ -160,41 +164,100 @@
             font-family: var(--serif-font);
             font-size: 13vw; font-style: italic; font-weight: 400; line-height: 0.75;
             color: var(--bone-white);
-            transition: color 0.4s ease, text-shadow 0.4s ease;
+            /* Removed the transition so JS can control the jitter in real time */
             position: relative;
             z-index: 2;
+            display: inline-block;
         }
 
         .title-subtext {
             font-size: 0.75rem; color: rgba(255, 255, 255, 0.35); margin-top: 30px; max-width: 400px; line-height: 1.8;
         }
 
-        .right-cloisters { border-right: none; padding: 60px 40px; justify-content: space-between; }
+        /* --- BRUTALIST DIRECTORY (MONOCHROME INVERSION) --- */
+        .right-cloisters { border-right: none; padding: 60px 40px; justify-content: space-between; background: linear-gradient(to right, rgba(0,0,0,0), rgba(3,3,4,0.4)); }
         .section-header { font-size: 0.65rem; color: rgba(255, 255, 255, 0.25); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 40px; }
 
-        .canto-list { display: flex; flex-direction: column; gap: 2px; }
+        .directory-list { display: flex; flex-direction: column; gap: 16px; }
 
-        .canto-node {
-            background: #030304; padding: 30px 20px; display: flex; justify-content: space-between; align-items: center;
-            text-decoration: none; color: rgba(255, 255, 255, 0.6);
-            transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), background 0.4s ease, color 0.4s ease;
-            border-bottom: 1px solid rgba(255,255,255,0.02);
+        .dir-node {
+            display: grid;
+            grid-template-columns: 50px 1fr 30px;
+            align-items: center;
+            padding: 30px 24px;
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.03);
+            text-decoration: none;
+            color: rgba(255, 255, 255, 0.4);
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
             will-change: transform;
         }
-        
-        .canto-node:hover {
-            background: #08080a; color: var(--bone-white);
+
+        .dir-node::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 0%; height: 100%;
+            background: var(--bone-white);
+            transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: -1;
         }
 
-        .canto-index { font-family: var(--serif-font); font-style: italic; font-size: 1.4rem; color: rgba(255,255,255,0.15); transition: color 0.3s; }
-        .canto-node:hover .canto-index { color: var(--bone-white); }
-        .canto-title { font-size: 0.9rem; font-weight: bold; color: var(--bone-white); text-transform: uppercase; letter-spacing: 1px;}
-        .canto-spec { font-size: 0.65rem; color: rgba(255, 255, 255, 0.35); margin-top: 6px; letter-spacing: 2px;}
+        .dir-node:hover {
+            color: var(--void-black);
+            border-color: var(--bone-white);
+        }
 
-        /* --- SECRETS --- */
+        .dir-node:hover::before { 
+            width: 100%; 
+        }
+
+        .dir-index { 
+            font-family: var(--serif-font); 
+            font-style: italic; 
+            font-size: 1.4rem; 
+            color: rgba(255,255,255,0.15);
+            transition: color 0.3s ease;
+        }
+        .dir-node:hover .dir-index { color: rgba(0,0,0,0.4); }
+
+        .dir-title { 
+            font-size: 1.1rem; 
+            font-weight: 700; 
+            letter-spacing: 3px; 
+            color: var(--bone-white);
+            transition: color 0.3s ease;
+        }
+        .dir-node:hover .dir-title { color: var(--void-black); }
+
+        .dir-spec { 
+            font-size: 0.6rem; 
+            margin-top: 6px; 
+            letter-spacing: 1.5px; 
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.35);
+            transition: color 0.3s ease;
+        }
+        .dir-node:hover .dir-spec { color: rgba(0, 0, 0, 0.55); }
+
+        .dir-arrow { 
+            font-size: 1.2rem; 
+            opacity: 0; 
+            transform: translateX(-10px); 
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); 
+        }
+        .dir-node:hover .dir-arrow { 
+            opacity: 1; 
+            transform: translateX(0); 
+            color: var(--void-black); 
+        }
+
+        /* --- SECRETS & ANIMATIONS --- */
         .glitch-reveal {
             animation: text-glitch 0.2s 3 forwards;
-            color: #ff3300 !important;
+            color: var(--bone-white) !important;
+            text-shadow: 0 0 20px var(--bone-white);
         }
 
         @keyframes text-glitch {
@@ -255,70 +318,83 @@
                 <p class="title-subtext">
                     An interactive, generative sonic monument.<br>
                     Y-axis governs spectral dampening. X-axis shifts panoramic spatial depth.<br>
-                    <strong>[ CLICK + HOLD TO DRIVE SATURATION ]</strong>
+                    <strong>[ WELCOME... ]</strong>
                 </p>
             </div>
         </div>
 
         <div class="panel right-cloisters">
             <div>
-                <div class="section-header">// CANTOS HARMONIC NODES</div>
-                <div class="canto-list">
-                    <a href="#" class="canto-node interactive" data-root="55.00" data-harm="82.41" data-wave="sawtooth">
-                        <div>
-                            <div class="canto-title">I. SHATTERED SPIRE</div>
-                            <div class="canto-spec">A-MINOR DECAY / STACKED OSCILLATORS</div>
+                <div class="section-header">// SYSTEM DIRECTORY // MANIFEST</div>
+                <nav class="directory-list">
+                    
+                    <a href="player.html" class="dir-node interactive" data-root="55.00" data-harm="82.41" data-wave="sawtooth">
+                        <div class="dir-index">001</div>
+                        <div class="dir-content">
+                            <div class="dir-title">RESONANCE</div>
+                            <div class="dir-spec">Sonic Artifacts &  Audio</div>
                         </div>
-                        <div class="canto-index">01</div>
+                        <div class="dir-arrow">↗</div>
                     </a>
                     
-                    <a href="#" class="canto-node interactive" data-root="41.20" data-harm="61.74" data-wave="triangle">
-                        <div>
-                            <div class="canto-title">II. BODY SHADOWS</div>
-                            <div class="canto-spec">E-MINOR SUB BASEMENT / INDUSTRIAL WEIGHT</div>
+                    <a href="visuals.html" class="dir-node interactive" data-root="41.20" data-harm="61.74" data-wave="triangle">
+                        <div class="dir-index">002</div>
+                        <div class="dir-content">
+                            <div class="dir-title">APPARITIONS</div>
+                            <div class="dir-spec">Visual Archives & Optics</div>
                         </div>
-                        <div class="canto-index">02</div>
+                        <div class="dir-arrow">↗</div>
                     </a>
 
-                    <a href="#" class="canto-node interactive" data-root="65.41" data-harm="98.00" data-wave="square">
-                        <div>
-                            <div class="canto-title">III. CORPUS MASH</div>
-                            <div class="canto-spec">C-MAJOR SACRED DRIFT / GLITCH UNSTABLE</div>
+                    <a href="writing.html" class="dir-node interactive" data-root="65.41" data-harm="98.00" data-wave="square">
+                        <div class="dir-index">003</div>
+                        <div class="dir-content">
+                            <div class="dir-title">INSCRIPTIONS</div>
+                            <div class="dir-spec">Textual Manifestos</div>
                         </div>
-                        <div class="canto-index">03</div>
+                        <div class="dir-arrow">↗</div>
                     </a>
-                </div>
+
+                </nav>
             </div>
         </div>
     </div>
 
     <script>
-        // --- 1. OPTIMIZED CANVAS NOISE ---
+        // --- 1. OPTIMIZED GPU CANVAS NOISE ENGINE ---
         const canvas = document.getElementById('tomb-dust');
         const ctx = canvas.getContext('2d', { alpha: false });
+        let noiseCacheCanvas = null;
         
-        function resizeCanvas() {
+        function initNoiseEngine() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
-            generateNoise();
-        }
-
-        function generateNoise() {
-            const w = canvas.width;
-            const h = canvas.height;
-            const idata = ctx.createImageData(w, h);
+            
+            const idata = ctx.createImageData(canvas.width, canvas.height);
             const buffer32 = new Uint32Array(idata.data.buffer);
             const len = buffer32.length;
-            
             for (let i = 0; i < len; i++) {
                 buffer32[i] = Math.random() < 0.5 ? 0xff000000 : 0xffffffff;
             }
-            ctx.putImageData(idata, 0, 0);
+            
+            noiseCacheCanvas = document.createElement('canvas');
+            noiseCacheCanvas.width = canvas.width;
+            noiseCacheCanvas.height = canvas.height;
+            noiseCacheCanvas.getContext('2d').putImageData(idata, 0, 0);
         }
 
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
-        setInterval(generateNoise, 50);
+        function drawBlitNoise() {
+            if (!noiseCacheCanvas) return;
+            const jitterX = Math.floor((Math.random() * 100) - 50);
+            const jitterY = Math.floor((Math.random() * 100) - 50);
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(noiseCacheCanvas, jitterX, jitterY);
+        }
+
+        window.addEventListener('resize', initNoiseEngine);
+        initNoiseEngine();
+        setInterval(drawBlitNoise, 45);
 
         // --- 2. ARCANE TEXT WALL INJECTION ---
         const tombContent = document.getElementById('scroll-tomb-content');
@@ -341,35 +417,38 @@
         }
         tombContent.innerHTML = `<div>${textBlockHTML}</div><div>${textBlockHTML}</div>`;
 
-        // --- 3. LANTERN PHYSICS & MAGNETIC UI ---
+        // --- 3. LANTERN PHYSICS & MAGNETIC DIRECTORY ---
         const lanternCursor = document.getElementById('tomb-lantern-cursor');
         const wallElement = document.getElementById('tomb-wall');
-        const cantos = document.querySelectorAll('.canto-node');
+        const dirNodes = document.querySelectorAll('.dir-node');
+        const brandMonolith = document.getElementById('core-monolith');
         
         let curX = window.innerWidth / 2, curY = window.innerHeight / 2;
         let tarX = curX, tarY = curY;
         let time = 0;
+        
+        // Torch Lerping Variables
+        let currentRadius = 130;
+        let targetRadius = 130;
 
         document.addEventListener('mousemove', (e) => {
             tarX = e.clientX;
             tarY = e.clientY;
             wallElement.style.opacity = 1; 
 
-            // Magnetic Tracking for Sidebar
-            cantos.forEach(canto => {
-                const rect = canto.getBoundingClientRect();
-                const cantoCenterY = rect.top + rect.height / 2;
-                const distanceY = Math.abs(tarY - cantoCenterY);
+            dirNodes.forEach(node => {
+                const rect = node.getBoundingClientRect();
+                const nodeCenterY = rect.top + rect.height / 2;
+                const distanceY = Math.abs(tarY - nodeCenterY);
                 
-                if (distanceY < 100 && tarX > rect.left - 200) {
-                    const pull = (100 - distanceY) * 0.15;
-                    canto.style.transform = `translateX(-${pull}px)`;
+                if (distanceY < 120 && tarX > rect.left - 250) {
+                    const pull = (120 - distanceY) * 0.18;
+                    node.style.transform = `translateX(-${pull}px)`;
                 } else {
-                    canto.style.transform = `translateX(0px)`;
+                    node.style.transform = `translateX(0px)`;
                 }
             });
 
-            // Update Audio parameters dynamically if initialized
             mapAudioToGeometry(tarX, tarY);
         });
 
@@ -378,13 +457,40 @@
             curY += (tarY - curY) * 0.08;
             time += 0.05; 
 
+            // Proximity Glitch Engine for "synt."
+            const brandRect = brandMonolith.getBoundingClientRect();
+            const brandCenterX = brandRect.left + brandRect.width / 2;
+            const brandCenterY = brandRect.top + brandRect.height / 2;
+            const distToBrand = Math.hypot(tarX - brandCenterX, tarY - brandCenterY);
+
+            if (distToBrand < 350) {
+                const intensity = Math.pow(1 - (distToBrand / 350), 2); 
+                if (Math.random() < intensity * 0.6) {
+                    const skewX = (Math.random() * 8 - 4) * intensity;
+                    const transX = (Math.random() * 6 - 3) * intensity;
+                    const transY = (Math.random() * 4 - 2) * intensity;
+                    brandMonolith.style.transform = `translate(${transX}px, ${transY}px) skew(${skewX}deg)`;
+                    brandMonolith.style.textShadow = `${transX}px ${transY * -1}px 0 rgba(255,255,255,0.6)`;
+                }
+            } else {
+                brandMonolith.style.transform = 'translate(0,0) skew(0deg)';
+                brandMonolith.style.textShadow = 'none';
+            }
+
+            // Torch Physics & Lerping
             const flicker = Math.sin(time * 1.5) * 0.05 + Math.sin(time * 2.8) * 0.03;
             const currentOpacity = 0.8 + flicker + ((Math.random() * 0.04) - 0.02);
             
-            let baseRadius = document.body.classList.contains('hovering') ? 150 : 130;
             if (document.body.classList.contains('active-resonation')) {
-                baseRadius = 190 + Math.sin(time * 0.5) * 25; 
+                targetRadius = 240 + Math.sin(time * 0.5) * 25; 
+            } else if (document.body.classList.contains('hovering')) {
+                targetRadius = 160;
+            } else {
+                targetRadius = 130;
             }
+
+            // Slows down the speed the mask grows and shrinks
+            currentRadius += (targetRadius - currentRadius) * 0.04; 
 
             lanternCursor.style.left = curX + 'px';
             lanternCursor.style.top = curY + 'px';
@@ -392,19 +498,22 @@
             wallElement.style.setProperty('--mask-x', curX + 'px');
             wallElement.style.setProperty('--mask-y', curY + 'px');
             wallElement.style.setProperty('--mask-opacity', Math.max(0.4, currentOpacity)); 
-            wallElement.style.setProperty('--mask-radius', (baseRadius + (Math.random() * 4 - 2)) + 'px');
+            wallElement.style.setProperty('--mask-radius', (currentRadius + (Math.random() * 4 - 2)) + 'px');
 
             requestAnimationFrame(renderTombAtmosphere);
         }
         renderTombAtmosphere();
 
         document.querySelectorAll('.interactive').forEach(el => {
-            el.addEventListener('mouseenter', () => document.body.classList.add('hovering'));
+            el.addEventListener('mouseenter', () => {
+                document.body.classList.add('hovering');
+                triggerPhysicalChime(); // Sound feedback on standard hover items
+            });
             el.addEventListener('mouseleave', () => document.body.classList.remove('hovering'));
         });
 
 
-        // --- 4. ADVANCED BOUTIQUE GENERATIVE SYNTHESIS ENGINE ---
+        // --- 4. ADVANCED GENERATIVE SYNTHESIS ENGINE ---
         let audioCtx, masterGain, cathedralFilter, stereoPanner, waveShaper;
         let oscRoot, oscHarmonic, oscLFO;
         let subGain, harmGain, saturationGain;
@@ -413,7 +522,6 @@
         const ritualToggle = document.getElementById('audio-ritual-toggle');
         const statusText = document.getElementById('audio-status-text');
 
-        // Custom Saturation Shaping Curve Function
         function generateDistortionCurve(amount = 40) {
             const k = amount;
             const n_samples = 44100;
@@ -429,7 +537,6 @@
         function initSynthesisEngine() {
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             
-            // Audio Routing Graph Architecture
             masterGain = audioCtx.createGain();
             stereoPanner = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : null;
             cathedralFilter = audioCtx.createBiquadFilter();
@@ -439,7 +546,6 @@
             subGain = audioCtx.createGain();
             harmGain = audioCtx.createGain();
 
-            // Setup Nodes configuration
             cathedralFilter.type = 'lowpass';
             cathedralFilter.frequency.value = 1200;
             cathedralFilter.Q.value = 2;
@@ -447,24 +553,20 @@
             waveShaper.curve = generateDistortionCurve(80);
             waveShaper.oversample = '4x';
 
-            // Primary Low-Frequency Ground Base Node
             oscRoot = audioCtx.createOscillator();
             oscRoot.type = 'sawtooth';
-            oscRoot.frequency.value = 55.00; // A1 Range
+            oscRoot.frequency.value = 55.00; 
 
-            // Primary Upper Architectural Harmonic Node
             oscHarmonic = audioCtx.createOscillator();
             oscHarmonic.type = 'sine';
-            oscHarmonic.frequency.value = 82.41; // E2 (Perfect Fifth)
+            oscHarmonic.frequency.value = 82.41; 
 
-            // Drift LFO to emulate uncalibrated boutique analog hardware
             oscLFO = audioCtx.createOscillator();
             const lfoGain = audioCtx.createGain();
             oscLFO.type = 'sine';
-            oscLFO.frequency.value = 0.35; // Slow crawl
-            lfoGain.gain.value = 1.5; // pitch drift bounds
+            oscLFO.frequency.value = 0.35; 
+            lfoGain.gain.value = 1.5; 
 
-            // Interconnect Synth Architecture
             oscLFO.connect(lfoGain);
             lfoGain.connect(oscRoot.frequency);
             lfoGain.connect(oscHarmonic.frequency);
@@ -475,17 +577,14 @@
             subGain.gain.value = 0.25;
             harmGain.gain.value = 0.15;
 
-            // Route Signals through Processing Units
             subGain.connect(cathedralFilter);
             harmGain.connect(cathedralFilter);
 
-            // Parallel split for distortion matrix
             cathedralFilter.connect(masterGain);
-            
             cathedralFilter.connect(waveShaper);
             waveShaper.connect(saturationGain);
             saturationGain.connect(masterGain);
-            saturationGain.gain.value = 0.0; // Clean by default
+            saturationGain.gain.value = 0.0; 
 
             if (stereoPanner) {
                 masterGain.connect(stereoPanner);
@@ -494,31 +593,52 @@
                 masterGain.connect(audioCtx.destination);
             }
 
-            masterGain.gain.value = 0.0; // Muted initially
+            masterGain.gain.value = 0.0; 
 
-            // Ignition
             oscRoot.start();
             oscHarmonic.start();
             oscLFO.start();
         }
 
-        // Real-time geometric mapping (Cursor location changes the spatial attributes)
         function mapAudioToGeometry(x, y) {
             if (!audioCtx || !isRitualActive) return;
 
-            // Y-Axis governs LowPass Filter Cutoff (Top = bright, Bottom = deep underwater sub)
             const yPercentage = 1 - (y / window.innerHeight);
-            const targetCutoff = 80 + (Math.pow(yPercentage, 2) * 2400); // Exponential sweep curve
+            const targetCutoff = 80 + (Math.pow(yPercentage, 2) * 2400); 
             cathedralFilter.frequency.setTargetAtTime(targetCutoff, audioCtx.currentTime, 0.1);
 
-            // X-Axis governs panoramic stereo spacing
             if (stereoPanner) {
-                const panTarget = (x / window.innerWidth) * 2 - 1; // Translate map bounds down to -1 to +1
+                const panTarget = (x / window.innerWidth) * 2 - 1; 
                 stereoPanner.pan.setTargetAtTime(panTarget * 0.7, audioCtx.currentTime, 0.15);
             }
         }
 
-        // Toggle Audio State via button
+        // PHYSICAL SOUND SYNTHESIS CHIMES
+        function triggerPhysicalChime(baseFreq = 220) {
+            if (!audioCtx || !isRitualActive) return;
+            
+            const now = audioCtx.currentTime;
+            const chimeOsc = audioCtx.createOscillator();
+            const chimeGain = audioCtx.createGain();
+            
+            // Generate subtle frequency randomness so it feels organic on entry
+            const pitchJitter = (Math.random() * 0.3) + 0.85;
+            const targetPitch = baseFreq * pitchJitter * 3; 
+
+            chimeOsc.type = 'triangle'; 
+            chimeOsc.frequency.setValueAtTime(targetPitch, now);
+            chimeOsc.frequency.exponentialRampToValueAtTime(targetPitch * 0.5, now + 0.2);
+
+            chimeGain.gain.setValueAtTime(0.06, now);
+            chimeGain.gain.exponentialRampToValueAtTime(0.00001, now + 0.25);
+
+            chimeOsc.connect(chimeGain);
+            chimeGain.connect(cathedralFilter);
+
+            chimeOsc.start(now);
+            chimeOsc.stop(now + 0.3);
+        }
+
         ritualToggle.addEventListener('click', async () => {
             if (!audioCtx) initSynthesisEngine();
             if (audioCtx.state === 'suspended') await audioCtx.resume();
@@ -536,38 +656,53 @@
             }
         });
 
-        // Cantos Node Interaction (Chords morph on selection)
-        cantos.forEach(canto => {
-            canto.addEventListener('click', (e) => {
-                e.preventDefault();
+        // Interactive Matrix: System Nav Directory Hooked directly into Synth Arrays
+        dirNodes.forEach(node => {
+            node.addEventListener('mouseenter', () => {
                 if (!audioCtx || !isRitualActive) return;
 
-                const rootFreq = parseFloat(canto.getAttribute('data-root'));
-                const harmFreq = parseFloat(canto.getAttribute('data-harm'));
-                const waveType = canto.getAttribute('data-wave');
+                const rootFreq = parseFloat(node.getAttribute('data-root'));
+                const harmFreq = parseFloat(node.getAttribute('data-harm'));
+                const waveType = node.getAttribute('data-wave');
 
-                // Gracefully glide synth oscillators to new positions over time
-                oscRoot.frequency.exponentialRampToValueAtTime(rootFreq, audioCtx.currentTime + 0.6);
-                oscHarmonic.frequency.exponentialRampToValueAtTime(harmFreq, audioCtx.currentTime + 0.8);
+                oscRoot.frequency.exponentialRampToValueAtTime(rootFreq, audioCtx.currentTime + 0.4);
+                oscHarmonic.frequency.exponentialRampToValueAtTime(harmFreq, audioCtx.currentTime + 0.5);
                 oscRoot.type = waveType;
 
-                // Visual highlights
-                document.querySelectorAll('.canto-title').forEach(t => t.style.color = 'rgba(255,255,255,0.6)');
-                canto.querySelector('.canto-title').style.color = '#ff3300';
+                triggerPhysicalChime(rootFreq);
             });
         });
 
-        // Active Resonation: Blown-Out Overdrive Field (On Mousedown)
+        // --- BRAND MONOLITH INTERACTIVITY (REALITY DISTORTION) ---
+        // (Audio feedback remains on hover, visual glitch is now controlled by proximity in render loop)
+        brandMonolith.addEventListener('mouseenter', () => {
+            canvas.style.opacity = '0.28'; 
+            
+            if (audioCtx && isRitualActive) {
+                saturationGain.gain.setTargetAtTime(0.7, audioCtx.currentTime, 0.05);
+                cathedralFilter.Q.setTargetAtTime(6, audioCtx.currentTime, 0.05);
+                oscLFO.frequency.setTargetAtTime(32.0, audioCtx.currentTime, 0.1); 
+            }
+        });
+
+        brandMonolith.addEventListener('mouseleave', () => {
+            canvas.style.opacity = '0.04'; 
+            
+            if (audioCtx && isRitualActive) {
+                saturationGain.gain.setTargetAtTime(0.0, audioCtx.currentTime, 0.2);
+                cathedralFilter.Q.setTargetAtTime(2, audioCtx.currentTime, 0.2);
+                oscLFO.frequency.setTargetAtTime(0.35, audioCtx.currentTime, 0.4); 
+            }
+        });
+
+        // Blown-Out Overdrive Trigger
         document.addEventListener('mousedown', (e) => {
             if (e.target.closest('.interactive')) return;
             document.body.classList.add('active-resonation');
             
             if (audioCtx && isRitualActive) {
-                // Slam the overdrive matrix and narrow filter Q to scream
                 saturationGain.gain.setTargetAtTime(0.6, audioCtx.currentTime, 0.1);
                 cathedralFilter.Q.setTargetAtTime(8, audioCtx.currentTime, 0.1);
-                
-                // Plunge sub frequencies deep into the floor plates
                 subGain.gain.setTargetAtTime(0.5, audioCtx.currentTime, 0.2);
             }
         });
@@ -576,7 +711,6 @@
             document.body.classList.remove('active-resonation');
             
             if (audioCtx && isRitualActive) {
-                // Return safely back to architectural baseline settings
                 saturationGain.gain.setTargetAtTime(0.0, audioCtx.currentTime, 0.3);
                 cathedralFilter.Q.setTargetAtTime(2, audioCtx.currentTime, 0.4);
                 subGain.gain.setTargetAtTime(0.25, audioCtx.currentTime, 0.3);
@@ -598,7 +732,6 @@
                 monolith.classList.add('glitch-reveal');
                 
                 if (audioCtx && isRitualActive) {
-                    // Trigger a sudden piercing frequency spike as a confirmation tone
                     oscHarmonic.frequency.setValueAtTime(880, audioCtx.currentTime);
                     oscHarmonic.frequency.exponentialRampToValueAtTime(82.41, audioCtx.currentTime + 1.2);
                 }
