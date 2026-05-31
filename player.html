@@ -18,11 +18,8 @@
         }
 
         * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            cursor: none; 
-            user-select: none;
+            box-sizing: border-box; margin: 0; padding: 0;
+            cursor: none; user-select: none;
         }
 
         body {
@@ -30,80 +27,61 @@
             color: var(--ash);
             font-family: var(--mono-font);
             overflow: hidden;
-            height: 100vh;
-            width: 100vw;
+            height: 100vh; width: 100vw;
             position: relative;
         }
 
-        /* --- HARSH B&W NOISE --- */
-        #lo-fi-grain {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100vw; height: 100vh;
-            pointer-events: none;
-            z-index: 9999;
-            opacity: 0.15;
-            mix-blend-mode: overlay;
-        }
-
-        /* --- VISUALIZER WRAPPER (PREVENTS BORDER EXPOSURE) --- */
+        /* --- VISUAL ENGINE (BLUR & SHAKE WRAPPER) --- */
         #visual-engine {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100vw; height: 100vh;
-            z-index: 1;
-            pointer-events: none;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            transition: transform 0.05s ease;
-            /* Base scale slightly up so shakes never show body background */
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: 1; pointer-events: none;
+            display: flex; justify-content: center; align-items: center;
+            transition: transform 0.05s ease, filter 0.2s cubic-bezier(0.16, 1, 0.3, 1);
             transform: scale(1.02); 
         }
 
+        /* The DROWN effect blur */
+        body.drowning #visual-engine {
+            filter: blur(12px) contrast(1.5) brightness(0.7);
+            transform: scale(1.05);
+        }
+
         #ambient-glow {
-            position: absolute;
-            width: 80vw; height: 80vw;
+            position: absolute; width: 80vw; height: 80vw;
             background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 60%);
-            opacity: 0;
-            transition: opacity 0.1s ease, transform 0.1s ease, background 0.5s ease;
+            opacity: 0; transition: opacity 0.1s ease, transform 0.1s ease;
         }
 
         #visualizer-canvas {
-            position: absolute;
-            width: 100%; height: 100%;
+            position: absolute; width: 100%; height: 100%;
             filter: drop-shadow(0 0 15px rgba(255,255,255,0.8));
         }
 
-        /* The Professional Glitch Fix: Shakes the inner container, not the viewport */
         body.glitch-shake #visual-engine {
             animation: overdrive-shake 0.08s infinite;
-            transform: scale(1.08); 
-            filter: contrast(1.2) brightness(1.2);
         }
 
         @keyframes overdrive-shake {
-            0% { transform: scale(1.08) translate(6px, 4px) rotate(1deg); }
-            50% { transform: scale(1.08) translate(-6px, -4px) rotate(-1deg); }
-            100% { transform: scale(1.08) translate(4px, -2px) rotate(0deg); }
+            0% { transform: scale(1.05) translate(4px, 2px); }
+            50% { transform: scale(1.05) translate(-4px, -2px); }
+            100% { transform: scale(1.05) translate(2px, -4px); }
         }
 
-        /* --- CROSSHAIR CURSOR --- */
+        #lo-fi-grain {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            pointer-events: none; z-index: 9999; opacity: 0.15; mix-blend-mode: overlay;
+        }
+
+        /* --- PRECISION CURSOR --- */
         #crosshair-cursor {
-            position: fixed;
-            top: 0; left: 0;
-            width: 40px; height: 40px;
-            transform: translate(-50%, -50%);
-            pointer-events: none;
-            z-index: 10000;
+            position: fixed; top: 0; left: 0; width: 40px; height: 40px;
+            transform: translate(-50%, -50%); pointer-events: none; z-index: 10000;
             display: flex; justify-content: center; align-items: center;
             transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1), height 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s;
         }
 
         #crosshair-cursor::before, #crosshair-cursor::after {
-            content: ''; position: absolute;
-            background-color: rgba(255,255,255,0.5);
-            transition: all 0.2s ease;
+            content: ''; position: absolute; background-color: rgba(255,255,255,0.5); transition: all 0.2s ease;
         }
         
         #crosshair-cursor::before { width: 100%; height: 1px; }
@@ -112,28 +90,26 @@
         .hovering #crosshair-cursor { width: 80px; height: 80px; transform: translate(-50%, -50%) rotate(45deg); }
         .hovering #crosshair-cursor::before, .hovering #crosshair-cursor::after { background-color: var(--pure-light); box-shadow: 0 0 10px var(--pure-light); }
 
-        /* --- PROFESSIONAL ARCHITECTURE GRID --- */
+        body.drowning #crosshair-cursor { width: 12px; height: 12px; transform: translate(-50%, -50%) rotate(0deg); }
+
+        /* --- UI ARCHITECTURE --- */
         .brutalist-grid {
-            display: grid;
-            grid-template-columns: 100px 1fr 450px;
-            height: 100vh;
-            width: 100vw;
-            position: relative;
-            z-index: 10;
+            display: grid; grid-template-columns: 100px 1fr 450px;
+            height: 100vh; width: 100vw; position: relative; z-index: 10;
         }
 
         .panel {
-            border-right: 1px solid var(--ghost);
-            position: relative;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
+            border-right: 1px solid var(--ghost); position: relative;
+            height: 100%; display: flex; flex-direction: column; justify-content: space-between;
         }
 
+        /* The Return Sequence */
         .left-axis { padding: 40px 0; align-items: center; border-right: 1px solid rgba(255,255,255,0.08); }
+        .return-wrapper { display: flex; flex-direction: column; align-items: center; gap: 20px; }
         .sigil { font-family: var(--serif-font); font-style: italic; font-size: 2rem; color: rgba(255,255,255,0.6); text-decoration: none; transition: all 0.3s; }
         .sigil:hover { color: var(--pure-light); text-shadow: 0 0 15px var(--pure-light); transform: scale(1.1); }
+        .return-text { transform: rotate(-90deg); white-space: nowrap; font-size: 0.55rem; color: var(--pure-light); letter-spacing: 6px; margin-top: 60px; opacity: 0; transition: opacity 0.3s; }
+        .sigil:hover + .return-text { opacity: 1; }
         .vertical-marker { transform: rotate(-90deg); white-space: nowrap; font-size: 0.55rem; color: rgba(255, 255, 255, 0.3); letter-spacing: 6px; text-transform: uppercase;}
 
         .center-nave { padding: 60px 80px; justify-content: space-between; pointer-events: none; }
@@ -142,10 +118,15 @@
         .audio-status { font-size: 0.65rem; font-weight: 700; letter-spacing: 4px; color: rgba(255, 255, 255, 0.4); text-transform: uppercase; }
         .audio-status span { color: var(--pure-light); }
 
-        /* Current Track Display */
+        /* Audio-Reactive Typography */
         .current-track-display { text-align: left; margin-top: auto; margin-bottom: 60px; pointer-events: auto;}
         .current-index { font-family: var(--serif-font); font-style: italic; font-size: 3rem; color: rgba(255,255,255,0.3); line-height: 1; }
-        .current-title { font-size: 4rem; font-weight: 700; letter-spacing: -2px; color: var(--pure-light); line-height: 1; margin-top: 10px; text-transform: uppercase;}
+        .current-title { 
+            font-size: 4rem; font-weight: 700; letter-spacing: -2px; color: var(--pure-light); 
+            line-height: 1; margin-top: 10px; text-transform: uppercase;
+            transition: letter-spacing 0.05s ease; /* Enables smooth audio tracking */
+        }
+        
         .play-toggle { display: inline-block; margin-top: 20px; font-size: 0.8rem; letter-spacing: 3px; border: 1px solid var(--ghost); padding: 10px 20px; transition: all 0.3s; }
         .play-toggle:hover { border-color: var(--pure-light); background: var(--pure-light); color: var(--void); }
 
@@ -158,43 +139,31 @@
         /* --- INDEX ARCHIVE (PLAYLIST) --- */
         .right-cloisters { border-right: none; padding: 60px 50px; justify-content: center; background: linear-gradient(to right, rgba(0,0,0,0), rgba(2,2,2,0.9)); }
         .section-header { font-size: 0.6rem; color: rgba(255, 255, 255, 0.3); letter-spacing: 4px; text-transform: uppercase; margin-bottom: 50px; }
-
         .directory-list { display: flex; flex-direction: column; gap: 0; border-top: 1px solid var(--ghost); }
 
         .dir-node {
-            display: grid;
-            grid-template-columns: 40px 1fr;
-            align-items: center;
-            padding: 30px 0;
-            border-bottom: 1px solid var(--ghost);
-            text-decoration: none;
-            color: rgba(255, 255, 255, 0.4);
-            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            position: relative;
+            display: grid; grid-template-columns: 40px 1fr; align-items: center;
+            padding: 30px 0; border-bottom: 1px solid var(--ghost);
+            text-decoration: none; color: rgba(255, 255, 255, 0.4);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); position: relative;
         }
 
         .dir-node::before {
-            content: ''; position: absolute;
-            left: -20px; top: 50%; transform: translateY(-50%);
-            width: 0px; height: 1px;
-            background-color: var(--pure-light);
+            content: ''; position: absolute; left: -20px; top: 50%; transform: translateY(-50%);
+            width: 0px; height: 1px; background-color: var(--pure-light);
             transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1), left 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .dir-node:hover, .dir-node.active-track {
-            color: var(--pure-light);
-            padding-left: 20px; 
+            color: var(--pure-light); padding-left: 20px; 
             background: linear-gradient(90deg, rgba(255, 255, 255, 0.04) 0%, transparent 100%);
         }
 
         .dir-node:hover::before, .dir-node.active-track::before { width: 30px; left: -10px; }
-        
         .dir-index { font-family: var(--serif-font); font-style: italic; font-size: 1.2rem; transition: color 0.3s; }
         .dir-node:hover .dir-index, .dir-node.active-track .dir-index { color: var(--pure-light); }
-        
         .dir-title { font-size: 1.1rem; font-weight: 700; letter-spacing: -0.5px; transition: letter-spacing 0.4s cubic-bezier(0.16, 1, 0.3, 1); text-transform: uppercase; }
         .dir-node:hover .dir-title, .dir-node.active-track .dir-title { letter-spacing: 2px; }
-        
         .dir-spec { font-size: 0.55rem; margin-top: 6px; letter-spacing: 2px; text-transform: uppercase; opacity: 0.5; }
 
         @media (max-width: 1024px) {
@@ -221,14 +190,17 @@
 
     <div class="brutalist-grid">
         <div class="panel left-axis">
-            <a href="index.html" class="sigil interactive">†</a>
-            <div class="vertical-marker">RETURN // ARCHIVE</div>
-            <div class="vertical-marker" style="color: rgba(255,255,255,0.8);">0X1900</div>
+            <div class="return-wrapper">
+                <a href="index.html" class="sigil interactive">†</a>
+                <div class="return-text">[ RETURN TO ARCHIVE ]</div>
+            </div>
+            <div class="vertical-marker" style="margin-top: auto; color: rgba(255,255,255,0.8);">0X1900</div>
         </div>
 
         <div class="panel center-nave">
             <div class="header-block">
                 <div class="audio-status" id="system-status">SYSTEM // <span id="status-text">AWAITING INPUT</span></div>
+                <div class="audio-status">HOLD CLICK TO <span style="color:#ff3c00;">[ DROWN ]</span></div>
             </div>
 
             <div class="current-track-display">
@@ -259,19 +231,19 @@
                         </div>
                     </div>
                     
-                    <div class="dir-node interactive track-select" data-src="song2.mp3" data-vis="2" data-index="02" data-title="DEMO1">
+                    <div class="dir-node interactive track-select" data-src="song2.mp3" data-vis="2" data-index="02" data-title="DEMO_ONE">
                         <div class="dir-index">02</div>
                         <div class="dir-content">
-                            <div class="dir-title">DEMO1</div>
+                            <div class="dir-title">DEMO_ONE</div>
                             <div class="dir-spec">Vis 02 // Brutalist Scanner</div>
                         </div>
                     </div>
 
-                    <div class="dir-node interactive track-select" data-src="song3.mp3" data-vis="3" data-index="03" data-title="DEMO2">
+                    <div class="dir-node interactive track-select" data-src="song3.mp3" data-vis="3" data-index="03" data-title="DEMO_TWO">
                         <div class="dir-index">03</div>
                         <div class="dir-content">
-                            <div class="dir-title">DEMO2</div>
-                            <div class="dir-spec">Vis 03 // Collapsing Geometry</div>
+                            <div class="dir-title">DEMO_TWO</div>
+                            <div class="dir-spec">Vis 03 // Static Geometry</div>
                         </div>
                     </div>
 
@@ -287,16 +259,12 @@
         let noiseCacheCanvas = null;
         
         function initNoiseEngine() {
-            grainCanvas.width = window.innerWidth;
-            grainCanvas.height = window.innerHeight;
+            grainCanvas.width = window.innerWidth; grainCanvas.height = window.innerHeight;
             const idata = grainCtx.createImageData(grainCanvas.width, grainCanvas.height);
             const buffer32 = new Uint32Array(idata.data.buffer);
-            for (let i = 0; i < buffer32.length; i++) {
-                buffer32[i] = Math.random() < 0.2 ? 0xff000000 : 0xffffffff; 
-            }
+            for (let i = 0; i < buffer32.length; i++) buffer32[i] = Math.random() < 0.2 ? 0xff000000 : 0xffffffff; 
             noiseCacheCanvas = document.createElement('canvas');
-            noiseCacheCanvas.width = grainCanvas.width;
-            noiseCacheCanvas.height = grainCanvas.height;
+            noiseCacheCanvas.width = grainCanvas.width; noiseCacheCanvas.height = grainCanvas.height;
             noiseCacheCanvas.getContext('2d').putImageData(idata, 0, 0);
         }
 
@@ -308,10 +276,9 @@
             grainCtx.drawImage(noiseCacheCanvas, jitterX, jitterY);
         }
         window.addEventListener('resize', initNoiseEngine);
-        initNoiseEngine();
-        setInterval(drawBlitNoise, 40); 
+        initNoiseEngine(); setInterval(drawBlitNoise, 40); 
 
-        // --- 2. CURSOR PHYSICS & MOMENTUM ---
+        // --- 2. CURSOR ---
         const crosshairCursor = document.getElementById('crosshair-cursor');
         let curX = window.innerWidth / 2, curY = window.innerHeight / 2;
         let tarX = curX, tarY = curY;
@@ -319,10 +286,8 @@
         document.addEventListener('mousemove', (e) => { tarX = e.clientX; tarY = e.clientY; });
 
         function renderCursor() {
-            curX += (tarX - curX) * 0.25; 
-            curY += (tarY - curY) * 0.25;
-            crosshairCursor.style.left = curX + 'px';
-            crosshairCursor.style.top = curY + 'px';
+            curX += (tarX - curX) * 0.25; curY += (tarY - curY) * 0.25;
+            crosshairCursor.style.left = curX + 'px'; crosshairCursor.style.top = curY + 'px';
             requestAnimationFrame(renderCursor);
         }
         renderCursor();
@@ -346,18 +311,26 @@
         const playBtn = document.getElementById('play-btn');
         const trackNodes = document.querySelectorAll('.track-select');
         
-        let audioCtx, analyser, source;
+        let audioCtx, analyser, source, drownFilter, waveShaper;
         let dataArray, bufferLength;
         let isPlaying = false;
         let audioInitialized = false;
         let currentVisMode = 1;
+        let isDrowning = false;
 
         function resizeCanvas() {
-            visCanvas.width = window.innerWidth;
-            visCanvas.height = window.innerHeight;
+            visCanvas.width = window.innerWidth; visCanvas.height = window.innerHeight;
         }
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas); resizeCanvas();
+
+        function generateDistortionCurve(amount = 20) {
+            const k = amount, n_samples = 44100, curve = new Float32Array(n_samples);
+            for (let i = 0; i < n_samples; ++i) {
+                const x = (i * 2) / n_samples - 1;
+                curve[i] = Math.tanh(x * k) / Math.tanh(k);
+            }
+            return curve;
+        }
 
         function initWebAudio() {
             if (audioInitialized) return;
@@ -365,7 +338,19 @@
             analyser = audioCtx.createAnalyser();
             source = audioCtx.createMediaElementSource(audioEl);
             
-            source.connect(analyser);
+            // The "Drown" Filter (Lowpass)
+            drownFilter = audioCtx.createBiquadFilter();
+            drownFilter.type = 'lowpass';
+            drownFilter.frequency.value = 20000; // Open by default
+
+            // Hardware Glitch Distortion
+            waveShaper = audioCtx.createWaveShaper();
+            waveShaper.curve = generateDistortionCurve(0);
+
+            // Routing: Source -> WaveShaper -> DrownFilter -> Analyser -> Dest
+            source.connect(waveShaper);
+            waveShaper.connect(drownFilter);
+            drownFilter.connect(analyser);
             analyser.connect(audioCtx.destination);
             
             analyser.fftSize = 512; 
@@ -374,7 +359,7 @@
             audioInitialized = true;
         }
 
-        // --- TRACK SELECTION LOGIC ---
+        // --- TRACK SELECTION & CORRUPTED SWITCHING ---
         trackNodes.forEach(node => {
             node.addEventListener('click', () => {
                 initWebAudio();
@@ -388,12 +373,14 @@
                 const index = node.getAttribute('data-index');
                 currentVisMode = parseInt(node.getAttribute('data-vis'));
 
-                if (!audioEl.src.endsWith(src)) {
-                    audioEl.src = src;
-                }
+                if (!audioEl.src.endsWith(src)) audioEl.src = src;
 
                 displayIndex.innerText = index;
                 displayTitle.innerText = title;
+
+                // Corrupted Digital "Crunch" on track switch
+                waveShaper.curve = generateDistortionCurve(100);
+                setTimeout(() => { waveShaper.curve = generateDistortionCurve(0); }, 100);
 
                 audioEl.play();
                 isPlaying = true;
@@ -403,26 +390,41 @@
             });
         });
 
+        // --- THE "DROWN" MECHANIC (Click & Hold) ---
+        document.addEventListener('mousedown', (e) => {
+            if (e.target.closest('.interactive') || !audioInitialized) return;
+            isDrowning = true;
+            document.body.classList.add('drowning');
+            // Drop frequency to simulate hearing it through a wall
+            drownFilter.frequency.setTargetAtTime(300, audioCtx.currentTime, 0.1); 
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (!audioInitialized) return;
+            isDrowning = false;
+            document.body.classList.remove('drowning');
+            // Snap frequency back
+            drownFilter.frequency.setTargetAtTime(20000, audioCtx.currentTime, 0.05);
+        });
+
+
         // --- PLAY/PAUSE TOGGLE ---
         playBtn.addEventListener('click', () => {
             if (!audioInitialized) return; 
             if (audioCtx.state === 'suspended') audioCtx.resume();
 
             if (isPlaying) {
-                audioEl.pause();
-                playBtn.innerText = "PLAY";
-                statusText.innerText = "PAUSED";
+                audioEl.pause(); playBtn.innerText = "PLAY"; statusText.innerText = "PAUSED";
+                displayTitle.style.letterSpacing = "-2px"; // Reset typography
             } else {
-                audioEl.play();
-                playBtn.innerText = "PAUSE";
-                statusText.innerText = "RESONATING";
+                audioEl.play(); playBtn.innerText = "PAUSE"; statusText.innerText = "RESONATING";
                 renderVisualizer();
             }
             isPlaying = !isPlaying;
         });
 
 
-        // --- MULTI-MODE RENDER LOOP ---
+        // --- RENDER LOOP ---
         function renderVisualizer() {
             if (!isPlaying) return;
             requestAnimationFrame(renderVisualizer);
@@ -430,102 +432,75 @@
             analyser.getByteFrequencyData(dataArray);
             visCtx.clearRect(0, 0, visCanvas.width, visCanvas.height);
 
-            const centerX = visCanvas.width / 2;
-            const centerY = visCanvas.height / 2;
+            const centerX = visCanvas.width / 2; const centerY = visCanvas.height / 2;
             
-            // Extract Sub-Bass specifically for environment reactivity
-            let bassSum = 0; 
-            for(let i = 0; i < 4; i++) bassSum += dataArray[i];
+            // Extract Sub-Bass 
+            let bassSum = 0; for(let i = 0; i < 4; i++) bassSum += dataArray[i];
             const bassAvg = bassSum / 4;
 
+            // 1. Audio-Reactive Typography (The UI Breathes)
+            // Maps bass to letter-spacing. Hits push the letters apart.
+            const tracking = -2 + Math.max(0, (bassAvg - 150) / 10);
+            displayTitle.style.letterSpacing = `${tracking}px`;
+            
+            if (bassAvg > 240) displayTitle.style.textShadow = `0 0 20px rgba(255,255,255,0.8)`;
+            else displayTitle.style.textShadow = 'none';
+
+            // 2. Ambient Glow
             ambientGlow.style.opacity = (bassAvg / 255) * 0.4;
             ambientGlow.style.transform = `scale(${1 + (bassAvg / 255) * 0.4})`;
 
-            // Professional Glitch Trigger: Requires massive bass output to trigger (> 245/255)
-            if (bassAvg > 245) {
-                document.body.classList.add('glitch-shake');
-            } else {
-                document.body.classList.remove('glitch-shake');
-            }
+            // 3. Glitch Shake
+            if (bassAvg > 248 && !isDrowning) document.body.classList.add('glitch-shake');
+            else document.body.classList.remove('glitch-shake');
 
-            // -----------------------------------------------------
-            // VISUALIZER MODE 1: PERFECT SYMMETRICAL HALO 
-            // Fixed the "Bug at the bottom" by perfectly mirroring the data
-            // -----------------------------------------------------
+            // --- VIS 1: JAGGED HALO ---
             if (currentVisMode === 1) {
                 const baseRadius = 150 + (bassAvg * 0.2);
-                const dataPoints = 80; // Focus on active audible frequencies
-                const angleStep = Math.PI / dataPoints;
+                const dataPoints = 80; const angleStep = Math.PI / dataPoints;
                 const rotation = Date.now() * 0.0003;
 
                 visCtx.beginPath();
                 visCtx.arc(centerX, centerY, baseRadius - 20, 0, Math.PI * 2);
-                visCtx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
-                visCtx.stroke();
+                visCtx.strokeStyle = 'rgba(255, 255, 255, 0.1)'; visCtx.stroke();
 
                 visCtx.beginPath();
-                
-                // Draw Right Half (Top to Bottom)
                 for (let i = 0; i <= dataPoints; i++) {
-                    const val = dataArray[i];
-                    // Exponential math makes sharp spikes instead of soft waves
-                    const spike = Math.pow(val / 255, 1.8) * 160; 
+                    const spike = Math.pow(dataArray[i] / 255, 1.8) * 160; 
                     const r = baseRadius + spike;
                     const angle = -Math.PI/2 + (i * angleStep) + rotation;
-                    
-                    const x = centerX + Math.cos(angle) * r;
-                    const y = centerY + Math.sin(angle) * r;
-                    if (i === 0) visCtx.moveTo(x, y);
-                    else visCtx.lineTo(x, y);
+                    if (i === 0) visCtx.moveTo(centerX + Math.cos(angle)*r, centerY + Math.sin(angle)*r);
+                    else visCtx.lineTo(centerX + Math.cos(angle)*r, centerY + Math.sin(angle)*r);
                 }
-                
-                // Draw Left Half Mirrored (Bottom back to Top)
                 for (let i = dataPoints; i >= 0; i--) {
-                    const val = dataArray[i];
-                    const spike = Math.pow(val / 255, 1.8) * 160; 
+                    const spike = Math.pow(dataArray[i] / 255, 1.8) * 160; 
                     const r = baseRadius + spike;
                     const angle = -Math.PI/2 - (i * angleStep) + rotation;
-                    
-                    const x = centerX + Math.cos(angle) * r;
-                    const y = centerY + Math.sin(angle) * r;
-                    visCtx.lineTo(x, y);
+                    visCtx.lineTo(centerX + Math.cos(angle)*r, centerY + Math.sin(angle)*r);
                 }
-                
                 visCtx.closePath();
-                visCtx.strokeStyle = '#ffffff';
-                visCtx.lineWidth = 1.5; 
-                visCtx.stroke();
+                visCtx.strokeStyle = '#ffffff'; visCtx.lineWidth = 1.5; visCtx.stroke();
             }
 
-            // -----------------------------------------------------
-            // VISUALIZER MODE 2: BRUTALIST SCANNER 
-            // -----------------------------------------------------
+            // --- VIS 2: BRUTALIST SCANNER ---
             else if (currentVisMode === 2) {
-                const activeData = Math.floor(bufferLength * 0.75); // Skip high-end noise
+                const activeData = Math.floor(bufferLength * 0.75); 
                 const barWidth = visCanvas.width / activeData;
                 
                 visCtx.fillStyle = '#ffffff';
                 for (let i = 0; i < activeData; i++) {
-                    const percent = dataArray[i] / 255;
-                    // Exponential height to make transients snap
-                    const height = Math.pow(percent, 2) * (visCanvas.height / 2); 
-                    const x = i * barWidth;
-                    visCtx.fillRect(x, centerY - height, barWidth - 1, height * 2);
+                    const height = Math.pow(dataArray[i] / 255, 2) * (visCanvas.height / 2); 
+                    visCtx.fillRect(i * barWidth, centerY - height, barWidth - 1, height * 2);
                 }
-
-                // CRT Scanline Overlay
                 const scanlineY = (Date.now() * 0.8) % visCanvas.height;
                 visCtx.fillStyle = 'rgba(255,255,255,0.4)';
                 visCtx.fillRect(0, scanlineY, visCanvas.width, 3);
             }
 
-            // -----------------------------------------------------
-            // VISUALIZER MODE 3: COLLAPSING GEOMETRY 
-            // -----------------------------------------------------
+            // --- VIS 3: STATIC GEOMETRY ---
             else if (currentVisMode === 3) {
                 const rotation = Date.now() * 0.0002;
-                const sides = 6;
-                const baseRad = 200 + (bassAvg * 0.4);
+                const sides = 6; const baseRad = 200 + (bassAvg * 0.4);
 
                 function drawPoly(radius, offsetRot, strokeOpacity, distortAmp) {
                     visCtx.beginPath();
@@ -533,17 +508,12 @@
                         const angle = (i * (Math.PI * 2) / sides) + offsetRot;
                         const freqIdx = Math.floor((i / sides) * 20); 
                         const distortion = Math.pow(dataArray[freqIdx] / 255, 2) * distortAmp;
-                        
-                        const r = radius + distortion;
-                        const x = centerX + Math.cos(angle) * r;
-                        const y = centerY + Math.sin(angle) * r;
-                        
-                        if (i === 0) visCtx.moveTo(x, y);
-                        else visCtx.lineTo(x, y);
+                        const x = centerX + Math.cos(angle) * (radius + distortion);
+                        const y = centerY + Math.sin(angle) * (radius + distortion);
+                        if (i === 0) visCtx.moveTo(x, y); else visCtx.lineTo(x, y);
                     }
                     visCtx.strokeStyle = `rgba(255, 255, 255, ${strokeOpacity})`;
-                    visCtx.lineWidth = 2;
-                    visCtx.stroke();
+                    visCtx.lineWidth = 2; visCtx.stroke();
                 }
 
                 drawPoly(baseRad, rotation, 1, 180); 
@@ -552,7 +522,7 @@
             }
         }
 
-        // --- 4. TIMELINE & SCRUBBING UI ---
+        // --- 4. TIMELINE SCRUBBING ---
         const progressBg = document.getElementById('progress-bg');
         const progressFill = document.getElementById('progress-fill');
         const currentTimeEl = document.getElementById('current-time');
@@ -560,37 +530,26 @@
 
         function formatTime(seconds) {
             if (isNaN(seconds)) return "0:00";
-            const mins = Math.floor(seconds / 60);
-            const secs = Math.floor(seconds % 60);
+            const mins = Math.floor(seconds / 60), secs = Math.floor(seconds % 60);
             return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
         }
 
-        audioEl.addEventListener('loadedmetadata', () => {
-            durationEl.innerText = formatTime(audioEl.duration);
-        });
-
+        audioEl.addEventListener('loadedmetadata', () => { durationEl.innerText = formatTime(audioEl.duration); });
         audioEl.addEventListener('timeupdate', () => {
             currentTimeEl.innerText = formatTime(audioEl.currentTime);
-            const percent = (audioEl.currentTime / audioEl.duration) * 100;
-            progressFill.style.width = `${percent}%`;
+            progressFill.style.width = `${(audioEl.currentTime / audioEl.duration) * 100}%`;
         });
-
         audioEl.addEventListener('ended', () => {
-            isPlaying = false;
-            playBtn.innerText = "PLAY";
-            statusText.innerText = "SYSTEM IDLE";
-            progressFill.style.width = `0%`;
-            visCtx.clearRect(0, 0, visCanvas.width, visCanvas.height);
+            isPlaying = false; playBtn.innerText = "PLAY"; statusText.innerText = "SYSTEM IDLE";
+            progressFill.style.width = `0%`; visCtx.clearRect(0, 0, visCanvas.width, visCanvas.height);
+            displayTitle.style.letterSpacing = "-2px";
         });
 
         progressBg.addEventListener('click', (e) => {
             if (!audioEl.src) return; 
             const rect = progressBg.getBoundingClientRect();
-            const clickX = e.clientX - rect.left;
-            const percent = clickX / rect.width;
-            audioEl.currentTime = percent * audioEl.duration;
+            audioEl.currentTime = ((e.clientX - rect.left) / rect.width) * audioEl.duration;
         });
-
     </script>
 </body>
 </html>
