@@ -1,1 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SYNT // SAMPLR // GEOMETRIC_CORE</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,400;1,600&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
 
+        :root {
+            --void: #020202;
+            --ash: #ececec;
+            --pure-light: #ffffff;
+            --ghost: rgba(255, 255, 255, 0.1);
+            
+            --mono-font: 'Space Mono', monospace;
+            --serif-font: 'Cormorant Garamond', serif;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; cursor: none; }
+
+        body {
+            background-color: var(--void); color: var(--ash);
+            font-family: var(--mono-font); overflow: hidden;
+            height: 100vh; width: 100vw; position: relative;
+        }
+
+        /* --- VISUAL NOISE --- */
+        #lo-fi-grain {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            pointer-events: none; z-index: 9999; opacity: 0.12; mix-blend-mode: overlay;
+        }
+
+        /* --- GEOMETRIC 3D CURSOR --- */
+        #cursor-wrapper {
+            position: fixed; top: 0; left: 0; width: 35px; height: 35px;
+            pointer-events: none; z-index: 10000; display: flex; justify-content: center; align-items: center;
+            transform: translate(-50%, -50%);
+        }
+
+        #geo-cursor { width: 100%; height: 100%; transform-style: preserve-3d; animation: slowSpin 6s linear infinite; }
+        .cursor-ring { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 50%; transition: border-color 0.1s, box-shadow 0.1s; }
+        .cursor-ring:nth-child(2) { transform: rotateX(60deg) rotateY(45deg); border-radius: 0; }
+        .cursor-ring:nth-child(3) { transform: rotateX(-60deg) rotateY(-45deg); border-radius: 0; }
+        
+        .hovering .cursor-ring { border-color: var(--pure-light); box-shadow: 0 0 10px rgba(255,255,255,0.4); }
+        @keyframes slowSpin { 0% { transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg); } 100% { transform: rotateX(360deg) rotateY(360deg) rotateZ(360deg); } }
+
+        /* --- REACTIVE BACKGROUND GEOMETRY --- */
+        .parallax-layer {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            display: flex; justify-content: center; align-items: center;
+            z-index: 0; pointer-events: none;
+        }
+
+        #sacred-matrix {
+            width: 120vh; height: 120vh; fill: none;
+            stroke: rgba(255, 255, 255, 0.15); stroke-width: 1.5;
+            transition: transform 0.05s ease-out, stroke-width 0.05s ease-out, filter 0.05s ease-out;
+        }
+
+        /* --- THE ENTWINED WAVEFORM --- */
+        #waveform-canvas {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: 1; pointer-events: none; opacity: 0.8;
+            /* Ensures waveform stays behind the text */
+        }
+
+        /* --- TOP CENTRALIZED MENU --- */
+        .top-nav {
+            position: absolute; top: 40px; left: 50%; transform: translateX(-50%);
+            display: flex; gap: 15px; z-index: 100;
+        }
+
+        .nav-box {
+            border: 1px solid var(--ghost); padding: 8px 25px; background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px); font-size: 0.65rem; letter-spacing: 4px;
+            color: rgba(255,255,255,0.4); text-transform: uppercase; transition: all 0.2s;
+        }
+
+        .nav-box:hover, .nav-box.active {
+            color: var(--void); background: var(--pure-light); border-color: var(--pure-light);
+            box-shadow: 0 0 15px rgba(255,255,255,0.3);
+        }
+
+        .back-btn {
+            position: absolute; top: 40px; left: 40px; font-size: 0.6rem; font-weight: 700;
+            letter-spacing: 4px; color: var(--pure-light); text-decoration: none; text-transform: uppercase; z-index: 100;
+        }
+
+        /* --- THE TRACKER UI (CENTER) --- */
+        .center-stage {
+            position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
+            display: flex; justify-content: center; align-items: center; z-index: 10;
+            pointer-events: none;
+        }
+
+        .tracker-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 10px 60px; width: 100%; max-width: 800px;
+            color: var(--pure-light); pointer-events: auto; padding-top: 40px;
+            /* Blend mode makes the white text turn black when the white waveform passes behind it */
+            mix-blend-mode: difference; 
+        }
+
+        .tracker-row {
+            display: flex; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.2);
+            padding: 10px 0; transition: transform 0.05s, border-color 0.1s;
+        }
+
+        .tracker-row:hover { border-color: var(--pure-light); transform: scale(1.02); }
+        .tracker-row.active { border-bottom: 3px solid var(--pure-light); transform: scale(0.96); }
+
+        .t-key { font-family: var(--serif-font); font-style: italic; font-size: 1.8rem; width: 50px; line-height: 0.8;}
+        .t-name { font-size: 0.75rem; font-weight: 700; letter-spacing: 2px; flex-grow: 1; text-transform: uppercase; }
+        .t-hex { font-size: 0.5rem; opacity: 0.5; font-family: 'Courier New', monospace; letter-spacing: 1px; }
+
+        .tracker-row.active .t-key, .tracker-row.active .t-name { text-shadow: 0 0 15px var(--pure-light); }
+
+        /* --- OVERDRIVE FADER (RIGHT) --- */
+        .right-col { position: absolute; right: 40px; top: 50%; transform: translateY(-50%); height: 400px; z-index: 100; mix-blend-mode: difference; color: var(--pure-light); }
+
+        .fader-container { height: 100%; display: flex; flex-direction: column; align-items: center; gap: 20px; }
+        .fader-label { font-size: 0.6rem; letter-spacing: 6px; writing-mode: vertical-rl; transform: rotate(180deg); text-align: center; }
+        .fader-track { position: relative; width: 2px; flex-grow: 1; background: rgba(255,255,255,0.2); cursor: ns-resize; display: flex; align-items: flex-end; }
+        .fader-fill { width: 100%; background: var(--pure-light); height: 0%; pointer-events: none; transition: height 0.05s linear; box-shadow: 0 0 15px var(--pure-light); }
+        .fader-thumb { position: absolute; bottom: 0%; left: 50%; transform: translate(-50%, 50%); width: 20px; height: 4px; background: var(--pure-light); pointer-events: none; }
+
+        /* --- INIT OVERLAY --- */
+        #init-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: var(--void); z-index: 1000; display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: none; transition: opacity 0.4s ease-out;
+        }
+        .init-text { font-family: var(--serif-font); font-style: italic; font-size: 3rem; color: var(--pure-light); margin-bottom: 20px; letter-spacing: -2px;}
+        .init-sub { font-size: 0.6rem; letter-spacing: 6px; color: rgba(255,255,255,0.4); text-transform: uppercase; border: 1px solid var(--ghost); padding: 10px 20px;}
+        .init-sub.hovering { background: var(--pure-light); color: var(--void); }
+
+    </style>
+</head>
+<body>
+
+    <canvas id="lo-fi-grain"></canvas>
+
+    <div class="parallax-layer">
+        <svg id="sacred-matrix" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg">
+            <g id="matrix-group">
+                <circle cx="500" cy="500" r="100"/><circle cx="500" cy="500" r="250"/><circle cx="500" cy="500" r="400"/>
+                <circle cx="500" cy="250" r="250"/><circle cx="500" cy="750" r="250"/><circle cx="250" cy="500" r="250"/><circle cx="750" cy="500" r="250"/>
+                <line x1="100" y1="500" x2="900" y2="500"/><line x1="500" y1="100" x2="500" y2="900"/>
+                <line x1="217" y1="217" x2="783" y2="783"/><line x1="217" y1="783" x2="783" y2="217"/>
+                <polygon points="500,50 950,500 500,950 50,500"/><polygon points="181,181 819,181 819,819 181,819"/>
+            </g>
+        </svg>
+    </div>
+    
+    <canvas id="waveform-canvas"></canvas>
+
+    <div id="cursor-wrapper">
+        <div id="geo-cursor">
+            <div class="cursor-ring"></div>
+            <div class="cursor-ring"></div>
+            <div class="cursor-ring"></div>
+        </div>
+    </div>
+
+    <div id="init-overlay" class="interactive" onclick="initializeEngine()">
+        <div class="init-text">GEOMETRIC_CORE</div>
+        <div class="init-sub">[ WAKE SYSTEM ]</div>
+    </div>
+
+    <a href="index.html" class="back-btn interactive">[ RETURN ]</a>
+
+    <nav class="top-nav">
+        <div class="nav-box interactive active" data-bank="drums">DRUMS</div>
+        <div class="nav-box interactive" data-bank="synth">SYNTH</div>
+        <div class="nav-box interactive" data-bank="bass">BASS</div>
+    </nav>
+
+    <div class="center-stage">
+        <div class="tracker-grid" id="tracker-matrix">
+            </div>
+    </div>
+
+    <div class="right-col">
+        <div class="fader-container">
+            <div class="fader-label" style="margin-bottom: auto;">[ OVERDRIVE ]</div>
+            <div class="fader-track interactive" id="master-drive">
+                <div class="fader-fill" id="drive-fill"></div>
+                <div class="fader-thumb" id="drive-thumb"></div>
+            </div>
+            <div class="fader-label" id="drive-val">0.0</div>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. CURSOR & VISUAL NOISE ---
+        const cursorWrapper = document.getElementById('cursor-wrapper');
+        let curX = window.innerWidth / 2, curY = window.innerHeight / 2;
+        let tarX = curX, tarY = curY;
+
+        document.addEventListener('mousemove', (e) => { tarX = e.clientX; tarY = e.clientY; });
+
+        function animateCursor() {
+            curX += (tarX - curX) * 0.25; curY += (tarY - curY) * 0.25;
+            cursorWrapper.style.left = curX + 'px'; cursorWrapper.style.top = curY + 'px';
+            requestAnimationFrame(animateCursor);
+        }
+        animateCursor();
+
+        function bindHover() {
+            document.querySelectorAll('.interactive, .tracker-row').forEach(el => {
+                el.addEventListener('mouseenter', () => { cursorWrapper.classList.add('hovering'); el.classList.add('hovering'); });
+                el.addEventListener('mouseleave', () => { cursorWrapper.classList.remove('hovering'); el.classList.remove('hovering'); });
+            });
+        }
+
+        const grainCanvas = document.getElementById('lo-fi-grain');
+        const grainCtx = grainCanvas.getContext('2d', { alpha: false });
+        let noiseCacheCanvas = null;
+        function initNoiseEngine() {
+            grainCanvas.width = window.innerWidth; grainCanvas.height = window.innerHeight;
+            const idata = grainCtx.createImageData(grainCanvas.width, grainCanvas.height);
+            const buffer32 = new Uint32Array(idata.data.buffer);
+            for (let i = 0; i < buffer32.length; i++) buffer32[i] = Math.random() < 0.15 ? 0xff000000 : 0xffffffff; 
+            noiseCacheCanvas = document.createElement('canvas'); noiseCacheCanvas.width = grainCanvas.width; noiseCacheCanvas.height = grainCanvas.height;
+            noiseCacheCanvas.getContext('2d').putImageData(idata, 0, 0);
+        }
+        function drawBlitNoise() {
+            if (!noiseCacheCanvas) return;
+            grainCtx.clearRect(0, 0, grainCanvas.width, grainCanvas.height);
+            grainCtx.drawImage(noiseCacheCanvas, Math.floor((Math.random() * 30) - 15), Math.floor((Math.random() * 30) - 15));
+        }
+        window.addEventListener('resize', initNoiseEngine); initNoiseEngine(); setInterval(drawBlitNoise, 40);
+
+        // --- 2. AUDIO ARCHITECTURE ---
+        let audioCtx, masterGain, masterCompressor, analyser, distortionNode;
+        let isEngineAwake = false;
+        let overdriveAmount = 0;
+
+        function makeDistortionCurve(amount) {
+            if (amount <= 0) return new Float32Array([0, 0]);
+            let k = amount * 150, n = 44100, curve = new Float32Array(n), deg = Math.PI / 180;
+            for (let i = 0; i < n; ++i) {
+                const x = i * 2 / n - 1;
+                curve[i] = (3 + k) * x * 20 * deg / (Math.PI + k * Math.abs(x));
+            }
+            return curve;
+        }
+
+        function initializeEngine() {
+            document.getElementById('init-overlay').style.opacity = '0';
+            setTimeout(() => document.getElementById('init-overlay').style.display = 'none', 400);
+            
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            analyser = audioCtx.createAnalyser(); analyser.fftSize = 2048; analyser.smoothingTimeConstant = 0.3;
+
+            distortionNode = audioCtx.createWaveShaper();
+            distortionNode.curve = makeDistortionCurve(0); distortionNode.oversample = '4x';
+
+            masterGain = audioCtx.createGain(); masterGain.gain.value = 0.6;
+            masterCompressor = audioCtx.createDynamicsCompressor();
+            masterCompressor.threshold.value = -12; masterCompressor.ratio.value = 8; masterCompressor.attack.value = 0.001;
+
+            distortionNode.connect(masterGain); masterGain.connect(masterCompressor);
+            masterCompressor.connect(analyser); analyser.connect(audioCtx.destination);
+            
+            isEngineAwake = true; drawWaveformAndGeometry();
+        }
+
+        // --- 3. OVERDRIVE FADER ---
+        const faderTrack = document.getElementById('master-drive');
+        const faderFill = document.getElementById('drive-fill');
+        const faderThumb = document.getElementById('drive-thumb');
+        const driveVal = document.getElementById('drive-val');
+        let isDragging = false;
+
+        function updateFader(e) {
+            const rect = faderTrack.getBoundingClientRect();
+            let y = e.clientY - rect.top; y = Math.max(0, Math.min(y, rect.height));
+            let val = 1 - (y / rect.height); 
+            
+            faderFill.style.height = `${val * 100}%`; faderThumb.style.bottom = `${val * 100}%`;
+            driveVal.innerText = (val * 10).toFixed(1);
+            
+            overdriveAmount = val;
+            if(isEngineAwake) distortionNode.curve = makeDistortionCurve(overdriveAmount);
+        }
+
+        faderTrack.addEventListener('mousedown', (e) => { isDragging = true; updateFader(e); });
+        window.addEventListener('mousemove', (e) => { if(isDragging) updateFader(e); });
+        window.addEventListener('mouseup', () => { isDragging = false; });
+
+        // --- 4. REACTIVE GEOMETRY & MONOCHROME WAVEFORM ---
+        const waveCanvas = document.getElementById('waveform-canvas');
+        const waveCtx = waveCanvas.getContext('2d');
+        const sacredMatrix = document.getElementById('sacred-matrix');
+        let matrixRotation = 0;
+
+        function resizeWaveCanvas() { waveCanvas.width = window.innerWidth; waveCanvas.height = window.innerHeight; }
+        window.addEventListener('resize', resizeWaveCanvas); resizeWaveCanvas();
+
+        function drawWaveformAndGeometry() {
+            if (!isEngineAwake) return;
+            requestAnimationFrame(drawWaveformAndGeometry);
+            const bufferLength = analyser.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
+            analyser.getByteTimeDomainData(dataArray);
+
+            waveCtx.clearRect(0, 0, waveCanvas.width, waveCanvas.height);
+            
+            let sum = 0; for(let i=0; i<bufferLength; i++) sum += Math.abs(dataArray[i] - 128);
+            const intensity = sum / bufferLength; // 0 to ~128
+
+            // --- UPDATE BACKGROUND GEOMETRY ---
+            matrixRotation += 0.05 + (intensity * 0.02); // Spins faster when loud
+            const scale = 1 + (intensity * 0.015) + (overdriveAmount * 0.2); // Expands wildly on bass hits
+            const glow = intensity > 10 ? `drop-shadow(0 0 ${intensity}px rgba(255,255,255,0.8))` : 'none';
+            const strokeWidth = 1.5 + (intensity * 0.1);
+            
+            sacredMatrix.style.transform = `scale(${scale}) rotate(${matrixRotation}deg)`;
+            sacredMatrix.style.filter = glow;
+            sacredMatrix.style.strokeWidth = strokeWidth;
+            sacredMatrix.style.stroke = `rgba(255, 255, 255, ${0.15 + (intensity * 0.02)})`;
+
+            // --- DRAW MONOCHROME WAVEFORM ---
+            const sliceWidth = waveCanvas.width * 1.0 / bufferLength;
+
+            function drawLine(offsetX, offsetY, lineWidth, opacity) {
+                waveCtx.lineWidth = lineWidth; waveCtx.strokeStyle = `rgba(255, 255, 255, ${opacity})`; waveCtx.beginPath();
+                let x = 0;
+                for (let i = 0; i < bufferLength; i++) {
+                    const v = dataArray[i] / 128.0; const y = v * (waveCanvas.height / 2) + offsetY;
+                    if (i === 0) waveCtx.moveTo(x + offsetX, y); else waveCtx.lineTo(x + offsetX, y);
+                    x += sliceWidth;
+                }
+                waveCtx.lineTo(waveCanvas.width, waveCanvas.height / 2); waveCtx.stroke();
+            }
+
+            const glitchOffset = (intensity * 0.4) + (overdriveAmount * 8);
+            
+            // Monochrome Ghost Glitch (instead of red/blue)
+            if (glitchOffset > 2) {
+                drawLine(-glitchOffset, glitchOffset, 1, 0.4); 
+                drawLine(glitchOffset, -glitchOffset, 1, 0.4); 
+            }
+            
+            // Core Line
+            waveCtx.shadowBlur = intensity > 5 ? 15 : 0;
+            waveCtx.shadowColor = '#ffffff';
+            drawLine(0, 0, 2 + (overdriveAmount * 2), 1.0);
+            waveCtx.shadowBlur = 0;
+        }
+
+        // --- 5. AUDIO SYNTHESIS ---
+        const Synth = {
+            playGabberKick: () => {
+                if(!isEngineAwake) return;
+                const t = audioCtx.currentTime; const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+                osc.type = 'sine'; osc.frequency.setValueAtTime(300, t); osc.frequency.exponentialRampToValueAtTime(45, t + 0.08); osc.frequency.exponentialRampToValueAtTime(30, t + 0.4);
+                gain.gain.setValueAtTime(1.5, t); gain.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
+                osc.connect(gain); gain.connect(distortionNode); osc.start(t); osc.stop(t + 0.6);
+            },
+            playGlassSnare: () => {
+                if(!isEngineAwake) return;
+                const t = audioCtx.currentTime; const bufferSize = audioCtx.sampleRate * 0.3;
+                const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate); let data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+                const noise = audioCtx.createBufferSource(); noise.buffer = buffer; 
+                const filter = audioCtx.createBiquadFilter(); const gain = audioCtx.createGain();
+                filter.type = 'bandpass'; filter.frequency.value = 3000; filter.Q.value = 2.5; 
+                gain.gain.setValueAtTime(1.5, t); gain.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
+                noise.connect(filter); filter.connect(gain); gain.connect(distortionNode); noise.start(t);
+            },
+            playFMPing: (modFreq, carrFreq, decay) => {
+                if(!isEngineAwake) return;
+                const t = audioCtx.currentTime; const osc = audioCtx.createOscillator(); const mod = audioCtx.createOscillator();
+                const modGain = audioCtx.createGain(); const env = audioCtx.createGain();
+                mod.type = 'square'; mod.frequency.value = modFreq;
+                modGain.gain.setValueAtTime(1000, t); modGain.gain.exponentialRampToValueAtTime(10, t + (decay * 0.3));
+                mod.connect(modGain); modGain.connect(osc.frequency);
+                osc.type = 'sine'; osc.frequency.value = carrFreq;
+                env.gain.setValueAtTime(1, t); env.gain.exponentialRampToValueAtTime(0.001, t + decay);
+                osc.connect(env); env.connect(distortionNode);
+                mod.start(t); osc.start(t); mod.stop(t + decay); osc.stop(t + decay);
+            },
+            playHeavySub: (freq) => {
+                if(!isEngineAwake) return;
+                const t = audioCtx.currentTime; const osc = audioCtx.createOscillator(); const env = audioCtx.createGain();
+                osc.type = 'triangle'; osc.frequency.value = freq;
+                env.gain.setValueAtTime(0, t); env.gain.linearRampToValueAtTime(1.2, t + 0.02); env.gain.exponentialRampToValueAtTime(0.001, t + 1.5);
+                osc.connect(env); env.connect(distortionNode);
+                osc.start(t); osc.stop(t + 1.6);
+            },
+            playSynthTone: (freq) => {
+                if(!isEngineAwake) return;
+                const t = audioCtx.currentTime; const gain = audioCtx.createGain(); const filter = audioCtx.createBiquadFilter();
+                filter.type = 'lowpass'; filter.frequency.setValueAtTime(800, t); filter.frequency.exponentialRampToValueAtTime(4000, t + 0.1);
+                gain.gain.setValueAtTime(0, t); gain.gain.linearRampToValueAtTime(0.4, t + 0.02); gain.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
+                [-6, 0, 6].forEach(detune => {
+                    let osc = audioCtx.createOscillator(); osc.type = 'sawtooth'; osc.frequency.value = freq; osc.detune.value = detune;
+                    osc.connect(filter); osc.start(t); osc.stop(t + 0.6);
+                });
+                filter.connect(gain); gain.connect(distortionNode);
+            }
+        };
+
+        // --- 6. INSTRUMENT BANKS & ROUTING ---
+        function generateHex() { return '0x' + Math.floor(Math.random()*65535).toString(16).toUpperCase().padStart(4, '0'); }
+
+        const Banks = {
+            drums: [
+                { k: '1', n: 'PUNCH_GABBER', a: () => Synth.playGabberKick() }, { k: '2', n: 'KICK_OVERLOAD', a: () => { Synth.playGabberKick(); Synth.playFMPing(100, 50, 0.1); } },
+                { k: '3', n: 'SHATTER_SNARE', a: () => Synth.playGlassSnare() }, { k: '4', n: 'CLAP_BITCRUSH', a: () => { Synth.playGlassSnare(); Synth.playFMPing(4000, 1000, 0.1); } },
+                { k: 'Q', n: 'CHAINMAIL_1', a: () => Synth.playFMPing(2000, 800, 0.2) }, { k: 'W', n: 'CHAINMAIL_2', a: () => Synth.playFMPing(1500, 3000, 0.3) },
+                { k: 'E', n: 'ANVIL_PING', a: () => Synth.playFMPing(8000, 1200, 0.1) }, { k: 'R', n: 'CLICK_TRANS', a: () => Synth.playFMPing(400, 100, 0.05) },
+                { k: 'A', n: 'TICK_HIGH', a: () => Synth.playFMPing(12000, 5000, 0.05) }, { k: 'S', n: 'SPLASH_FM', a: () => Synth.playFMPing(6000, 8000, 0.25) },
+                { k: 'D', n: 'DATA_TEAR_L', a: () => Synth.playFMPing(200, 5000, 0.1) }, { k: 'F', n: 'DATA_TEAR_H', a: () => Synth.playFMPing(5000, 200, 0.1) },
+                { k: 'Z', n: 'VOID_808 [F1]', a: () => Synth.playHeavySub(43.65) }, { k: 'X', n: 'VOID_808 [C1]', a: () => Synth.playHeavySub(32.70) }, 
+                { k: 'C', n: 'SUB_CRUSH', a: () => { Synth.playHeavySub(27.50); Synth.playGlassSnare(); } }, { k: 'V', n: 'TOTAL_COLLAPSE', a: () => { Synth.playHeavySub(20.00); Synth.playGabberKick(); } }
+            ],
+            synth: [
+                { k: '1', n: 'C3_SAW', a: () => Synth.playSynthTone(130.81) }, { k: '2', n: 'D#3_SAW', a: () => Synth.playSynthTone(155.56) },
+                { k: '3', n: 'F3_SAW', a: () => Synth.playSynthTone(174.61) }, { k: '4', n: 'G3_SAW', a: () => Synth.playSynthTone(196.00) },
+                { k: 'Q', n: 'G#3_SAW', a: () => Synth.playSynthTone(207.65) }, { k: 'W', n: 'A#3_SAW', a: () => Synth.playSynthTone(233.08) },
+                { k: 'E', n: 'C4_SAW', a: () => Synth.playSynthTone(261.63) }, { k: 'R', n: 'D#4_SAW', a: () => Synth.playSynthTone(311.13) },
+                { k: 'A', n: 'F4_SAW', a: () => Synth.playSynthTone(349.23) }, { k: 'S', n: 'G4_SAW', a: () => Synth.playSynthTone(392.00) },
+                { k: 'D', n: 'G#4_SAW', a: () => Synth.playSynthTone(415.30) }, { k: 'F', n: 'A#4_SAW', a: () => Synth.playSynthTone(466.16) },
+                { k: 'Z', n: 'C5_SAW', a: () => Synth.playSynthTone(523.25) }, { k: 'X', n: 'D#5_SAW', a: () => Synth.playSynthTone(622.25) },
+                { k: 'C', n: 'F5_SAW', a: () => Synth.playSynthTone(698.46) }, { k: 'V', n: 'G5_SAW', a: () => Synth.playSynthTone(783.99) }
+            ],
+            bass: [
+                { k: '1', n: 'F1_SUB', a: () => Synth.playHeavySub(43.65) }, { k: '2', n: 'F#1_SUB', a: () => Synth.playHeavySub(46.25) },
+                { k: '3', n: 'G1_SUB', a: () => Synth.playHeavySub(49.00) }, { k: '4', n: 'G#1_SUB', a: () => Synth.playHeavySub(51.91) },
+                { k: 'Q', n: 'A1_SUB', a: () => Synth.playHeavySub(55.00) }, { k: 'W', n: 'A#1_SUB', a: () => Synth.playHeavySub(58.27) },
+                { k: 'E', n: 'B1_SUB', a: () => Synth.playHeavySub(61.74) }, { k: 'R', n: 'C2_SUB', a: () => Synth.playHeavySub(65.41) },
+                { k: 'A', n: 'C#2_SUB', a: () => Synth.playHeavySub(69.30) }, { k: 'S', n: 'D2_SUB', a: () => Synth.playHeavySub(73.42) },
+                { k: 'D', n: 'D#2_SUB', a: () => Synth.playHeavySub(77.78) }, { k: 'F', n: 'E2_SUB', a: () => Synth.playHeavySub(82.41) },
+                { k: 'Z', n: 'DROP_F', a: () => { Synth.playHeavySub(43.65); Synth.playGabberKick(); } }, 
+                { k: 'X', n: 'DROP_C', a: () => { Synth.playHeavySub(32.70); Synth.playGabberKick(); } }, 
+                { k: 'C', n: 'CRUSH_A', a: () => { Synth.playHeavySub(55.00); Synth.playGlassSnare(); } }, 
+                { k: 'V', n: 'VOID_BASS', a: () => { Synth.playHeavySub(27.50); Synth.playFMPing(100, 50, 0.5); } }
+            ]
+        };
+
+        let currentBank = 'drums';
+        const matrixContainer = document.getElementById('tracker-matrix');
+        let activeKeys = {};
+
+        function renderMatrix() {
+            matrixContainer.innerHTML = '';
+            Banks[currentBank].forEach(padData => {
+                const rowEl = document.createElement('div');
+                rowEl.className = 'tracker-row interactive';
+                rowEl.setAttribute('data-key', padData.k.toLowerCase());
+                
+                rowEl.innerHTML = `
+                    <div class="t-key">${padData.k}</div>
+                    <div class="t-name">${padData.n}</div>
+                    <div class="t-hex">${generateHex()}</div>
+                `;
+                
+                rowEl.addEventListener('mousedown', () => triggerPad(padData.k.toLowerCase()));
+                rowEl.addEventListener('mouseup', () => releasePad(padData.k.toLowerCase()));
+                rowEl.addEventListener('mouseleave', () => releasePad(padData.k.toLowerCase()));
+                matrixContainer.appendChild(rowEl);
+            });
+            bindHover(); // Rebind hover cursor effects
+        }
+
+        // Handle Top Menu Clicks
+        document.querySelectorAll('.nav-box').forEach(nav => {
+            nav.addEventListener('click', (e) => {
+                document.querySelectorAll('.nav-box').forEach(n => n.classList.remove('active'));
+                nav.classList.add('active');
+                currentBank = nav.getAttribute('data-bank');
+                renderMatrix();
+            });
+        });
+
+        function triggerPad(keyChar) {
+            if(!isEngineAwake || activeKeys[keyChar]) return;
+            const padData = Banks[currentBank].find(p => p.k.toLowerCase() === keyChar);
+            if(padData) {
+                activeKeys[keyChar] = true;
+                padData.a(); 
+                const el = document.querySelector(`.tracker-row[data-key="${keyChar}"]`);
+                if(el) {
+                    el.classList.add('active');
+                    el.querySelector('.t-hex').innerText = generateHex();
+                }
+            }
+        }
+
+        function releasePad(keyChar) {
+            if(activeKeys[keyChar]) {
+                activeKeys[keyChar] = false;
+                const el = document.querySelector(`.tracker-row[data-key="${keyChar}"]`);
+                if(el) el.classList.remove('active');
+            }
+        }
+
+        renderMatrix();
+        window.addEventListener('keydown', (e) => { if(!e.repeat) triggerPad(e.key.toLowerCase()); });
+        window.addEventListener('keyup', (e) => releasePad(e.key.toLowerCase()));
+
+    </script>
+</body>
+</html>
