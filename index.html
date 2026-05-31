@@ -3,323 +3,610 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SYNT_NODE_91</title>
+    <title>SYNT // GENERATIVE EXHUMATION</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,400;1,600&family=Space+Mono:wght@400;700&display=swap');
 
         :root {
-            --bg-void: #020104;
-            --os-window: #110d14;
-            --border-light: #382b42;
-            --border-dark: #070509;
-            --text-main: #bdaebf;
-            --text-dim: #6e5e70;
-            --accent-blood: #6b0512;
-            --accent-gold: #8f793b;
+            --void-black: #000000;
+            --stone-dark: #050506;
+            --bone-white: #f4f4f5;
+            --torch-glow: #fff5e1; 
+            --tomb-bronze: #3d372e; 
+            
+            --serif-font: 'Cormorant Garamond', serif;
+            --mono-font: 'Space Mono', monospace;
         }
 
-        body, html {
-            margin: 0; padding: 0;
-            background-color: #000;
-            height: 100vh; overflow: hidden;
-            font-family: 'VT323', monospace;
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            cursor: none; 
             user-select: none;
         }
 
-        /* CRT Effects */
-        #monitor {
-            position: relative; width: 100vw; height: 100vh;
-            background-color: var(--bg-void); overflow: hidden;
-        }
-        #monitor::after {
-            content: ""; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0.3));
-            background-size: 100% 4px; pointer-events: none; z-index: 9999;
-        }
-        #monitor::before {
-            content: " "; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-            background: radial-gradient(circle at center, transparent 30%, rgba(0,0,0,0.8) 100%);
-            pointer-events: none; z-index: 9998;
+        body {
+            background-color: var(--void-black);
+            color: var(--bone-white);
+            font-family: var(--mono-font);
+            letter-spacing: -0.5px;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            position: relative;
         }
 
-        /* Professional / Dark Web Boot Screen */
-        #boot-screen {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: #000; color: #a1a1a1;
-            padding: 30px; box-sizing: border-box; z-index: 1000;
-            font-size: 1.4rem; letter-spacing: 1px;
-        }
-        #terminal-output { white-space: pre-wrap; line-height: 1.4; }
-        .blink { animation: blinker 1s step-start infinite; }
-        @keyframes blinker { 50% { opacity: 0; } }
-
-        /* Maximalist Desktop Environment */
-        #desktop {
-            display: none; width: 100%; height: calc(100% - 40px); position: relative;
-            /* Corrupted, repeating dark texture */
-            background-color: #050308;
-            background-image: 
-                radial-gradient(var(--border-dark) 1px, transparent 1px),
-                radial-gradient(var(--border-dark) 1px, transparent 1px);
-            background-size: 20px 20px; background-position: 0 0, 10px 10px;
+        /* --- HARDWARE ACCELERATED CANVAS NOISE --- */
+        #tomb-dust {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.04;
+            mix-blend-mode: overlay;
         }
 
-        /* Desktop Icons - 90s Blocky OS Style */
-        .icon-grid {
-            display: flex; flex-direction: column; gap: 40px; padding: 30px; width: 150px;
-        }
-        .desktop-icon {
-            display: flex; flex-direction: column; align-items: center; text-align: center; cursor: pointer;
-        }
-        .icon-graphic {
-            width: 48px; height: 48px;
-            background: var(--os-window);
-            border-top: 3px solid var(--border-light);
-            border-left: 3px solid var(--border-light);
-            border-bottom: 3px solid var(--border-dark);
-            border-right: 3px solid var(--border-dark);
-            box-shadow: 4px 4px 0 rgba(0,0,0,0.8);
-            display: flex; justify-content: center; align-items: center;
-            margin-bottom: 10px; font-family: 'Press Start 2P', cursive; font-size: 1.5rem; color: var(--accent-gold);
-            transition: all 0.1s;
-        }
-        .desktop-icon:active .icon-graphic {
-            border-top: 3px solid var(--border-dark); border-left: 3px solid var(--border-dark);
-            border-bottom: 3px solid var(--border-light); border-right: 3px solid var(--border-light);
-        }
-        .icon-text {
-            font-family: 'Press Start 2P', cursive; font-size: 0.6rem; color: var(--text-main);
-            background-color: rgba(0,0,0,0.5); padding: 4px;
+        /* --- INFINITE SCROLLING TOMB TEXT --- */
+        .infinite-inferno {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: 1;
+            pointer-events: none;
+            font-family: var(--serif-font);
+            font-style: italic;
+            font-size: 1.4rem; 
+            line-height: 1.4;
+            text-align: justify;
+            color: var(--tomb-bronze); 
+            opacity: 0; 
+            padding: 40px; 
+            overflow: hidden;
+            transition: transform 1.5s cubic-bezier(0.25, 1, 0.5, 1), filter 1.5s ease;
+            transform-origin: center center;
+            -webkit-mask-image: radial-gradient(circle var(--mask-radius, 120px) at var(--mask-x, 50%) var(--mask-y, 50%), rgba(0,0,0,var(--mask-opacity, 1)) 0%, rgba(0,0,0,0) 100%);
+            mask-image: radial-gradient(circle var(--mask-radius, 120px) at var(--mask-x, 50%) var(--mask-y, 50%), rgba(0,0,0,var(--mask-opacity, 1)) 0%, rgba(0,0,0,0) 100%);
         }
 
-        /* 90s Taskbar with extra functionality */
-        #taskbar {
-            display: none; position: absolute; bottom: 0; left: 0; width: 100%; height: 40px;
-            background-color: #1a1622;
-            border-top: 3px solid var(--border-light);
-            display: flex; align-items: center; justify-content: space-between; padding: 0 10px; box-sizing: border-box; z-index: 500;
+        .scroll-content {
+            animation: scroll-up-tomb 600s linear infinite;
+            will-change: transform;
         }
-        .start-btn {
-            font-family: 'Press Start 2P', cursive; background-color: var(--os-window);
-            border-top: 2px solid var(--border-light); border-left: 2px solid var(--border-light);
-            border-bottom: 2px solid var(--border-dark); border-right: 2px solid var(--border-dark);
-            padding: 8px 15px; font-size: 0.7rem; color: var(--text-main); cursor: crosshair; font-weight: bold;
-        }
-        .taskbar-widgets { display: flex; gap: 15px; align-items: center; }
-        .widget-box {
-            font-size: 1.1rem; border: 2px inset var(--border-dark);
-            padding: 5px 15px; background-color: #000; color: var(--accent-gold);
-        }
-        #ping-tracker { color: var(--accent-blood); }
 
-        /* Draggable Window */
-        .window {
-            display: none; position: absolute; top: 15%; left: 30%; width: 500px;
-            background-color: var(--os-window);
-            border-top: 3px solid var(--border-light); border-left: 3px solid var(--border-light);
-            border-bottom: 3px solid var(--border-dark); border-right: 3px solid var(--border-dark);
-            box-shadow: 10px 10px 0 rgba(0,0,0,0.9); z-index: 100;
+        @keyframes scroll-up-tomb {
+            0% { transform: translateY(0%); }
+            100% { transform: translateY(-50%); } 
         }
-        .title-bar {
-            background: linear-gradient(90deg, #1f1f1f, #0a0a0a);
-            padding: 8px; display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 2px solid var(--border-dark); cursor: grab;
+
+        /* --- POLISHED FLICKERING TORCH CURSOR --- */
+        #tomb-lantern-cursor {
+            position: fixed;
+            top: 0; left: 0;
+            width: 150px; 
+            height: 150px;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            filter: blur(1px); 
+            transition: width 0.3s, height 0.3s;
         }
-        .title-text { font-family: 'Press Start 2P', cursive; font-size: 0.6rem; color: var(--text-dim); }
-        .close-btn {
-            background-color: var(--accent-blood); border: 2px outset #ff4d4d;
-            width: 20px; height: 20px; cursor: pointer;
+
+        #cursor-text-svg {
+            width: 120px;
+            height: 120px;
+            animation: spin 16s linear infinite;
+            fill: var(--torch-glow); 
+            opacity: var(--mask-opacity, 0.7); 
+            transition: opacity 0.1s, fill 0.5s ease;
         }
-        .close-btn:active { border-style: inset; }
+
+        .hovering #cursor-text-svg { fill: #fff; }
+
+        /* --- ACTIVE RESONATION VISUALS (CLICK & HOLD) --- */
+        body.active-resonation .infinite-inferno {
+            transform: scale(1.04); 
+            filter: brightness(1.5) contrast(1.2) hue-rotate(45deg);
+        }
         
-        .window-content {
-            padding: 25px; font-size: 1.4rem; color: var(--text-main);
-            background-color: #0b080f; margin: 5px; border: 2px inset var(--border-dark);
+        body.active-resonation #cursor-text-svg {
+            fill: #ff3300; 
+            filter: drop-shadow(0 0 15px rgba(255, 51, 0, 0.8));
         }
 
-        /* Riddle Specifics */
-        .riddle-text { color: var(--accent-gold); margin-bottom: 20px; font-style: italic; }
-        .riddle-input {
-            width: 100%; background: #000; color: #fff; border: 2px inset var(--border-light);
-            padding: 10px; font-family: 'VT323', monospace; font-size: 1.5rem; outline: none; box-sizing: border-box; text-transform: uppercase;
+        /* --- ASYMMETRIC GRID LAYER --- */
+        .cathedral-layout {
+            display: grid;
+            grid-template-columns: 120px 1fr 450px;
+            height: 100vh;
+            width: 100vw;
+            position: relative;
+            z-index: 10;
         }
-        #riddle-response { color: var(--accent-blood); margin-top: 15px; font-weight: bold; }
+
+        .panel {
+            border-right: 1px solid rgba(255, 255, 255, 0.03);
+            position: relative;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .left-axis { padding: 40px 0; align-items: center; }
+        .sigil { font-size: 1.5rem; font-weight: bold; color: var(--bone-white); text-decoration: none; transition: text-shadow 0.3s ease; }
+        .sigil:hover { text-shadow: 0 0 15px var(--bone-white); }
+        .vertical-marker { transform: rotate(-90deg); white-space: nowrap; font-size: 0.65rem; color: rgba(255, 255, 255, 0.25); letter-spacing: 4px; text-transform: uppercase; }
+
+        .center-nave { padding: 80px; justify-content: flex-start; }
+        .header-block { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+
+        .audio-ritual-info { display: flex; align-items: center; gap: 15px; font-size: 0.7rem; letter-spacing: 2px; color: rgba(255, 255, 255, 0.4); text-transform: uppercase; }
+        .pulse-indicator { width: 8px; height: 8px; background-color: rgba(255,255,255,0.15); border-radius: 50%; }
         
-        .hidden-content { display: none; margin-top: 20px; color: var(--text-main); border-top: 1px dashed var(--text-dim); padding-top: 15px;}
+        .ritual-active .pulse-indicator {
+            background-color: #ff3300;
+            box-shadow: 0 0 12px rgba(255,51,0,0.8);
+            animation: pulse 0.6s infinite alternate;
+        }
+
+        .monolith-title { margin-top: 15vh; position: relative; }
+        
+        .brand-name {
+            font-family: var(--serif-font);
+            font-size: 13vw; font-style: italic; font-weight: 400; line-height: 0.75;
+            color: var(--bone-white);
+            transition: color 0.4s ease, text-shadow 0.4s ease;
+            position: relative;
+            z-index: 2;
+        }
+
+        .title-subtext {
+            font-size: 0.75rem; color: rgba(255, 255, 255, 0.35); margin-top: 30px; max-width: 400px; line-height: 1.8;
+        }
+
+        .right-cloisters { border-right: none; padding: 60px 40px; justify-content: space-between; }
+        .section-header { font-size: 0.65rem; color: rgba(255, 255, 255, 0.25); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 40px; }
+
+        .canto-list { display: flex; flex-direction: column; gap: 2px; }
+
+        .canto-node {
+            background: #030304; padding: 30px 20px; display: flex; justify-content: space-between; align-items: center;
+            text-decoration: none; color: rgba(255, 255, 255, 0.6);
+            transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), background 0.4s ease, color 0.4s ease;
+            border-bottom: 1px solid rgba(255,255,255,0.02);
+            will-change: transform;
+        }
+        
+        .canto-node:hover {
+            background: #08080a; color: var(--bone-white);
+        }
+
+        .canto-index { font-family: var(--serif-font); font-style: italic; font-size: 1.4rem; color: rgba(255,255,255,0.15); transition: color 0.3s; }
+        .canto-node:hover .canto-index { color: var(--bone-white); }
+        .canto-title { font-size: 0.9rem; font-weight: bold; color: var(--bone-white); text-transform: uppercase; letter-spacing: 1px;}
+        .canto-spec { font-size: 0.65rem; color: rgba(255, 255, 255, 0.35); margin-top: 6px; letter-spacing: 2px;}
+
+        /* --- SECRETS --- */
+        .glitch-reveal {
+            animation: text-glitch 0.2s 3 forwards;
+            color: #ff3300 !important;
+        }
+
+        @keyframes text-glitch {
+            0% { transform: translate(0) }
+            20% { transform: translate(-2px, 2px) }
+            40% { transform: translate(-2px, -2px) }
+            60% { transform: translate(2px, 2px) }
+            80% { transform: translate(2px, -2px) }
+            100% { transform: translate(0) }
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes pulse { 0% { transform: scale(1); opacity: 0.6; } 100% { transform: scale(1.3); opacity: 1; } }
+
+        @media (max-width: 1024px) {
+            .cathedral-layout { grid-template-columns: 1fr; height: auto; }
+            .left-axis { display: none; }
+            .right-cloisters { height: auto; padding: 40px 20px;}
+            .center-nave { padding: 40px 20px; }
+            body { overflow: auto; cursor: auto;}
+            #tomb-lantern-cursor, #tomb-dust, .infinite-inferno { display: none; }
+        }
     </style>
 </head>
 <body>
 
-<div id="monitor">
-    
-    <div id="boot-screen">
-        <div id="terminal-output"></div>
-        <span class="blink" style="display:inline-block; margin-top: 10px;">█</span>
+    <canvas id="tomb-dust"></canvas>
+
+    <div class="infinite-inferno" id="tomb-wall">
+        <div class="scroll-content" id="scroll-tomb-content"></div>
     </div>
 
-    <div id="desktop">
+    <div id="tomb-lantern-cursor">
+        <svg id="cursor-text-svg" viewBox="0 0 100 100">
+            <path id="textPath" d="M 50,50 m -35,0 a 35,35 0 1,1 70,0 a 35,35 0 1,1 -70,0" fill="none"></path>
+            <text font-family="var(--serif-font)" font-style="italic" font-size="0.67rem" letter-spacing="2.2px">
+                <textPath href="#textPath" startOffset="0%">• SYNT // AUDIO ARCHITECTURE • EMBEDDED GENERATIVE MATRIX •</textPath>
+            </text>
+        </svg>
+    </div>
+
+    <div class="cathedral-layout">
+        <div class="panel left-axis">
+            <a href="#" class="sigil interactive">†</a>
+            <div class="vertical-marker">ELEVATION // DEVOTION</div>
+            <div class="vertical-marker" style="color: var(--bone-white);">MXXVI</div>
+        </div>
+
+        <div class="panel center-nave">
+            <div class="header-block">
+                <div class="audio-ritual-info interactive" id="audio-ritual-toggle">
+                    <div class="pulse-indicator"></div>
+                    <span id="audio-status-text">[ INTENSIONS UNKNOWN / EXHUME ]</span>
+                </div>
+            </div>
+
+            <div class="monolith-title">
+                <h1 class="brand-name interactive" id="core-monolith">synt.</h1>
+                <p class="title-subtext">
+                    An interactive, generative sonic monument.<br>
+                    Y-axis governs spectral dampening. X-axis shifts panoramic spatial depth.<br>
+                    <strong>[ CLICK + HOLD TO DRIVE SATURATION ]</strong>
+                </p>
+            </div>
+        </div>
+
+        <div class="panel right-cloisters">
+            <div>
+                <div class="section-header">// CANTOS HARMONIC NODES</div>
+                <div class="canto-list">
+                    <a href="#" class="canto-node interactive" data-root="55.00" data-harm="82.41" data-wave="sawtooth">
+                        <div>
+                            <div class="canto-title">I. SHATTERED SPIRE</div>
+                            <div class="canto-spec">A-MINOR DECAY / STACKED OSCILLATORS</div>
+                        </div>
+                        <div class="canto-index">01</div>
+                    </a>
+                    
+                    <a href="#" class="canto-node interactive" data-root="41.20" data-harm="61.74" data-wave="triangle">
+                        <div>
+                            <div class="canto-title">II. BODY SHADOWS</div>
+                            <div class="canto-spec">E-MINOR SUB BASEMENT / INDUSTRIAL WEIGHT</div>
+                        </div>
+                        <div class="canto-index">02</div>
+                    </a>
+
+                    <a href="#" class="canto-node interactive" data-root="65.41" data-harm="98.00" data-wave="square">
+                        <div>
+                            <div class="canto-title">III. CORPUS MASH</div>
+                            <div class="canto-spec">C-MAJOR SACRED DRIFT / GLITCH UNSTABLE</div>
+                        </div>
+                        <div class="canto-index">03</div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. OPTIMIZED CANVAS NOISE ---
+        const canvas = document.getElementById('tomb-dust');
+        const ctx = canvas.getContext('2d', { alpha: false });
         
-        <div class="icon-grid">
-            <div class="desktop-icon" onclick="openWindow('GATEWAY_PROTOCOL.exe', 'riddle')">
-                <div class="icon-graphic">♆</div>
-                <div class="icon-text">GATEWAY.exe</div>
-            </div>
-
-            <div class="desktop-icon" onclick="openWindow('ARCHIVE_NODE.sys', 'text')">
-                <div class="icon-graphic">🖿</div>
-                <div class="icon-text">ARCHIVES.sys</div>
-            </div>
-        </div>
-
-        <div id="os-window" class="window">
-            <div class="title-bar" id="window-header">
-                <div class="title-text" id="window-title">WINDOW_NAME</div>
-                <div class="close-btn" onclick="closeWindow()"></div>
-            </div>
-            <div class="window-content" id="window-body">
-                </div>
-        </div>
-    </div>
-
-    <div id="taskbar">
-        <div class="start-btn">SYNT_SYS</div>
-        <div class="taskbar-widgets">
-            <div class="widget-box" id="ping-tracker">PING: 24ms</div>
-            <div class="widget-box" id="os-clock">00:00</div>
-        </div>
-    </div>
-
-</div>
-
-<script>
-    // ==========================================
-    // PROFESSIONAL TERMINAL BOOT SEQUENCE
-    // ==========================================
-    const bootLines = [
-        "SYNT MAINFRAME TERMINAL [VERSION 3.1.91]",
-        "ESTABLISHING SECURE CONNECTION...",
-        "NODE RESOLVED: UNKNOWN DOMAIN",
-        "",
-        "HANDSHAKE PROTOCOL INITIATED...",
-        "WARNING: ENCRYPTION LAYER EXCEEDS STANDARD PARAMETERS",
-        "DECRYPTING CATACOMBS...",
-        "ACCESS GRANTED.",
-        "",
-        "LOADING DESKTOP ENVIRONMENT..."
-    ];
-
-    const terminal = document.getElementById('terminal-output');
-    let lineIndex = 0;
-
-    function typeBootLines() {
-        if (lineIndex < bootLines.length) {
-            terminal.innerHTML += bootLines[lineIndex] + "<br>";
-            lineIndex++;
-            let delay = Math.random() * 200 + 50; 
-            if (lineIndex === 2 || lineIndex === 6) delay = 900; // Artificial lag
-            setTimeout(typeBootLines, delay);
-        } else {
-            setTimeout(() => {
-                document.getElementById('boot-screen').style.display = 'none';
-                document.getElementById('desktop').style.display = 'block';
-                document.getElementById('taskbar').style.display = 'flex';
-                updateClock();
-                updatePing();
-            }, 800);
-        }
-    }
-    window.onload = () => { setTimeout(typeBootLines, 500); };
-
-    // ==========================================
-    // TASKBAR WIDGETS
-    // ==========================================
-    function updateClock() {
-        const now = new Date();
-        let hours = now.getHours().toString().padStart(2, '0');
-        let minutes = now.getMinutes().toString().padStart(2, '0');
-        document.getElementById('os-clock').innerText = `${hours}:${minutes}`;
-        setTimeout(updateClock, 1000);
-    }
-
-    function updatePing() {
-        // Simulates an erratic, dark-web network ping
-        const ping = Math.floor(Math.random() * 150) + 12;
-        document.getElementById('ping-tracker').innerText = `NODE: ${ping}ms`;
-        setTimeout(updatePing, Math.random() * 3000 + 1000);
-    }
-
-    // ==========================================
-    // WINDOW & RIDDLE LOGIC
-    // ==========================================
-    const win = document.getElementById('os-window');
-    const winTitle = document.getElementById('window-title');
-    const winBody = document.getElementById('window-body');
-
-    function openWindow(title, type) {
-        winTitle.innerText = title;
-        
-        if (type === 'riddle') {
-            winBody.innerHTML = `
-                <div class="riddle-text">
-                    "I am the frozen lake at the very bottom of the abyss. The treacherous are locked within my ice, kept cold by the beating wings of the three-faced king. Speak my name to proceed."
-                </div>
-                <input type="text" id="riddle-answer" class="riddle-input" placeholder="ENTER SOLUTION..." onkeypress="checkRiddle(event)">
-                <div id="riddle-response"></div>
-                <div id="secret-content" class="hidden-content">
-                    CONNECTION SECURED.<br><br>
-                    Welcome to the Synt hidden directory. You have bypassed the outer rings. The architecture here is unstable. Proceed with caution.
-                </div>
-            `;
-        } else if (type === 'text') {
-            winBody.innerHTML = `ERROR 0x0091: ARCHIVE CORRUPTED.<br><br>Most files were purged during the '94 server collapse. Only fragments of the old gothic framework remain.`;
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            generateNoise();
         }
 
-        win.style.display = 'block';
-    }
-
-    function closeWindow() { win.style.display = 'none'; }
-
-    function checkRiddle(event) {
-        if (event.key === 'Enter') {
-            const input = document.getElementById('riddle-answer').value.toLowerCase().trim();
-            const responseDiv = document.getElementById('riddle-response');
+        function generateNoise() {
+            const w = canvas.width;
+            const h = canvas.height;
+            const idata = ctx.createImageData(w, h);
+            const buffer32 = new Uint32Array(idata.data.buffer);
+            const len = buffer32.length;
             
-            // The answer to the Dante's Inferno 9th Circle riddle is Cocytus
-            if (input === "cocytus") {
-                responseDiv.style.color = "#8f793b"; // Turn gold
-                responseDiv.innerText = "ACCESS GRANTED.";
-                document.getElementById('riddle-answer').disabled = true;
-                document.getElementById('secret-content').style.display = "block";
+            for (let i = 0; i < len; i++) {
+                buffer32[i] = Math.random() < 0.5 ? 0xff000000 : 0xffffffff;
+            }
+            ctx.putImageData(idata, 0, 0);
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+        setInterval(generateNoise, 50);
+
+        // --- 2. ARCANE TEXT WALL INJECTION ---
+        const tombContent = document.getElementById('scroll-tomb-content');
+        const arcanePhrases = [
+            "De profundis clamavi ad te Domine",
+            "Shadows from our bodies cast against the stone",
+            "Musica est exercitium arithmeticae occultum",
+            "Ars sine scientia nihil est",
+            "Tenebrae eam non comprehenderunt",
+            "Vox clamantis in deserto",
+            "six seven frequencies alignment"
+        ];
+        const sigils = ["𓃵", "ꑭ", "ᛝ", "✴", "𓄃", "†", "§"];
+
+        let textBlockHTML = "";
+        for (let i = 0; i < 800; i++) {
+            let phrase = arcanePhrases[Math.floor(Math.random() * arcanePhrases.length)];
+            let symbolInsert = (Math.random() > 0.85) ? ` <span style="opacity:0.6; margin: 0 8px;">${sigils[Math.floor(Math.random() * sigils.length)]}</span> ` : " • ";
+            textBlockHTML += phrase + symbolInsert;
+        }
+        tombContent.innerHTML = `<div>${textBlockHTML}</div><div>${textBlockHTML}</div>`;
+
+        // --- 3. LANTERN PHYSICS & MAGNETIC UI ---
+        const lanternCursor = document.getElementById('tomb-lantern-cursor');
+        const wallElement = document.getElementById('tomb-wall');
+        const cantos = document.querySelectorAll('.canto-node');
+        
+        let curX = window.innerWidth / 2, curY = window.innerHeight / 2;
+        let tarX = curX, tarY = curY;
+        let time = 0;
+
+        document.addEventListener('mousemove', (e) => {
+            tarX = e.clientX;
+            tarY = e.clientY;
+            wallElement.style.opacity = 1; 
+
+            // Magnetic Tracking for Sidebar
+            cantos.forEach(canto => {
+                const rect = canto.getBoundingClientRect();
+                const cantoCenterY = rect.top + rect.height / 2;
+                const distanceY = Math.abs(tarY - cantoCenterY);
+                
+                if (distanceY < 100 && tarX > rect.left - 200) {
+                    const pull = (100 - distanceY) * 0.15;
+                    canto.style.transform = `translateX(-${pull}px)`;
+                } else {
+                    canto.style.transform = `translateX(0px)`;
+                }
+            });
+
+            // Update Audio parameters dynamically if initialized
+            mapAudioToGeometry(tarX, tarY);
+        });
+
+        function renderTombAtmosphere() {
+            curX += (tarX - curX) * 0.08; 
+            curY += (tarY - curY) * 0.08;
+            time += 0.05; 
+
+            const flicker = Math.sin(time * 1.5) * 0.05 + Math.sin(time * 2.8) * 0.03;
+            const currentOpacity = 0.8 + flicker + ((Math.random() * 0.04) - 0.02);
+            
+            let baseRadius = document.body.classList.contains('hovering') ? 150 : 130;
+            if (document.body.classList.contains('active-resonation')) {
+                baseRadius = 190 + Math.sin(time * 0.5) * 25; 
+            }
+
+            lanternCursor.style.left = curX + 'px';
+            lanternCursor.style.top = curY + 'px';
+
+            wallElement.style.setProperty('--mask-x', curX + 'px');
+            wallElement.style.setProperty('--mask-y', curY + 'px');
+            wallElement.style.setProperty('--mask-opacity', Math.max(0.4, currentOpacity)); 
+            wallElement.style.setProperty('--mask-radius', (baseRadius + (Math.random() * 4 - 2)) + 'px');
+
+            requestAnimationFrame(renderTombAtmosphere);
+        }
+        renderTombAtmosphere();
+
+        document.querySelectorAll('.interactive').forEach(el => {
+            el.addEventListener('mouseenter', () => document.body.classList.add('hovering'));
+            el.addEventListener('mouseleave', () => document.body.classList.remove('hovering'));
+        });
+
+
+        // --- 4. ADVANCED BOUTIQUE GENERATIVE SYNTHESIS ENGINE ---
+        let audioCtx, masterGain, cathedralFilter, stereoPanner, waveShaper;
+        let oscRoot, oscHarmonic, oscLFO;
+        let subGain, harmGain, saturationGain;
+        let isRitualActive = false;
+        
+        const ritualToggle = document.getElementById('audio-ritual-toggle');
+        const statusText = document.getElementById('audio-status-text');
+
+        // Custom Saturation Shaping Curve Function
+        function generateDistortionCurve(amount = 40) {
+            const k = amount;
+            const n_samples = 44100;
+            const curve = new Float32Array(n_samples);
+            const deg = Math.PI / 180;
+            for (let i = 0; i < n_samples; ++i) {
+                const x = (i * 2) / n_samples - 1;
+                curve[i] = ((3 + k) * x * 20 * deg) / (Math.PI + k * Math.abs(x));
+            }
+            return curve;
+        }
+
+        function initSynthesisEngine() {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            
+            // Audio Routing Graph Architecture
+            masterGain = audioCtx.createGain();
+            stereoPanner = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : null;
+            cathedralFilter = audioCtx.createBiquadFilter();
+            waveShaper = audioCtx.createWaveShaper();
+            saturationGain = audioCtx.createGain();
+            
+            subGain = audioCtx.createGain();
+            harmGain = audioCtx.createGain();
+
+            // Setup Nodes configuration
+            cathedralFilter.type = 'lowpass';
+            cathedralFilter.frequency.value = 1200;
+            cathedralFilter.Q.value = 2;
+
+            waveShaper.curve = generateDistortionCurve(80);
+            waveShaper.oversample = '4x';
+
+            // Primary Low-Frequency Ground Base Node
+            oscRoot = audioCtx.createOscillator();
+            oscRoot.type = 'sawtooth';
+            oscRoot.frequency.value = 55.00; // A1 Range
+
+            // Primary Upper Architectural Harmonic Node
+            oscHarmonic = audioCtx.createOscillator();
+            oscHarmonic.type = 'sine';
+            oscHarmonic.frequency.value = 82.41; // E2 (Perfect Fifth)
+
+            // Drift LFO to emulate uncalibrated boutique analog hardware
+            oscLFO = audioCtx.createOscillator();
+            const lfoGain = audioCtx.createGain();
+            oscLFO.type = 'sine';
+            oscLFO.frequency.value = 0.35; // Slow crawl
+            lfoGain.gain.value = 1.5; // pitch drift bounds
+
+            // Interconnect Synth Architecture
+            oscLFO.connect(lfoGain);
+            lfoGain.connect(oscRoot.frequency);
+            lfoGain.connect(oscHarmonic.frequency);
+
+            oscRoot.connect(subGain);
+            oscHarmonic.connect(harmGain);
+
+            subGain.gain.value = 0.25;
+            harmGain.gain.value = 0.15;
+
+            // Route Signals through Processing Units
+            subGain.connect(cathedralFilter);
+            harmGain.connect(cathedralFilter);
+
+            // Parallel split for distortion matrix
+            cathedralFilter.connect(masterGain);
+            
+            cathedralFilter.connect(waveShaper);
+            waveShaper.connect(saturationGain);
+            saturationGain.connect(masterGain);
+            saturationGain.gain.value = 0.0; // Clean by default
+
+            if (stereoPanner) {
+                masterGain.connect(stereoPanner);
+                stereoPanner.connect(audioCtx.destination);
             } else {
-                responseDiv.innerText = "ACCESS DENIED. THE ICE REMAINS UNBROKEN.";
-                document.getElementById('riddle-answer').value = '';
+                masterGain.connect(audioCtx.destination);
+            }
+
+            masterGain.gain.value = 0.0; // Muted initially
+
+            // Ignition
+            oscRoot.start();
+            oscHarmonic.start();
+            oscLFO.start();
+        }
+
+        // Real-time geometric mapping (Cursor location changes the spatial attributes)
+        function mapAudioToGeometry(x, y) {
+            if (!audioCtx || !isRitualActive) return;
+
+            // Y-Axis governs LowPass Filter Cutoff (Top = bright, Bottom = deep underwater sub)
+            const yPercentage = 1 - (y / window.innerHeight);
+            const targetCutoff = 80 + (Math.pow(yPercentage, 2) * 2400); // Exponential sweep curve
+            cathedralFilter.frequency.setTargetAtTime(targetCutoff, audioCtx.currentTime, 0.1);
+
+            // X-Axis governs panoramic stereo spacing
+            if (stereoPanner) {
+                const panTarget = (x / window.innerWidth) * 2 - 1; // Translate map bounds down to -1 to +1
+                stereoPanner.pan.setTargetAtTime(panTarget * 0.7, audioCtx.currentTime, 0.15);
             }
         }
-    }
 
-    // Draggable Window Logic
-    const header = document.getElementById('window-header');
-    let isDragging = false, xOffset = 0, yOffset = 0, initialX, initialY;
+        // Toggle Audio State via button
+        ritualToggle.addEventListener('click', async () => {
+            if (!audioCtx) initSynthesisEngine();
+            if (audioCtx.state === 'suspended') await audioCtx.resume();
 
-    header.addEventListener('mousedown', dragStart);
-    document.addEventListener('mouseup', dragEnd);
-    document.addEventListener('mousemove', drag);
+            isRitualActive = !isRitualActive;
+            
+            if (isRitualActive) {
+                ritualToggle.classList.add('ritual-active');
+                statusText.innerText = "[ TOMB RESONATING ]";
+                masterGain.gain.setTargetAtTime(0.35, audioCtx.currentTime, 0.4);
+            } else {
+                ritualToggle.classList.remove('ritual-active');
+                statusText.innerText = "[ EXHUME MONUMENT ]";
+                masterGain.gain.setTargetAtTime(0.0, audioCtx.currentTime, 0.3);
+            }
+        });
 
-    function dragStart(e) {
-        initialX = e.clientX - xOffset;
-        initialY = e.clientY - yOffset;
-        if (e.target === header || e.target === winTitle) { isDragging = true; }
-    }
-    function dragEnd() { initialX = xOffset; initialY = yOffset; isDragging = false; }
-    function drag(e) {
-        if (isDragging) {
-            e.preventDefault();
-            xOffset = e.clientX - initialX;
-            yOffset = e.clientY - initialY;
-            win.style.transform = `translate3d(${xOffset}px, ${yOffset}px, 0)`;
-        }
-    }
-</script>
+        // Cantos Node Interaction (Chords morph on selection)
+        cantos.forEach(canto => {
+            canto.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (!audioCtx || !isRitualActive) return;
 
+                const rootFreq = parseFloat(canto.getAttribute('data-root'));
+                const harmFreq = parseFloat(canto.getAttribute('data-harm'));
+                const waveType = canto.getAttribute('data-wave');
+
+                // Gracefully glide synth oscillators to new positions over time
+                oscRoot.frequency.exponentialRampToValueAtTime(rootFreq, audioCtx.currentTime + 0.6);
+                oscHarmonic.frequency.exponentialRampToValueAtTime(harmFreq, audioCtx.currentTime + 0.8);
+                oscRoot.type = waveType;
+
+                // Visual highlights
+                document.querySelectorAll('.canto-title').forEach(t => t.style.color = 'rgba(255,255,255,0.6)');
+                canto.querySelector('.canto-title').style.color = '#ff3300';
+            });
+        });
+
+        // Active Resonation: Blown-Out Overdrive Field (On Mousedown)
+        document.addEventListener('mousedown', (e) => {
+            if (e.target.closest('.interactive')) return;
+            document.body.classList.add('active-resonation');
+            
+            if (audioCtx && isRitualActive) {
+                // Slam the overdrive matrix and narrow filter Q to scream
+                saturationGain.gain.setTargetAtTime(0.6, audioCtx.currentTime, 0.1);
+                cathedralFilter.Q.setTargetAtTime(8, audioCtx.currentTime, 0.1);
+                
+                // Plunge sub frequencies deep into the floor plates
+                subGain.gain.setTargetAtTime(0.5, audioCtx.currentTime, 0.2);
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            document.body.classList.remove('active-resonation');
+            
+            if (audioCtx && isRitualActive) {
+                // Return safely back to architectural baseline settings
+                saturationGain.gain.setTargetAtTime(0.0, audioCtx.currentTime, 0.3);
+                cathedralFilter.Q.setTargetAtTime(2, audioCtx.currentTime, 0.4);
+                subGain.gain.setTargetAtTime(0.25, audioCtx.currentTime, 0.3);
+            }
+        });
+
+        // --- 5. THE SIX SEVEN ACCESS ENVELOPE ---
+        let keystrokes = '';
+        const secretCode = 'sixseven';
+        
+        document.addEventListener('keydown', (e) => {
+            keystrokes += e.key.toLowerCase();
+            if (keystrokes.length > secretCode.length) {
+                keystrokes = keystrokes.slice(-secretCode.length);
+            }
+            if (keystrokes === secretCode) {
+                const monolith = document.getElementById('core-monolith');
+                monolith.innerText = "[ LINK ESTABLISHED ]";
+                monolith.classList.add('glitch-reveal');
+                
+                if (audioCtx && isRitualActive) {
+                    // Trigger a sudden piercing frequency spike as a confirmation tone
+                    oscHarmonic.frequency.setValueAtTime(880, audioCtx.currentTime);
+                    oscHarmonic.frequency.exponentialRampToValueAtTime(82.41, audioCtx.currentTime + 1.2);
+                }
+                setTimeout(() => {
+                    window.location.href = "mailto:exhumation@synt.com"; 
+                }, 1500);
+            }
+        });
+    </script>
 </body>
 </html>
