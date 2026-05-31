@@ -34,14 +34,12 @@
 
         #visualizer-canvas {
             position: absolute; width: 100%; height: 100%;
-            /* Minimal drop shadow for depth without messy blooming */
-            filter: drop-shadow(0 0 6px rgba(255,255,255,0.4));
+            filter: drop-shadow(0 0 5px rgba(255,255,255,0.3));
         }
 
-        /* Refined, extremely subtle digital dust */
         #lo-fi-grain {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            pointer-events: none; z-index: 9999; opacity: 0.06; mix-blend-mode: overlay;
+            pointer-events: none; z-index: 9999; opacity: 0.05; mix-blend-mode: overlay;
         }
 
         /* --- PRECISION CROSSHAIR --- */
@@ -61,9 +59,9 @@
         .hovering #crosshair-cursor { width: 80px; height: 80px; transform: translate(-50%, -50%) rotate(45deg); }
         .hovering #crosshair-cursor::before, .hovering #crosshair-cursor::after { background-color: var(--pure-light); box-shadow: 0 0 10px var(--pure-light); }
 
-        /* --- UI ARCHITECTURE --- */
+        /* --- BRUTALIST UI ARCHITECTURE --- */
         .brutalist-grid {
-            display: grid; grid-template-columns: 100px 1fr 450px;
+            display: grid; grid-template-columns: 80px 1fr 450px;
             height: 100vh; width: 100vw; position: relative; z-index: 10;
         }
 
@@ -73,35 +71,67 @@
         }
 
         .left-axis { padding: 40px 0; align-items: center; border-right: 1px solid rgba(255,255,255,0.05); }
-        .return-wrapper { display: flex; flex-direction: column; align-items: center; gap: 20px; }
-        .sigil { font-family: var(--serif-font); font-style: italic; font-size: 2rem; color: rgba(255,255,255,0.6); text-decoration: none; transition: all 0.3s; }
-        .sigil:hover { color: var(--pure-light); text-shadow: 0 0 15px var(--pure-light); transform: scale(1.1); }
-        .return-text { transform: rotate(-90deg); white-space: nowrap; font-size: 0.55rem; color: var(--pure-light); letter-spacing: 6px; margin-top: 60px; opacity: 0; transition: opacity 0.3s; }
-        .sigil:hover + .return-text { opacity: 1; }
-        .vertical-marker { transform: rotate(-90deg); white-space: nowrap; font-size: 0.55rem; color: rgba(255, 255, 255, 0.3); letter-spacing: 6px; text-transform: uppercase;}
+        .vertical-marker { transform: rotate(-90deg); white-space: nowrap; font-size: 0.55rem; color: rgba(255, 255, 255, 0.2); letter-spacing: 6px; text-transform: uppercase;}
 
         .center-nave { padding: 60px 80px; justify-content: space-between; pointer-events: none; }
-        .header-block { display: flex; justify-content: space-between; align-items: flex-start; width: 100%; }
-
-        .audio-status { font-size: 0.65rem; font-weight: 700; letter-spacing: 4px; color: rgba(255, 255, 255, 0.4); text-transform: uppercase; }
-        .audio-status span { color: var(--pure-light); }
+        
+        .header-block { display: flex; justify-content: space-between; align-items: flex-start; width: 100%; pointer-events: auto; }
+        
+        .back-btn { 
+            font-size: 0.7rem; font-weight: 700; letter-spacing: 3px; 
+            color: rgba(255, 255, 255, 0.5); text-decoration: none; text-transform: uppercase;
+            border: 1px solid transparent; padding: 8px 16px; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .back-btn:hover { color: var(--void); background-color: var(--pure-light); border-color: var(--pure-light); letter-spacing: 5px; }
 
         .current-track-display { text-align: left; margin-top: auto; margin-bottom: 60px; pointer-events: auto;}
-        .current-index { font-family: var(--serif-font); font-style: italic; font-size: 3rem; color: rgba(255,255,255,0.3); line-height: 1; }
+        .current-index { font-family: var(--serif-font); font-style: italic; font-size: 3rem; color: rgba(255,255,255,0.2); line-height: 1; }
         .current-title { 
             font-size: 4rem; font-weight: 700; letter-spacing: -2px; color: var(--pure-light); 
             line-height: 1; margin-top: 10px; text-transform: uppercase;
-            transition: letter-spacing 0.1s ease, transform 0.1s ease; transform-origin: left center;
+            transition: opacity 0.3s ease; 
         }
         
         .play-toggle { display: inline-block; margin-top: 20px; font-size: 0.8rem; letter-spacing: 3px; border: 1px solid var(--ghost); padding: 10px 20px; transition: all 0.3s; }
         .play-toggle:hover { border-color: var(--pure-light); background: var(--pure-light); color: var(--void); }
 
+        /* --- ADVANCED TIMELINE SCRUBBER --- */
         .timeline-container { width: 100%; display: flex; align-items: center; gap: 20px; pointer-events: auto; }
-        .time-display { font-size: 0.7rem; letter-spacing: 1px; font-weight: 700; width: 40px; text-align: center;}
-        .progress-bar-bg { flex-grow: 1; height: 1px; background-color: var(--ghost); position: relative; padding: 15px 0; background-clip: content-box; }
-        .progress-bar-fill { position: absolute; top: 15px; left: 0; height: 1px; background-color: var(--pure-light); width: 0%; box-shadow: 0 0 10px var(--pure-light); pointer-events: none;}
+        .time-display { font-size: 0.7rem; letter-spacing: 1px; font-weight: 700; width: 40px; text-align: center; color: rgba(255,255,255,0.5);}
+        
+        .progress-bar-bg { 
+            flex-grow: 1; height: 16px; position: relative; display: flex; align-items: center; cursor: pointer;
+        }
+        .progress-bar-track { width: 100%; height: 2px; background-color: var(--ghost); position: relative; pointer-events: none;}
+        .progress-bar-fill { position: absolute; top: 0; left: 0; height: 100%; background-color: var(--pure-light); width: 0%; box-shadow: 0 0 10px var(--pure-light); pointer-events: none;}
+        
+        .playhead { 
+            position: absolute; top: 50%; left: 0%; width: 10px; height: 10px; 
+            background: var(--pure-light); border-radius: 50%; 
+            transform: translate(-50%, -50%) scale(0); transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1); 
+            pointer-events: none;
+        }
+        .progress-bar-bg:hover .playhead { transform: translate(-50%, -50%) scale(1); }
 
+        /* --- DROPDOWN VOLUME CONTROLLER --- */
+        .volume-wrapper { position: relative; display: flex; align-items: center; justify-content: center; width: 40px; height: 30px; cursor: pointer; }
+        .volume-icon { font-size: 0.6rem; font-weight: 700; letter-spacing: 1px; color: rgba(255,255,255,0.5); transition: color 0.2s; }
+        .volume-wrapper:hover .volume-icon { color: var(--pure-light); }
+        
+        .volume-dropdown { 
+            position: absolute; bottom: 35px; left: 50%; transform: translateX(-50%); 
+            width: 30px; height: 100px; background: var(--void); border: 1px solid var(--ghost); 
+            display: flex; align-items: center; justify-content: center; 
+            opacity: 0; pointer-events: none; transition: opacity 0.2s, bottom 0.2s; padding: 10px 0; 
+        }
+        .volume-wrapper:hover .volume-dropdown { opacity: 1; pointer-events: auto; bottom: 40px; }
+        
+        .vol-track-bg { width: 2px; height: 100%; background: var(--ghost); position: relative; }
+        .vol-fill { position: absolute; bottom: 0; left: 0; width: 100%; height: 100%; background: var(--pure-light); box-shadow: 0 0 5px var(--pure-light); }
+        .vol-handle { position: absolute; top: 0; left: 50%; width: 8px; height: 8px; background: #fff; border-radius: 50%; transform: translate(-50%, -50%); }
+
+
+        /* --- DIRECTORY (PLAYLIST) --- */
         .right-cloisters { border-right: none; padding: 60px 50px; justify-content: center; background: linear-gradient(to right, rgba(0,0,0,0), rgba(2,2,2,0.9)); }
         .section-header { font-size: 0.6rem; color: rgba(255, 255, 255, 0.3); letter-spacing: 4px; text-transform: uppercase; margin-bottom: 50px; }
         .directory-list { display: flex; flex-direction: column; gap: 0; border-top: 1px solid var(--ghost); }
@@ -153,16 +183,12 @@
 
     <div class="brutalist-grid">
         <div class="panel left-axis">
-            <div class="return-wrapper">
-                <a href="index.html" class="sigil interactive">†</a>
-                <div class="return-text">[ RETURN TO ARCHIVE ]</div>
-            </div>
-            <div class="vertical-marker" style="margin-top: auto; color: rgba(255,255,255,0.8);">0X1900</div>
+            <div class="vertical-marker" style="margin-top: auto; color: rgba(255,255,255,0.3);">0X1900</div>
         </div>
 
         <div class="panel center-nave">
             <div class="header-block">
-                <div class="audio-status" id="system-status">SYSTEM // <span id="status-text">AWAITING INPUT</span></div>
+                <a href="index.html" class="back-btn interactive">[ ← GO BACK ]</a>
             </div>
 
             <div class="current-track-display">
@@ -173,10 +199,25 @@
 
             <div class="timeline-container interactive" id="timeline">
                 <div class="time-display" id="current-time">0:00</div>
+                
                 <div class="progress-bar-bg" id="progress-bg">
-                    <div class="progress-bar-fill" id="progress-fill"></div>
+                    <div class="progress-bar-track">
+                        <div class="progress-bar-fill" id="progress-fill"></div>
+                        <div class="playhead" id="playhead"></div>
+                    </div>
                 </div>
+                
                 <div class="time-display" id="duration">0:00</div>
+                
+                <div class="volume-wrapper">
+                    <div class="volume-icon">[VOL]</div>
+                    <div class="volume-dropdown">
+                        <div class="vol-track-bg" id="vol-track">
+                            <div class="vol-fill" id="vol-fill"></div>
+                            <div class="vol-handle" id="vol-handle"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -189,7 +230,7 @@
                         <div class="dir-index">01</div>
                         <div class="dir-content">
                             <div class="dir-title">INSTRUMENTAL</div>
-                            <div class="dir-spec">Vis 01 // The Tesseract</div>
+                            <div class="dir-spec">Vis 01 // Jagged Halo</div>
                         </div>
                     </div>
                     
@@ -197,7 +238,7 @@
                         <div class="dir-index">02</div>
                         <div class="dir-content">
                             <div class="dir-title">DEMO_ONE</div>
-                            <div class="dir-spec">Vis 02 // Lissajous Knot</div>
+                            <div class="dir-spec">Vis 02 // Data Monoliths</div>
                         </div>
                     </div>
 
@@ -205,7 +246,7 @@
                         <div class="dir-index">03</div>
                         <div class="dir-content">
                             <div class="dir-title">DEMO_TWO</div>
-                            <div class="dir-spec">Vis 03 // Arch Pillars</div>
+                            <div class="dir-spec">Vis 03 // The Tesseract</div>
                         </div>
                     </div>
 
@@ -259,26 +300,25 @@
             el.addEventListener('mouseleave', () => crosshairCursor.classList.remove('hovering'));
         });
 
-
-        // --- 3. PURE AUDIO ENGINE ---
+        // --- 3. PURE AUDIO ENGINE & DOT DECOUPLE LOGIC ---
         const audioEl = document.getElementById('audio-source');
         const visCanvas = document.getElementById('visualizer-canvas');
         const visCtx = visCanvas.getContext('2d');
         
-        const statusText = document.getElementById('status-text');
         const displayIndex = document.getElementById('display-index');
         const displayTitle = document.getElementById('display-title');
         const playBtn = document.getElementById('play-btn');
         const trackNodes = document.querySelectorAll('.track-select');
         
-        let audioCtx, analyser, source, tuningFilter;
+        let audioCtx, analyser, source, decoupleFilter;
         let dataArray, bufferLength;
         let isPlaying = false;
         let audioInitialized = false;
         
-        // Transition and Vis State
-        let isTuning = false;
-        let tuneIntensity = 0;
+        // Mathematical Transition State
+        let isDecoupling = false;
+        let decoupleIntensity = 0;
+        
         let currentVisMode = 1;
         let animationFrameId = null;
 
@@ -291,13 +331,12 @@
             analyser = audioCtx.createAnalyser();
             source = audioCtx.createMediaElementSource(audioEl);
             
-            // Clean Bandpass filter used only during the track-switch transition
-            tuningFilter = audioCtx.createBiquadFilter();
-            tuningFilter.type = 'allpass'; 
-            tuningFilter.frequency.value = 24000; 
+            decoupleFilter = audioCtx.createBiquadFilter();
+            decoupleFilter.type = 'lowpass'; 
+            decoupleFilter.frequency.value = 24000; 
 
-            source.connect(tuningFilter);
-            tuningFilter.connect(analyser);
+            source.connect(decoupleFilter);
+            decoupleFilter.connect(analyser);
             analyser.connect(audioCtx.destination);
             
             analyser.fftSize = 512; 
@@ -307,54 +346,47 @@
             audioInitialized = true;
         }
 
-        // --- RADIO SIGNAL TRANSITION LOGIC ---
-        function executeTuningTransition(src, title, index, visMode, node) {
+        // --- THE DOT SCATTER DECOUPLE TRANSITION ---
+        function executeDecoupleTransition(src, title, index, visMode, node) {
             initWebAudio();
             if (audioCtx.state === 'suspended') audioCtx.resume();
 
             trackNodes.forEach(n => n.classList.remove('active-track'));
             node.classList.add('active-track');
-            displayIndex.innerText = index;
-            displayTitle.innerText = title;
-            currentVisMode = visMode;
             
-            if (!audioEl.src.endsWith(src)) audioEl.src = src;
-            audioEl.play().catch(e => console.log("Playback required"));
+            isDecoupling = true;
+            decoupleIntensity = 1.0; 
+            displayTitle.style.opacity = 0; 
             
-            if (!isPlaying) {
-                isPlaying = true;
-                if(animationFrameId) cancelAnimationFrame(animationFrameId);
-                renderVisualizer();
-            }
-            
-            playBtn.innerText = "PAUSE";
-            
-            // TRIGGER THE RADIO TRANSITION
-            isTuning = true;
-            statusText.innerText = "TUNING SIGNAL";
-            statusText.style.color = "var(--pure-light)";
-            
-            const now = audioCtx.currentTime;
-            
-            // Audio sweep (simulates a radio finding a station)
-            tuningFilter.type = 'bandpass';
-            tuningFilter.Q.value = 10;
-            tuningFilter.frequency.setValueAtTime(200, now);
-            tuningFilter.frequency.exponentialRampToValueAtTime(10000, now + 0.8);
-            
-            // Visual erratic intensity decays over 1 second
-            tuneIntensity = 1.0;
-            const tuningInterval = setInterval(() => {
-                tuneIntensity -= 0.05;
-                if(tuneIntensity <= 0) {
-                    tuneIntensity = 0;
-                    isTuning = false;
-                    tuningFilter.type = 'allpass'; // Reset filter to crystal clear
-                    statusText.innerText = "RESONATING";
-                    statusText.style.color = "var(--pure-light)";
-                    clearInterval(tuningInterval);
+            decoupleFilter.frequency.setTargetAtTime(300, audioCtx.currentTime, 0.1);
+
+            setTimeout(() => {
+                if (!audioEl.src.endsWith(src)) audioEl.src = src;
+                audioEl.play().catch(e => console.log("Playback required"));
+                
+                displayIndex.innerText = index;
+                displayTitle.innerText = title;
+                currentVisMode = visMode;
+                displayTitle.style.opacity = 1; 
+
+                if (!isPlaying) {
+                    isPlaying = true;
+                    if(animationFrameId) cancelAnimationFrame(animationFrameId);
+                    renderVisualizer();
                 }
-            }, 40);
+                
+                playBtn.innerText = "PAUSE";
+                decoupleFilter.frequency.setTargetAtTime(24000, audioCtx.currentTime, 0.1);
+            }, 300);
+
+            const decoupleDecay = setInterval(() => {
+                decoupleIntensity -= 0.05;
+                if(decoupleIntensity <= 0) {
+                    decoupleIntensity = 0;
+                    isDecoupling = false;
+                    clearInterval(decoupleDecay);
+                }
+            }, 30);
         }
 
         trackNodes.forEach(node => {
@@ -364,7 +396,7 @@
                 const index = node.getAttribute('data-index');
                 const visMode = parseInt(node.getAttribute('data-vis'));
                 
-                executeTuningTransition(src, title, index, visMode, node);
+                if(!isDecoupling) executeDecoupleTransition(src, title, index, visMode, node);
             });
         });
 
@@ -376,13 +408,12 @@
             if (isPlaying) {
                 audioEl.pause(); 
                 isPlaying = false;
-                playBtn.innerText = "PLAY"; statusText.innerText = "PAUSED";
-                displayTitle.style.letterSpacing = "-2px"; displayTitle.style.transform = "scaleX(1)";
+                playBtn.innerText = "PLAY";
                 if(animationFrameId) cancelAnimationFrame(animationFrameId);
             } else {
                 audioEl.play(); 
                 isPlaying = true;
-                playBtn.innerText = "PAUSE"; statusText.innerText = "RESONATING";
+                playBtn.innerText = "PAUSE";
                 if(animationFrameId) cancelAnimationFrame(animationFrameId);
                 renderVisualizer();
             }
@@ -390,7 +421,7 @@
 
         // --- MASTER RENDER LOOP ---
         function renderVisualizer() {
-            if (!isPlaying) return;
+            if (!isPlaying && !isDecoupling) return;
             animationFrameId = requestAnimationFrame(renderVisualizer);
 
             analyser.getByteFrequencyData(dataArray);
@@ -398,46 +429,96 @@
 
             const centerX = visCanvas.width / 2; const centerY = visCanvas.height / 2;
             
-            // Extract frequencies for reactivity
             let bassSum = 0; for(let i = 0; i < 4; i++) bassSum += dataArray[i];
             const bassAvg = bassSum / 4;
-            
-            let highSum = 0; for(let i = 100; i < 150; i++) highSum += dataArray[i];
-            const highAvg = highSum / 50;
 
-            // UI Reactivity
-            const textStretch = 1 + Math.max(0, (bassAvg - 180) / 400);
-            const tracking = -2 + Math.max(0, (bassAvg - 180) / 10);
-            displayTitle.style.transform = `scaleX(${textStretch})`;
-            displayTitle.style.letterSpacing = `${tracking}px`;
+            // Decouple Line styling (The Dot Effect)
+            if (isDecoupling) {
+                visCtx.setLineDash([2, 15 + (decoupleIntensity * 30)]);
+                visCtx.strokeStyle = `rgba(255, 255, 255, ${1 - decoupleIntensity})`;
+            } else {
+                visCtx.setLineDash([]);
+                visCtx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+            }
+            visCtx.lineWidth = 1.5;
 
+            // --- VIS 1: JAGGED HALO ---
+            if (currentVisMode === 1) {
+                const baseRadius = 150 + (bassAvg * 0.2);
+                const dataPoints = 80; const angleStep = Math.PI / dataPoints;
+                const rotation = Date.now() * 0.0003;
 
-            // --- THE RADIO TUNING VISUAL OVERRIDE ---
-            if (isTuning) {
-                // Draws a chaotic, horizontal searching signal
                 visCtx.beginPath();
-                visCtx.strokeStyle = `rgba(255, 255, 255, ${0.4 + tuneIntensity})`;
-                visCtx.lineWidth = 2;
-                
-                let yOffset = centerY;
-                for (let x = 0; x < visCanvas.width; x += 4) {
-                    // Combine a sine wave with harsh data noise
-                    const dataVal = (dataArray[(x / 4) % bufferLength] / 255) * 100;
-                    const noise = (Math.random() - 0.5) * (150 * tuneIntensity);
-                    const wave = Math.sin((x * 0.02) + (Date.now() * 0.01)) * (50 * tuneIntensity);
-                    
-                    const y = yOffset + wave + noise + dataVal * tuneIntensity;
-                    if (x === 0) visCtx.moveTo(x, y);
-                    else visCtx.lineTo(x, y);
-                }
+                visCtx.arc(centerX, centerY, baseRadius - 20, 0, Math.PI * 2);
+                visCtx.strokeStyle = `rgba(255, 255, 255, ${isDecoupling ? 0 : 0.1})`;
                 visCtx.stroke();
-                
-                // Early exit to skip normal drawing while tuning
-                return; 
+
+                visCtx.beginPath();
+                for (let i = 0; i <= dataPoints; i++) {
+                    const spike = Math.pow(dataArray[i] / 255, 1.8) * 160; 
+                    const r = baseRadius + spike;
+                    const angle = -Math.PI/2 + (i * angleStep) + rotation;
+                    
+                    const jX = (Math.random() - 0.5) * (decoupleIntensity * 100);
+                    const jY = (Math.random() - 0.5) * (decoupleIntensity * 100);
+
+                    const x = centerX + Math.cos(angle)*r + jX;
+                    const y = centerY + Math.sin(angle)*r + jY;
+                    if (i === 0) visCtx.moveTo(x, y); else visCtx.lineTo(x, y);
+                }
+                for (let i = dataPoints; i >= 0; i--) {
+                    const spike = Math.pow(dataArray[i] / 255, 1.8) * 160; 
+                    const r = baseRadius + spike;
+                    const angle = -Math.PI/2 - (i * angleStep) + rotation;
+
+                    const jX = (Math.random() - 0.5) * (decoupleIntensity * 100);
+                    const jY = (Math.random() - 0.5) * (decoupleIntensity * 100);
+
+                    const x = centerX + Math.cos(angle)*r + jX;
+                    const y = centerY + Math.sin(angle)*r + jY;
+                    visCtx.lineTo(x, y);
+                }
+                visCtx.closePath();
+                visCtx.strokeStyle = `rgba(255, 255, 255, ${isDecoupling ? (1-decoupleIntensity) : 0.9})`; 
+                visCtx.stroke();
             }
 
-            // --- VIS 1: THE TESSERACT (Refined Hypercube) ---
-            if (currentVisMode === 1) {
+            // --- VIS 2: DATA MONOLITHS (3D Pillar Array) ---
+            else if (currentVisMode === 2) {
+                const numPillars = 40;
+                const radius = 220 + (bassAvg * 0.3) + (decoupleIntensity * 150);
+                const time = Date.now() * 0.0005;
+
+                for(let i = 0; i < numPillars; i++) {
+                    const val = dataArray[i * 2] / 255; 
+                    const height = 10 + Math.pow(val, 2) * 200;
+                    const angle = (i / numPillars) * Math.PI * 2 + time;
+                    
+                    const x3d = Math.cos(angle) * radius;
+                    const z3d = Math.sin(angle) * radius;
+                    const scale = 500 / (500 + z3d);
+                    
+                    const jX = (Math.random() - 0.5) * (decoupleIntensity * 150);
+                    const jY = (Math.random() - 0.5) * (decoupleIntensity * 150);
+
+                    const x = centerX + (x3d * scale) + jX;
+                    const y = centerY + 100 + jY; 
+
+                    visCtx.beginPath();
+                    visCtx.strokeStyle = `rgba(255,255,255,${(0.1 + (val * 0.8)) * (1 - decoupleIntensity)})`;
+                    visCtx.moveTo(x, y);
+                    visCtx.lineTo(x, y - (height * scale));
+                    visCtx.stroke();
+                    
+                    visCtx.beginPath();
+                    visCtx.fillStyle = `rgba(255,255,255,${1 - decoupleIntensity})`;
+                    visCtx.arc(x, y - (height * scale), 2 * scale, 0, Math.PI*2);
+                    visCtx.fill();
+                }
+            }
+
+            // --- VIS 3: THE TESSERACT (Refined Hypercube) ---
+            else if (currentVisMode === 3) {
                 const time = Date.now() * 0.0005;
                 const size = 160 + (bassAvg * 0.2); 
                 
@@ -445,109 +526,47 @@
                 for(let i=0; i<8; i++) {
                     let x = (i & 1 ? 1 : -1); let y = (i & 2 ? 1 : -1); let z = (i & 4 ? 1 : -1);
                     
+                    const freqVal = dataArray[10 + (i * 5)] / 255;
+                    const push = 1 + (freqVal * 0.6);
+                    x *= push; y *= push; z *= push;
+
                     const rx = x * Math.cos(time) - z * Math.sin(time);
                     const rz = x * Math.sin(time) + z * Math.cos(time);
                     const ry = y * Math.cos(time*0.7) - rz * Math.sin(time*0.7);
                     
-                    const scale = 600 / (600 + rz);
-                    nodes.push({ x: centerX + rx * size * scale, y: centerY + ry * size * scale });
+                    const decoupleZ = rz + (decoupleIntensity * (i % 2 === 0 ? 500 : -500));
+                    const scale = 600 / (600 + decoupleZ);
+                    
+                    const jX = (Math.random() - 0.5) * (decoupleIntensity * 200);
+                    const jY = (Math.random() - 0.5) * (decoupleIntensity * 200);
+
+                    nodes.push({ x: centerX + rx * size * scale + jX, y: centerY + ry * size * scale + jY });
                 }
 
-                visCtx.strokeStyle = 'rgba(255, 255, 255, 0.9)'; 
-                visCtx.lineWidth = 1.5; 
                 visCtx.beginPath();
-                
                 const edges = [
                     [0,1], [1,3], [3,2], [2,0], [4,5], [5,7], [7,6], [6,4], [0,4], [1,5], [2,6], [3,7]  
                 ];
-                
                 edges.forEach(edge => { 
-                    // Creative logic: Bass dynamically pulls the connecting edges apart
-                    const disconnect = (highAvg / 255) * 30;
-                    const n1 = nodes[edge[0]];
-                    const n2 = nodes[edge[1]];
-                    
-                    // Move the line slightly inward from its true vertices to create a floating/broken effect
-                    visCtx.moveTo(n1.x + (n2.x - n1.x)*0.05*disconnect, n1.y + (n2.y - n1.y)*0.05*disconnect); 
-                    visCtx.lineTo(n2.x - (n2.x - n1.x)*0.05*disconnect, n2.y - (n2.y - n1.y)*0.05*disconnect); 
+                    const n1 = nodes[edge[0]]; const n2 = nodes[edge[1]];
+                    visCtx.moveTo(n1.x, n1.y); visCtx.lineTo(n2.x, n2.y); 
                 });
                 visCtx.stroke();
             }
-
-            // --- VIS 2: LISSAJOUS KNOT (Elegant 3D Flow) ---
-            else if (currentVisMode === 2) {
-                visCtx.strokeStyle = 'rgba(255, 255, 255, 0.7)'; 
-                visCtx.lineWidth = 1.5;
-                visCtx.beginPath();
-                
-                const time = Date.now() * 0.0002;
-                const resolution = 200;
-                
-                for (let i = 0; i <= resolution; i++) {
-                    const t = (i / resolution) * Math.PI * 2;
-                    
-                    // Audio modulates the phase and complexity of the knot
-                    const mod = (dataArray[i % 50] / 255);
-                    const a = 3; 
-                    const b = 2 + (bassAvg * 0.005); 
-                    const d = Math.PI / 2;
-                    
-                    // Parametric Lissajous Equations
-                    let x = Math.sin(a * t + time) * (200 + mod * 100);
-                    let y = Math.sin(b * t + d) * (200 + mod * 100);
-                    
-                    // Simple 3D rotation applied to the 2D curve
-                    const rz = x * Math.sin(time*0.5);
-                    const scale = 500 / (500 + rz);
-
-                    if (i === 0) visCtx.moveTo(centerX + x * scale, centerY + y * scale);
-                    else visCtx.lineTo(centerX + x * scale, centerY + y * scale);
-                }
-                visCtx.stroke();
-            }
-
-            // --- VIS 3: ARCHITECTURAL PILLARS (Brutalist Blocks) ---
-            else if (currentVisMode === 3) {
-                const numPillars = 8;
-                const pillarWidth = 40;
-                const spacing = 20;
-                const totalWidth = (numPillars * pillarWidth) + ((numPillars - 1) * spacing);
-                const startX = centerX - (totalWidth / 2);
-
-                visCtx.strokeStyle = '#ffffff'; 
-                visCtx.lineWidth = 1;
-
-                for(let i = 0; i < numPillars; i++) {
-                    const px = startX + (i * (pillarWidth + spacing));
-                    const dataVal = dataArray[i * 10] / 255;
-                    const highVal = dataArray[150 + (i*5)] / 255;
-                    
-                    // Base Pillar Height
-                    const ph = 100 + (dataVal * 250);
-                    const py = centerY - (ph / 2);
-
-                    // Draw the core wireframe pillar
-                    visCtx.strokeRect(px, py, pillarWidth, ph);
-
-                    // Creative logic: High frequencies draw horizontal cutting lines through the pillars
-                    if(highVal > 0.2) {
-                        const sliceY = centerY + (Math.sin(Date.now() * 0.002 + i) * ph/2);
-                        const sliceOffset = highVal * 40;
-                        
-                        visCtx.beginPath();
-                        visCtx.moveTo(px - sliceOffset, sliceY);
-                        visCtx.lineTo(px + pillarWidth + sliceOffset, sliceY);
-                        visCtx.stroke();
-                    }
-                }
-            }
+            
+            visCtx.setLineDash([]);
         }
 
-        // --- 5. TIMELINE SCRUBBING ---
+        // --- 4. ADVANCED SCRUBBER & VOLUME UI ---
         const progressBg = document.getElementById('progress-bg');
         const progressFill = document.getElementById('progress-fill');
+        const playhead = document.getElementById('playhead');
         const currentTimeEl = document.getElementById('current-time');
         const durationEl = document.getElementById('duration');
+        
+        const volTrack = document.getElementById('vol-track');
+        const volFill = document.getElementById('vol-fill');
+        const volHandle = document.getElementById('vol-handle');
 
         function formatTime(seconds) {
             if (isNaN(seconds)) return "0:00";
@@ -557,31 +576,60 @@
 
         audioEl.addEventListener('loadedmetadata', () => { durationEl.innerText = formatTime(audioEl.duration); });
         
+        // Scrubbing State
+        let isScrubbing = false;
+        
+        progressBg.addEventListener('mousedown', (e) => { isScrubbing = true; scrubTimeline(e); });
+        window.addEventListener('mousemove', (e) => { if(isScrubbing) scrubTimeline(e); });
+        window.addEventListener('mouseup', () => { isScrubbing = false; });
+
+        function scrubTimeline(e) {
+            if (!audioEl.src || isDecoupling) return; 
+            const rect = progressBg.getBoundingClientRect();
+            let percent = (e.clientX - rect.left) / rect.width;
+            percent = Math.max(0, Math.min(1, percent));
+            
+            audioEl.currentTime = percent * audioEl.duration;
+            progressFill.style.width = `${percent * 100}%`;
+            playhead.style.left = `${percent * 100}%`;
+            currentTimeEl.innerText = formatTime(audioEl.currentTime);
+        }
+
         function updateScrubber() {
-            if(isPlaying) {
+            if(isPlaying && !isDecoupling && !isScrubbing) {
+                const percent = (audioEl.currentTime / audioEl.duration) * 100;
                 currentTimeEl.innerText = formatTime(audioEl.currentTime);
-                progressFill.style.width = `${(audioEl.currentTime / audioEl.duration) * 100}%`;
+                progressFill.style.width = `${percent}%`;
+                playhead.style.left = `${percent}%`;
             }
             requestAnimationFrame(updateScrubber);
         }
         updateScrubber();
 
         audioEl.addEventListener('ended', () => {
-            isPlaying = false; playBtn.innerText = "PLAY"; statusText.innerText = "SYSTEM IDLE";
-            progressFill.style.width = `0%`; visCtx.clearRect(0, 0, visCanvas.width, visCanvas.height);
-            displayTitle.style.letterSpacing = "-2px"; displayTitle.style.transform = "scaleX(1)";
+            isPlaying = false; playBtn.innerText = "PLAY";
+            progressFill.style.width = `0%`; playhead.style.left = `0%`;
+            visCtx.clearRect(0, 0, visCanvas.width, visCanvas.height);
             if(animationFrameId) cancelAnimationFrame(animationFrameId);
         });
 
-        progressBg.addEventListener('click', (e) => {
-            if (!audioEl.src) return; 
-            const rect = progressBg.getBoundingClientRect();
-            audioEl.currentTime = ((e.clientX - rect.left) / rect.width) * audioEl.duration;
-            if(!isPlaying) {
-                currentTimeEl.innerText = formatTime(audioEl.currentTime);
-                progressFill.style.width = `${(audioEl.currentTime / audioEl.duration) * 100}%`;
-            }
-        });
+        // Volume State
+        let isVolDragging = false;
+        
+        volTrack.parentElement.addEventListener('mousedown', (e) => { isVolDragging = true; scrubVolume(e); });
+        window.addEventListener('mousemove', (e) => { if(isVolDragging) scrubVolume(e); });
+        window.addEventListener('mouseup', () => { isVolDragging = false; });
+
+        function scrubVolume(e) {
+            const rect = volTrack.getBoundingClientRect();
+            let percent = 1 - ((e.clientY - rect.top) / rect.height);
+            percent = Math.max(0, Math.min(1, percent));
+            
+            audioEl.volume = percent;
+            volFill.style.height = `${percent * 100}%`;
+            volHandle.style.top = `${(1 - percent) * 100}%`;
+        }
+
     </script>
 </body>
 </html>
