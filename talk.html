@@ -1,73 +1,455 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>AI Chat</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SYNT // THE VOID</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,400;1,600&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
+
+        :root {
+            --void: #020202;
+            --ash: #ececec;
+            --pure-light: #ffffff;
+            --ghost: rgba(255, 255, 255, 0.05);
+            
+            --mono-font: 'Space Mono', monospace;
+            --serif-font: 'Cormorant Garamond', serif;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; cursor: none; user-select: none; }
+
+        body {
+            background-color: var(--void); color: var(--ash);
+            font-family: var(--mono-font); overflow: hidden;
+            height: 100vh; width: 100vw; position: relative;
+            background-image: radial-gradient(circle at center, transparent 10%, #000000 100%);
+        }
+
+        /* --- VISUAL ENGINES --- */
+        #lo-fi-grain {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            pointer-events: none; z-index: 9999; opacity: 0.12; mix-blend-mode: overlay;
+        }
+
+        #neural-loom {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: 0; pointer-events: none; opacity: 0.4;
+            transition: opacity 1s ease;
+        }
+
+        body.void-thinking #neural-loom { opacity: 0.8; }
+
+        /* --- 3D GEOMETRIC CURSOR --- */
+        #cursor-wrapper {
+            position: fixed; top: 0; left: 0; width: 40px; height: 40px;
+            pointer-events: none; z-index: 10000;
+            display: flex; justify-content: center; align-items: center;
+            transform: translate(-50%, -50%);
+        }
+
+        #geo-cursor {
+            width: 100%; height: 100%; transform-style: preserve-3d;
+            animation: slowSpin 8s linear infinite;
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .cursor-ring {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 50%;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .cursor-ring:nth-child(2) { transform: rotateX(60deg) rotateY(45deg); border-radius: 0; }
+        .cursor-ring:nth-child(3) { transform: rotateX(-60deg) rotateY(-45deg); border-radius: 0; }
+
+        .hovering #geo-cursor { transform: scale(1.5); }
+        .hovering .cursor-ring { border-color: var(--pure-light); box-shadow: 0 0 10px rgba(255,255,255,0.3); }
+
+        body.void-thinking #geo-cursor { animation-duration: 1.5s; transform: scale(0.8); }
+        body.void-thinking .cursor-ring { border-color: rgba(255,255,255,0.8); }
+
+        @keyframes slowSpin { 0% { transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg); } 100% { transform: rotateX(360deg) rotateY(360deg) rotateZ(360deg); } }
+
+        /* --- MINIMAL ARCHITECTURE --- */
+        .brutalist-grid {
+            display: grid; grid-template-columns: 80px 1fr;
+            height: 100vh; width: 100vw; position: relative; z-index: 10;
+        }
+
+        .panel {
+            position: relative; height: 100%; display: flex; flex-direction: column; justify-content: space-between;
+        }
+
+        .left-axis { padding: 40px 0; align-items: center; border-right: 1px solid var(--ghost); }
+        .sigil { font-family: var(--serif-font); font-style: italic; font-size: 1.8rem; color: rgba(255,255,255,0.4); text-decoration: none; transition: color 0.2s; }
+        .sigil:hover { color: var(--pure-light); text-shadow: 0 0 15px var(--pure-light); }
+        .vertical-marker { transform: rotate(-90deg); white-space: nowrap; font-size: 0.55rem; color: rgba(255, 255, 255, 0.3); letter-spacing: 6px; text-transform: uppercase;}
+
+        .back-btn { 
+            writing-mode: vertical-rl; transform: rotate(180deg);
+            font-size: 0.6rem; font-weight: 700; letter-spacing: 4px; 
+            color: rgba(255, 255, 255, 0.4); text-decoration: none; text-transform: uppercase;
+            transition: color 0.3s, letter-spacing 0.3s; margin-top: 60px;
+        }
+        .back-btn:hover { color: var(--pure-light); letter-spacing: 6px; text-shadow: 0 0 8px rgba(255,255,255,0.4);}
+
+        /* --- THE VOID CANVAS --- */
+        .center-nave { padding: 0; position: relative; justify-content: flex-end; }
+        
+        #void-display {
+            position: absolute; top: 0; left: 0; width: 100%; height: calc(100% - 120px);
+            display: flex; flex-wrap: wrap; align-content: center; justify-content: center;
+            padding: 80px; gap: 15px 25px; overflow: hidden;
+            perspective: 1000px;
+        }
+
+        .user-echo {
+            position: absolute; top: 60px; left: 50%; transform: translateX(-50%);
+            font-family: var(--mono-font); font-size: 0.65rem; letter-spacing: 8px; text-transform: uppercase;
+            color: rgba(255,255,255,0.4); opacity: 0; transition: opacity 1.5s ease-out; text-align: center;
+        }
+
+        .void-word {
+            font-family: var(--serif-font); font-style: italic; font-size: clamp(2.5rem, 6vw, 5.5rem);
+            color: rgba(255,255,255,0.4); line-height: 1.1;
+            display: inline-block;
+            transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), color 0.4s, text-shadow 0.4s, filter 0.8s;
+            pointer-events: none; filter: blur(10px); opacity: 0;
+        }
+
+        .void-word.materialized { filter: blur(0); opacity: 1; }
+
+        /* --- INPUT & STATUS DOCK --- */
+        #input-dock {
+            width: 100%; height: 120px; border-top: 1px solid transparent;
+            display: flex; align-items: center; justify-content: space-between; padding: 0 80px;
+            background: linear-gradient(to top, rgba(0,0,0,1) 20%, transparent);
+            position: relative; z-index: 20; transition: opacity 0.5s;
+        }
+
+        .input-wrapper { display: flex; align-items: center; flex-grow: 1; }
+        .input-prefix { font-family: var(--mono-font); color: rgba(255,255,255,0.2); font-size: 0.8rem; margin-right: 20px; letter-spacing: 2px;}
+        
+        #void-input {
+            flex-grow: 1; background: transparent; border: none; outline: none;
+            color: var(--pure-light); font-family: var(--mono-font); font-size: 1.2rem;
+            letter-spacing: 1px;
+        }
+        #void-input::placeholder { color: rgba(255,255,255,0.1); font-style: italic; font-family: var(--serif-font); letter-spacing: 3px; font-size: 1.5rem;}
+
+        /* Elegant Processing State */
+        #status-indicator {
+            position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+            font-family: var(--mono-font); font-size: 0.6rem; letter-spacing: 6px;
+            color: rgba(255,255,255,0.5); opacity: 0; pointer-events: none; transition: opacity 0.5s;
+            display: flex; align-items: center; gap: 15px; text-transform: uppercase;
+        }
+
+        .spinner { width: 12px; height: 12px; border: 1px solid rgba(255,255,255,0.2); border-top-color: var(--pure-light); border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        body.void-thinking #input-dock .input-wrapper { opacity: 0; pointer-events: none; }
+        body.void-thinking #status-indicator { opacity: 1; }
+
+        @media (max-width: 1024px) {
+            .left-axis { display: none; }
+            .brutalist-grid { grid-template-columns: 1fr; }
+            #input-dock { padding: 0 30px; }
+            #void-display { padding: 40px 20px; }
+            #cursor-wrapper, #neural-loom { display: none; }
+        }
+    </style>
 </head>
 <body>
 
-<h1>AI Chat</h1>
+    <canvas id="neural-loom"></canvas>
+    <canvas id="lo-fi-grain"></canvas>
+    
+    <div id="cursor-wrapper">
+        <div id="geo-cursor">
+            <div class="cursor-ring"></div>
+            <div class="cursor-ring"></div>
+            <div class="cursor-ring"></div>
+        </div>
+    </div>
 
-<div id="chat"></div>
+    <div class="brutalist-grid">
+        <div class="panel left-axis">
+            <a href="index.html" class="sigil interactive">†</a>
+            <a href="index.html" class="back-btn interactive">[ GO BACK ]</a>
+            <div class="vertical-marker" style="margin-top: auto; color: rgba(255,255,255,0.8);">0X2000</div>
+        </div>
 
-<input id="message" placeholder="Type something">
-<button onclick="sendMessage()">Send</button>
+        <div class="panel center-nave">
+            <div class="user-echo" id="user-echo"></div>
+            
+            <div id="void-display">
+                <span class="void-word materialized" data-word="Speak.">Speak.</span>
+            </div>
 
-<script>
+            <div id="input-dock">
+                <div class="input-wrapper">
+                    <span class="input-prefix">TRANSMIT //</span>
+                    <input id="void-input" class="interactive" type="text" placeholder="Offer a thought..." autocomplete="off">
+                </div>
+                <div id="status-indicator">
+                    <div class="spinner"></div>
+                    <span id="status-text">SYNT_IS_SYNTHESIZING</span>
+                </div>
+            </div>
+        </div>
+    </div>
 
-const WORKER_URL =
-"https://tiny-feather-2294.archiepipe.workers.dev/";
+    <script>
+        // --- 1. HARSH B&W NOISE ENGINE ---
+        const grainCanvas = document.getElementById('lo-fi-grain');
+        const grainCtx = grainCanvas.getContext('2d', { alpha: false });
+        let noiseCacheCanvas = null;
+        
+        function initNoiseEngine() {
+            grainCanvas.width = window.innerWidth; grainCanvas.height = window.innerHeight;
+            const idata = grainCtx.createImageData(grainCanvas.width, grainCanvas.height);
+            const buffer32 = new Uint32Array(idata.data.buffer);
+            for (let i = 0; i < buffer32.length; i++) buffer32[i] = Math.random() < 0.2 ? 0xff000000 : 0xffffffff; 
+            noiseCacheCanvas = document.createElement('canvas');
+            noiseCacheCanvas.width = grainCanvas.width; noiseCacheCanvas.height = grainCanvas.height;
+            noiseCacheCanvas.getContext('2d').putImageData(idata, 0, 0);
+        }
 
-async function sendMessage() {
+        function drawBlitNoise() {
+            if (!noiseCacheCanvas) return;
+            const jitterX = Math.floor((Math.random() * 30) - 15);
+            const jitterY = Math.floor((Math.random() * 30) - 15);
+            grainCtx.clearRect(0, 0, grainCanvas.width, grainCanvas.height);
+            grainCtx.drawImage(noiseCacheCanvas, jitterX, jitterY);
+        }
+        window.addEventListener('resize', initNoiseEngine);
+        initNoiseEngine(); setInterval(drawBlitNoise, 40); 
 
-  const input =
-    document.getElementById("message");
+        // --- 2. GENERATIVE NEURAL LOOM BACKGROUND ---
+        const loomCanvas = document.getElementById('neural-loom');
+        const loomCtx = loomCanvas.getContext('2d');
+        let nodes = [];
+        const numNodes = window.innerWidth > 1024 ? 120 : 50;
 
-  const message =
-    input.value.trim();
+        function initLoom() {
+            loomCanvas.width = window.innerWidth; loomCanvas.height = window.innerHeight;
+            nodes = [];
+            for(let i = 0; i < numNodes; i++) {
+                nodes.push({
+                    x: Math.random() * loomCanvas.width, y: Math.random() * loomCanvas.height,
+                    vx: (Math.random() - 0.5) * 0.5, vy: (Math.random() - 0.5) * 0.5,
+                    baseX: 0, baseY: 0
+                });
+            }
+        }
+        window.addEventListener('resize', initLoom); initLoom();
 
-  if (!message) return;
+        let curX = window.innerWidth / 2, curY = window.innerHeight / 2;
+        let tarX = curX, tarY = curY;
 
-  document.getElementById("chat")
-    .innerHTML +=
-    "<p><b>You:</b> " +
-    message +
-    "</p>";
+        document.addEventListener('mousemove', (e) => { tarX = e.clientX; tarY = e.clientY; });
 
-  input.value = "";
+        function renderLoom() {
+            curX += (tarX - curX) * 0.25; curY += (tarY - curY) * 0.25;
+            loomCtx.clearRect(0, 0, loomCanvas.width, loomCanvas.height);
+            
+            const isThinking = document.body.classList.contains('void-thinking');
 
-  const response =
-    await fetch(
-      WORKER_URL,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type":
-          "application/json"
-        },
-        body: JSON.stringify({
-          message
-        })
-      }
-    );
+            nodes.forEach(node => {
+                if (isThinking) {
+                    const dx = (loomCanvas.width/2) - node.x; const dy = (loomCanvas.height/2) - node.y;
+                    node.vx += dx * 0.0001; node.vy += dy * 0.0001;
+                    node.vx *= 0.98; node.vy *= 0.98;
+                } else {
+                    node.vx += (Math.random() - 0.5) * 0.05; node.vy += (Math.random() - 0.5) * 0.05;
+                    node.vx = Math.max(-1, Math.min(1, node.vx)); node.vy = Math.max(-1, Math.min(1, node.vy));
+                }
 
-  const data =
-    await response.json();
+                const distToCursor = Math.hypot(node.x - curX, node.y - curY);
+                if (distToCursor < 150) {
+                    const angle = Math.atan2(node.y - curY, node.x - curX);
+                    node.x += Math.cos(angle) * 2; node.y += Math.sin(angle) * 2;
+                }
 
-  document.getElementById("chat")
-    .innerHTML +=
-    "<p><b>AI:</b> " +
-    data.reply +
-    "</p>";
+                node.x += node.vx; node.y += node.vy;
 
-  const speech =
-    new SpeechSynthesisUtterance(
-      data.reply
-    );
+                if (node.x < 0) node.x = loomCanvas.width; if (node.x > loomCanvas.width) node.x = 0;
+                if (node.y < 0) node.y = loomCanvas.height; if (node.y > loomCanvas.height) node.y = 0;
 
-  speechSynthesis.speak(speech);
-}
+                loomCtx.fillStyle = "rgba(255,255,255,0.3)";
+                loomCtx.beginPath(); loomCtx.arc(node.x, node.y, 1.5, 0, Math.PI*2); loomCtx.fill();
+            });
 
-</script>
+            loomCtx.strokeStyle = "rgba(255,255,255,0.05)";
+            loomCtx.lineWidth = 1;
+            for(let i=0; i<nodes.length; i++) {
+                for(let j=i+1; j<nodes.length; j++) {
+                    const dist = Math.hypot(nodes[i].x - nodes[j].x, nodes[i].y - nodes[j].y);
+                    if (dist < 120) {
+                        loomCtx.beginPath(); loomCtx.moveTo(nodes[i].x, nodes[i].y); loomCtx.lineTo(nodes[j].x, nodes[j].y); loomCtx.stroke();
+                    }
+                }
+            }
+        }
 
+        // --- 3. CURSOR PHYSICS & TEXT MAGNETISM ---
+        const cursorWrapper = document.getElementById('cursor-wrapper');
+        let voidWordsElements = []; 
+
+        function cacheWordPositions() {
+            voidWordsElements = Array.from(document.querySelectorAll('.void-word')).map(el => {
+                const rect = el.getBoundingClientRect();
+                return { el, centerX: rect.left + rect.width / 2, centerY: rect.top + rect.height / 2, originalWord: el.getAttribute('data-word') };
+            });
+        }
+        window.addEventListener('resize', cacheWordPositions);
+
+        function renderAtmosphere() {
+            cursorWrapper.style.left = curX + 'px'; cursorWrapper.style.top = curY + 'px';
+            renderLoom();
+
+            voidWordsElements.forEach(data => {
+                if(!data.el.classList.contains('materialized')) return;
+                
+                const dist = Math.hypot(tarX - data.centerX, tarY - data.centerY);
+                const influenceRadius = 250;
+
+                if (dist < influenceRadius) {
+                    const angle = Math.atan2(data.centerY - tarY, data.centerX - tarX);
+                    const force = (influenceRadius - dist) / influenceRadius; 
+                    
+                    const pushX = Math.cos(angle) * force * 40; 
+                    const pushY = Math.sin(angle) * force * 40;
+                    
+                    data.el.style.transform = `translate(${pushX}px, ${pushY}px) scale(${1 + force * 0.15})`;
+                    data.el.style.color = "var(--pure-light)";
+                    data.el.style.textShadow = "0 0 20px rgba(255,255,255,0.6)";
+                } else {
+                    data.el.style.transform = `translate(0px, 0px) scale(1)`;
+                    data.el.style.color = "rgba(255,255,255,0.4)";
+                    data.el.style.textShadow = "none";
+                }
+            });
+
+            requestAnimationFrame(renderAtmosphere);
+        }
+        renderAtmosphere();
+        setTimeout(cacheWordPositions, 500); 
+
+        document.querySelectorAll('.interactive').forEach(el => {
+            el.addEventListener('mouseenter', () => cursorWrapper.classList.add('hovering'));
+            el.addEventListener('mouseleave', () => cursorWrapper.classList.remove('hovering'));
+        });
+
+        // --- 4. NEURAL LINK & CIPHER REVEAL ---
+        const WORKER_URL = "https://tiny-feather-2294.archiepipe.workers.dev/";
+        const inputField = document.getElementById('void-input');
+        const userEcho = document.getElementById('user-echo');
+        const voidDisplay = document.getElementById('void-display');
+        const statusText = document.getElementById('status-text');
+
+        const symbols = ['+', '-', '0', '1', '/', '\\', '*', '>', '<', '|', ':'];
+        
+        function cipherReveal(element, targetWord, delay) {
+            setTimeout(() => {
+                element.classList.add('materialized');
+                let iterations = 0;
+                const maxIterations = 10;
+                
+                const interval = setInterval(() => {
+                    element.innerText = targetWord.split('').map((letter, index) => {
+                        if(index < iterations / (maxIterations / targetWord.length)) {
+                            return targetWord[index];
+                        }
+                        return symbols[Math.floor(Math.random() * symbols.length)];
+                    }).join('');
+                    
+                    iterations++;
+                    if(iterations >= maxIterations) {
+                        clearInterval(interval);
+                        element.innerText = targetWord;
+                    }
+                }, 40);
+            }, delay);
+        }
+
+        function renderVoidResponse(text) {
+            voidDisplay.innerHTML = ""; 
+            const words = text.split(/\s+/);
+            
+            words.forEach((word, index) => {
+                const span = document.createElement('span');
+                span.className = 'void-word';
+                span.setAttribute('data-word', word);
+                voidDisplay.appendChild(span);
+                
+                cipherReveal(span, word, index * 100);
+            });
+
+            setTimeout(cacheWordPositions, words.length * 100 + 500);
+        }
+
+        async function sendMessage() {
+            const message = inputField.value.trim();
+            if (!message) return;
+
+            // Flash user's thought
+            userEcho.innerText = message;
+            userEcho.style.opacity = "1";
+            setTimeout(() => { userEcho.style.opacity = "0"; }, 2500);
+
+            inputField.value = "";
+            voidDisplay.innerHTML = ""; 
+            
+            // Clean UI Processing State
+            document.body.classList.add('void-thinking');
+            statusText.innerText = "SYNT_IS_SYNTHESIZING";
+            
+            // LOCK INPUT: Disables box immediately to mitigate rapid group clicks
+            inputField.disabled = true;
+            inputField.placeholder = "SYSTEM // RECHARGING...";
+
+            try {
+                const response = await fetch(WORKER_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ message })
+                });
+
+                const data = await response.json();
+                
+                document.body.classList.remove('void-thinking');
+                renderVoidResponse(data.reply);
+
+                // Deep TTS 
+                const speech = new SpeechSynthesisUtterance(data.reply);
+                const voices = speechSynthesis.getVoices();
+                speech.voice = voices.find(v => v.name.includes("David")) || voices[0];
+                speech.rate = 0.8; 
+                speech.pitch = 0.2; 
+                speech.volume = 1;
+
+                speechSynthesis.cancel();
+                speechSynthesis.speak(speech);
+
+            } catch (error) {
+                document.body.classList.remove('void-thinking');
+                renderVoidResponse("Transmission lost. The void is silent.");
+            } finally {
+                // COOLDOWN: Enforces a structural 3-second delay after rendering
+                setTimeout(() => {
+                    inputField.disabled = false;
+                    inputField.placeholder = "Offer a thought...";
+                    inputField.focus();
+                }, 3000);
+            }
+        }
+
+        inputField.addEventListener("keydown", function(e) {
+            if (e.key === "Enter") sendMessage();
+        });
+    </script>
 </body>
 </html>
