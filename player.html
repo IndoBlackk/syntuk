@@ -48,6 +48,7 @@
             line-height: 1.4; text-align: justify; color: var(--tomb-bronze); 
             opacity: 1; padding: 40px; overflow: hidden;
             -webkit-mask-image: radial-gradient(circle var(--mask-radius, 120px) at var(--mask-x, 50%) var(--mask-y, 50%), rgba(0,0,0,var(--mask-opacity, 1)) 0%, rgba(0,0,0,0) 100%);
+            mask-image: radial-gradient(circle var(--mask-radius, 120px) at var(--mask-x, 50%) var(--mask-y, 50%), rgba(0,0,0,var(--mask-opacity, 1)) 0%, rgba(0,0,0,0) 100%);
         }
 
         /* --- AUDIO REACTIVE CURSOR --- */
@@ -57,6 +58,7 @@
             transform: translate(-50%, -50%);
             pointer-events: none; z-index: 10000;
             display: flex; align-items: center; justify-content: center;
+            filter: blur(1px);
         }
 
         #cursor-text-svg {
@@ -154,7 +156,7 @@
 </head>
 <body>
 
-    <audio id="core-audio-engine" crossorigin="anonymous"></audio>
+    <audio id="core-audio-engine"></audio>
 
     <canvas id="tomb-dust"></canvas>
     <div class="infinite-inferno" id="tomb-wall"></div>
@@ -177,7 +179,7 @@
         <div class="panel center-nave">
             
             <div class="monolith-visualizer" id="monolith">
-                R.001
+                R.000
             </div>
 
             <div class="track-metadata">
@@ -192,29 +194,29 @@
                 <div class="section-header">// AUDIO ARTIFACTS // SELECT TO EXHUME</div>
                 <nav class="directory-list">
                     
-                    <div class="track-node interactive" data-src="placeholder_1.mp3" data-title="OBSIDIAN SHADOWS">
+                    <div class="track-node interactive" data-src="song1.mp3" data-title="OBSIDIAN SHADOWS">
                         <div class="dir-index">001</div>
                         <div class="dir-content">
                             <div class="dir-title">OBSIDIAN SHADOWS</div>
-                            <div class="dir-spec">Generative Drone // 120BPM</div>
+                            <div class="dir-spec">Master Audio // Lossless .MP3</div>
                         </div>
                         <div class="play-icon">▶</div>
                     </div>
                     
-                    <div class="track-node interactive" data-src="placeholder_2.mp3" data-title="CATACOMB BREEZE">
+                    <div class="track-node interactive" data-src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3" data-title="CATACOMB BREEZE">
                         <div class="dir-index">002</div>
                         <div class="dir-content">
                             <div class="dir-title">CATACOMB BREEZE</div>
-                            <div class="dir-spec">Ambient Noise // 85BPM</div>
+                            <div class="dir-spec">Generative Stream // Test 02</div>
                         </div>
                         <div class="play-icon">▶</div>
                     </div>
 
-                    <div class="track-node interactive" data-src="placeholder_3.mp3" data-title="BRONZE CHIME">
+                    <div class="track-node interactive" data-src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3" data-title="BRONZE CHIME">
                         <div class="dir-index">003</div>
                         <div class="dir-content">
                             <div class="dir-title">BRONZE CHIME</div>
-                            <div class="dir-spec">FM Synthesis // Unmetered</div>
+                            <div class="dir-spec">Generative Stream // Test 03</div>
                         </div>
                         <div class="play-icon">▶</div>
                     </div>
@@ -234,7 +236,7 @@
         let curX = window.innerWidth / 2, curY = window.innerHeight / 2;
         let tarX = curX, tarY = curY;
         let baseRadius = 130;
-        let audioRadiusBoost = 0; // Driven by music
+        let audioRadiusBoost = 0; 
 
         document.addEventListener('mousemove', (e) => { tarX = e.clientX; tarY = e.clientY; });
 
@@ -243,9 +245,11 @@
             el.addEventListener('mouseleave', () => document.body.classList.remove('hovering'));
         });
 
-        // Generate Background Text
+        // Generate Background Text Wall
         let textHTML = "";
-        for (let i = 0; i < 400; i++) textHTML += "Shadows from our bodies cast against the stone • ";
+        for (let i = 0; i < 400; i++) {
+            textHTML += "De profundis clamavi ad te Domine • Shadows from our bodies cast against the stone • ";
+        }
         wall.innerHTML = textHTML;
 
         // Noise Engine
@@ -285,7 +289,7 @@
             isInitialized = true;
         }
 
-        // Render Loop (Handles Cursor Physics + Audio Vis)
+        // Render Loop
         function renderLoop() {
             curX += (tarX - curX) * 0.08; 
             curY += (tarY - curY) * 0.08;
@@ -295,32 +299,26 @@
             if (isInitialized && !audioEl.paused) {
                 analyser.getByteFrequencyData(dataArray);
                 
-                // Calculate Lows (Bass) and Highs (Treble)
-                const bass = (dataArray[0] + dataArray[1] + dataArray[2]) / 3;
-                const treble = (dataArray[50] + dataArray[60] + dataArray[70]) / 3;
+                const bass = (dataArray[0] + dataArray[1] + dataArray[2] + dataArray[3]) / 4;
+                const treble = (dataArray[40] + dataArray[50] + dataArray[60]) / 3;
 
-                // 1. SYMPATHETIC TORCH: Bass inflates the light radius
-                audioRadiusBoost = (bass / 255) * 200; 
+                audioRadiusBoost += ((bass / 255) * 160 - audioRadiusBoost) * 0.2; 
+                canvasOpacity = 0.03 + ((treble / 255) * 0.18);
 
-                // 2. CYMATIC DUST: Treble increases canvas dust opacity
-                canvasOpacity = 0.04 + ((treble / 255) * 0.3);
-
-                // 3. MONOLITHIC VISUALIZER: Bass distorts and scales the central sigil
-                const scale = 1 + (bass / 255) * 0.5;
-                const skewX = ((dataArray[10] / 255) * 20) - 10;
-                const skewY = ((dataArray[20] / 255) * 10) - 5;
+                const scale = 1 + (bass / 255) * 0.25;
+                const skewX = ((dataArray[8] / 255) * 30) - 15;
+                const skewY = ((dataArray[16] / 255) * 16) - 8;
                 
                 monolith.style.transform = `scale(${scale}) skew(${skewX}deg, ${skewY}deg)`;
-                monolith.style.opacity = 0.2 + (bass / 255) * 0.8;
-                monolith.style.textShadow = `${skewX}px ${skewY}px 0 rgba(255,255,255,0.4)`;
+                monolith.style.opacity = 0.15 + (bass / 255) * 0.85;
+                monolith.style.textShadow = `${skewX * 0.5}px ${skewY * 0.5}px 0 rgba(255,255,255,0.3)`;
             } else {
-                audioRadiusBoost += (0 - audioRadiusBoost) * 0.1; // Smooth decay
+                audioRadiusBoost += (0 - audioRadiusBoost) * 0.1; 
                 monolith.style.transform = `scale(1) skew(0deg, 0deg)`;
-                monolith.style.opacity = 0.1;
+                monolith.style.opacity = 0.08;
                 monolith.style.textShadow = 'none';
             }
 
-            // Draw Noise
             if (noiseCache) {
                 const jX = Math.floor(Math.random() * 100 - 50);
                 const jY = Math.floor(Math.random() * 100 - 50);
@@ -329,10 +327,9 @@
                 canvas.style.opacity = canvasOpacity;
             }
 
-            // Update Mask & Cursor
             const targetRadius = document.body.classList.contains('hovering') ? 160 : 130;
             baseRadius += (targetRadius - baseRadius) * 0.1;
-            const finalRadius = baseRadius + audioRadiusBoost;
+            const finalRadius = Math.max(40, baseRadius + audioRadiusBoost + (Math.random() * 4 - 2));
 
             cursor.style.left = curX + 'px'; cursor.style.top = curY + 'px';
             wall.style.setProperty('--mask-x', curX + 'px');
@@ -343,7 +340,7 @@
         }
         renderLoop();
 
-        // --- 3. TRACKLIST LOGIC ---
+        // --- 3. TRACKLIST MANAGEMENT ---
         const tracks = document.querySelectorAll('.track-node');
 
         function formatTime(seconds) {
@@ -358,7 +355,7 @@
         });
 
         audioEl.addEventListener('ended', () => {
-            statusLabel.innerText = "PLAYBACK CONCLUDED";
+            statusLabel.innerText = "RESONANCE COMPLETED";
             tracks.forEach(t => t.classList.remove('playing'));
         });
 
@@ -370,24 +367,25 @@
                 const src = track.getAttribute('data-src');
                 const title = track.getAttribute('data-title');
 
-                // If clicking the currently playing track, toggle pause/play
                 if (track.classList.contains('playing')) {
                     if (audioEl.paused) {
                         audioEl.play();
                         statusLabel.innerText = "NOW RESONATING";
                     } else {
                         audioEl.pause();
-                        statusLabel.innerText = "PLAYBACK SUSPENDED";
+                        statusLabel.innerText = "RESONANCE SUSPENDED";
                     }
                     return;
                 }
 
-                // Play new track
                 tracks.forEach(t => t.classList.remove('playing'));
                 track.classList.add('playing');
                 
                 audioEl.src = src;
-                audioEl.play();
+                audioEl.load(); 
+                audioEl.play().catch(err => {
+                    console.log("Audio playback waiting on verification profile.", err);
+                });
                 
                 displayTitle.innerText = title;
                 statusLabel.innerText = "NOW RESONATING";
