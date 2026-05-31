@@ -29,42 +29,35 @@
             overflow: hidden;
             height: 100vh; width: 100vw;
             position: relative;
+            /* Transition for the reality invert */
+            transition: filter 0.1s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        /* --- VISUAL ENGINE (BLUR & SHAKE WRAPPER) --- */
+        /* --- THE REALITY CRUSH (Click & Hold) --- */
+        body.crushing {
+            filter: invert(1) hue-rotate(180deg) contrast(1.2);
+        }
+
+        body.crushing #visual-engine {
+            transform: scale(1.03) skew(-1deg);
+        }
+
+        body.crushing .brutalist-grid {
+            transform: translate(2px, 2px);
+        }
+
+        /* --- VISUAL ENGINE WRAPPER --- */
         #visual-engine {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             z-index: 1; pointer-events: none;
             display: flex; justify-content: center; align-items: center;
-            transition: transform 0.05s ease, filter 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-            transform: scale(1.02); 
-        }
-
-        /* The DROWN effect blur */
-        body.drowning #visual-engine {
-            filter: blur(12px) contrast(1.5) brightness(0.7);
-            transform: scale(1.05);
-        }
-
-        #ambient-glow {
-            position: absolute; width: 80vw; height: 80vw;
-            background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 60%);
-            opacity: 0; transition: opacity 0.1s ease, transform 0.1s ease;
+            transition: transform 0.05s ease;
         }
 
         #visualizer-canvas {
             position: absolute; width: 100%; height: 100%;
-            filter: drop-shadow(0 0 15px rgba(255,255,255,0.8));
-        }
-
-        body.glitch-shake #visual-engine {
-            animation: overdrive-shake 0.08s infinite;
-        }
-
-        @keyframes overdrive-shake {
-            0% { transform: scale(1.05) translate(4px, 2px); }
-            50% { transform: scale(1.05) translate(-4px, -2px); }
-            100% { transform: scale(1.05) translate(2px, -4px); }
+            /* Pure monochrome glow */
+            filter: drop-shadow(0 0 10px rgba(255,255,255,0.4));
         }
 
         #lo-fi-grain {
@@ -72,7 +65,7 @@
             pointer-events: none; z-index: 9999; opacity: 0.15; mix-blend-mode: overlay;
         }
 
-        /* --- PRECISION CURSOR --- */
+        /* --- PRECISION CROSSHAIR --- */
         #crosshair-cursor {
             position: fixed; top: 0; left: 0; width: 40px; height: 40px;
             transform: translate(-50%, -50%); pointer-events: none; z-index: 10000;
@@ -90,7 +83,9 @@
         .hovering #crosshair-cursor { width: 80px; height: 80px; transform: translate(-50%, -50%) rotate(45deg); }
         .hovering #crosshair-cursor::before, .hovering #crosshair-cursor::after { background-color: var(--pure-light); box-shadow: 0 0 10px var(--pure-light); }
 
-        body.drowning #crosshair-cursor { width: 12px; height: 12px; transform: translate(-50%, -50%) rotate(0deg); }
+        body.crushing #crosshair-cursor { width: 120px; height: 12px; transform: translate(-50%, -50%) rotate(0deg); }
+        body.crushing #crosshair-cursor::before { height: 2px; background-color: var(--void); }
+        body.crushing #crosshair-cursor::after { display: none; }
 
         /* --- UI ARCHITECTURE --- */
         .brutalist-grid {
@@ -124,7 +119,8 @@
         .current-title { 
             font-size: 4rem; font-weight: 700; letter-spacing: -2px; color: var(--pure-light); 
             line-height: 1; margin-top: 10px; text-transform: uppercase;
-            transition: letter-spacing 0.05s ease; /* Enables smooth audio tracking */
+            transition: letter-spacing 0.05s ease, transform 0.05s ease;
+            transform-origin: left center;
         }
         
         .play-toggle { display: inline-block; margin-top: 20px; font-size: 0.8rem; letter-spacing: 3px; border: 1px solid var(--ghost); padding: 10px 20px; transition: all 0.3s; }
@@ -134,7 +130,7 @@
         .timeline-container { width: 100%; display: flex; align-items: center; gap: 20px; pointer-events: auto; }
         .time-display { font-size: 0.7rem; letter-spacing: 1px; font-weight: 700; width: 40px; text-align: center;}
         .progress-bar-bg { flex-grow: 1; height: 1px; background-color: var(--ghost); position: relative; padding: 15px 0; background-clip: content-box; }
-        .progress-bar-fill { position: absolute; top: 15px; left: 0; height: 1px; background-color: var(--pure-light); width: 0%; box-shadow: 0 0 10px var(--pure-light); transition: width 0.1s linear;}
+        .progress-bar-fill { position: absolute; top: 15px; left: 0; height: 1px; background-color: var(--pure-light); width: 0%; box-shadow: 0 0 10px var(--pure-light); pointer-events: none;}
 
         /* --- INDEX ARCHIVE (PLAYLIST) --- */
         .right-cloisters { border-right: none; padding: 60px 50px; justify-content: center; background: linear-gradient(to right, rgba(0,0,0,0), rgba(2,2,2,0.9)); }
@@ -181,7 +177,6 @@
     <audio id="audio-source" crossorigin="anonymous"></audio>
 
     <div id="visual-engine">
-        <div id="ambient-glow"></div>
         <canvas id="visualizer-canvas"></canvas>
     </div>
     
@@ -200,7 +195,7 @@
         <div class="panel center-nave">
             <div class="header-block">
                 <div class="audio-status" id="system-status">SYSTEM // <span id="status-text">AWAITING INPUT</span></div>
-                <div class="audio-status">HOLD CLICK TO <span style="color:#ff3c00;">[ DROWN ]</span></div>
+                <div class="audio-status">HOLD CLICK TO <span style="color:#ffffff;">[ CRUSH ]</span></div>
             </div>
 
             <div class="current-track-display">
@@ -227,7 +222,7 @@
                         <div class="dir-index">01</div>
                         <div class="dir-content">
                             <div class="dir-title">INSTRUMENTAL</div>
-                            <div class="dir-spec">Vis 01 // The Jagged Halo</div>
+                            <div class="dir-spec">Vis 01 // The Sacred Cipher</div>
                         </div>
                     </div>
                     
@@ -235,7 +230,7 @@
                         <div class="dir-index">02</div>
                         <div class="dir-content">
                             <div class="dir-title">DEMO_ONE</div>
-                            <div class="dir-spec">Vis 02 // Brutalist Scanner</div>
+                            <div class="dir-spec">Vis 02 // The Void Scanner</div>
                         </div>
                     </div>
 
@@ -243,7 +238,7 @@
                         <div class="dir-index">03</div>
                         <div class="dir-content">
                             <div class="dir-title">DEMO_TWO</div>
-                            <div class="dir-spec">Vis 03 // Static Geometry</div>
+                            <div class="dir-spec">Vis 03 // Collapsing Arch</div>
                         </div>
                     </div>
 
@@ -278,7 +273,7 @@
         window.addEventListener('resize', initNoiseEngine);
         initNoiseEngine(); setInterval(drawBlitNoise, 40); 
 
-        // --- 2. CURSOR ---
+        // --- 2. CURSOR PHYSICS ---
         const crosshairCursor = document.getElementById('crosshair-cursor');
         let curX = window.innerWidth / 2, curY = window.innerHeight / 2;
         let tarX = curX, tarY = curY;
@@ -302,7 +297,6 @@
         const audioEl = document.getElementById('audio-source');
         const visCanvas = document.getElementById('visualizer-canvas');
         const visCtx = visCanvas.getContext('2d');
-        const ambientGlow = document.getElementById('ambient-glow');
         
         // UI Elements
         const statusText = document.getElementById('status-text');
@@ -311,12 +305,11 @@
         const playBtn = document.getElementById('play-btn');
         const trackNodes = document.querySelectorAll('.track-select');
         
-        let audioCtx, analyser, source, drownFilter, waveShaper;
+        let audioCtx, analyser, source, waveShaper;
         let dataArray, bufferLength;
         let isPlaying = false;
         let audioInitialized = false;
         let currentVisMode = 1;
-        let isDrowning = false;
 
         function resizeCanvas() {
             visCanvas.width = window.innerWidth; visCanvas.height = window.innerHeight;
@@ -338,19 +331,11 @@
             analyser = audioCtx.createAnalyser();
             source = audioCtx.createMediaElementSource(audioEl);
             
-            // The "Drown" Filter (Lowpass)
-            drownFilter = audioCtx.createBiquadFilter();
-            drownFilter.type = 'lowpass';
-            drownFilter.frequency.value = 20000; // Open by default
-
-            // Hardware Glitch Distortion
             waveShaper = audioCtx.createWaveShaper();
             waveShaper.curve = generateDistortionCurve(0);
 
-            // Routing: Source -> WaveShaper -> DrownFilter -> Analyser -> Dest
             source.connect(waveShaper);
-            waveShaper.connect(drownFilter);
-            drownFilter.connect(analyser);
+            waveShaper.connect(analyser);
             analyser.connect(audioCtx.destination);
             
             analyser.fftSize = 512; 
@@ -359,7 +344,7 @@
             audioInitialized = true;
         }
 
-        // --- TRACK SELECTION & CORRUPTED SWITCHING ---
+        // --- TRACK SELECTION ---
         trackNodes.forEach(node => {
             node.addEventListener('click', () => {
                 initWebAudio();
@@ -380,7 +365,7 @@
 
                 // Corrupted Digital "Crunch" on track switch
                 waveShaper.curve = generateDistortionCurve(100);
-                setTimeout(() => { waveShaper.curve = generateDistortionCurve(0); }, 100);
+                setTimeout(() => { if(!document.body.classList.contains('crushing')) waveShaper.curve = generateDistortionCurve(0); }, 100);
 
                 audioEl.play();
                 isPlaying = true;
@@ -390,21 +375,18 @@
             });
         });
 
-        // --- THE "DROWN" MECHANIC (Click & Hold) ---
+        // --- THE "CRUSH" MECHANIC (Click & Hold) ---
+        // Inverts reality and blows out the track
         document.addEventListener('mousedown', (e) => {
             if (e.target.closest('.interactive') || !audioInitialized) return;
-            isDrowning = true;
-            document.body.classList.add('drowning');
-            // Drop frequency to simulate hearing it through a wall
-            drownFilter.frequency.setTargetAtTime(300, audioCtx.currentTime, 0.1); 
+            document.body.classList.add('crushing');
+            if(audioCtx) waveShaper.curve = generateDistortionCurve(800); 
         });
 
         document.addEventListener('mouseup', () => {
             if (!audioInitialized) return;
-            isDrowning = false;
-            document.body.classList.remove('drowning');
-            // Snap frequency back
-            drownFilter.frequency.setTargetAtTime(20000, audioCtx.currentTime, 0.05);
+            document.body.classList.remove('crushing');
+            if(audioCtx) waveShaper.curve = generateDistortionCurve(0);
         });
 
 
@@ -415,7 +397,8 @@
 
             if (isPlaying) {
                 audioEl.pause(); playBtn.innerText = "PLAY"; statusText.innerText = "PAUSED";
-                displayTitle.style.letterSpacing = "-2px"; // Reset typography
+                displayTitle.style.letterSpacing = "-2px"; 
+                displayTitle.style.transform = "scaleX(1)";
             } else {
                 audioEl.play(); playBtn.innerText = "PAUSE"; statusText.innerText = "RESONATING";
                 renderVisualizer();
@@ -424,7 +407,7 @@
         });
 
 
-        // --- RENDER LOOP ---
+        // --- MASTER RENDER LOOP ---
         function renderVisualizer() {
             if (!isPlaying) return;
             requestAnimationFrame(renderVisualizer);
@@ -434,95 +417,150 @@
 
             const centerX = visCanvas.width / 2; const centerY = visCanvas.height / 2;
             
-            // Extract Sub-Bass 
+            // Extract specific frequency bands
             let bassSum = 0; for(let i = 0; i < 4; i++) bassSum += dataArray[i];
             const bassAvg = bassSum / 4;
+            
+            let highSum = 0; for(let i = 150; i < 200; i++) highSum += dataArray[i];
+            const highAvg = highSum / 50;
 
             // 1. Audio-Reactive Typography (The UI Breathes)
-            // Maps bass to letter-spacing. Hits push the letters apart.
-            const tracking = -2 + Math.max(0, (bassAvg - 150) / 10);
+            // Stretches the text physically when bass hits
+            const textStretch = 1 + Math.max(0, (bassAvg - 180) / 400);
+            const tracking = -2 + Math.max(0, (bassAvg - 180) / 10);
+            displayTitle.style.transform = `scaleX(${textStretch})`;
             displayTitle.style.letterSpacing = `${tracking}px`;
-            
-            if (bassAvg > 240) displayTitle.style.textShadow = `0 0 20px rgba(255,255,255,0.8)`;
-            else displayTitle.style.textShadow = 'none';
 
-            // 2. Ambient Glow
-            ambientGlow.style.opacity = (bassAvg / 255) * 0.4;
-            ambientGlow.style.transform = `scale(${1 + (bassAvg / 255) * 0.4})`;
-
-            // 3. Glitch Shake
-            if (bassAvg > 248 && !isDrowning) document.body.classList.add('glitch-shake');
-            else document.body.classList.remove('glitch-shake');
-
-            // --- VIS 1: JAGGED HALO ---
+            // --- VIS 1: THE SACRED CIPHER (Needle Halo) ---
             if (currentVisMode === 1) {
-                const baseRadius = 150 + (bassAvg * 0.2);
-                const dataPoints = 80; const angleStep = Math.PI / dataPoints;
-                const rotation = Date.now() * 0.0003;
+                const baseRadius = 180;
+                const dataPoints = 90; 
+                const angleStep = Math.PI / dataPoints;
+                const rotation = Date.now() * 0.0002;
 
                 visCtx.beginPath();
-                visCtx.arc(centerX, centerY, baseRadius - 20, 0, Math.PI * 2);
-                visCtx.strokeStyle = 'rgba(255, 255, 255, 0.1)'; visCtx.stroke();
-
-                visCtx.beginPath();
+                
+                // Draw Right Half
                 for (let i = 0; i <= dataPoints; i++) {
-                    const spike = Math.pow(dataArray[i] / 255, 1.8) * 160; 
-                    const r = baseRadius + spike;
+                    const val = dataArray[i];
+                    // Strict threshold: Only high transient volumes cause spikes
+                    const spike = val > 120 ? Math.pow((val - 120) / 135, 2) * 250 : 0; 
+                    const r = baseRadius + (i % 2 === 0 ? spike : -spike * 0.2); // Alternating inward/outward
                     const angle = -Math.PI/2 + (i * angleStep) + rotation;
-                    if (i === 0) visCtx.moveTo(centerX + Math.cos(angle)*r, centerY + Math.sin(angle)*r);
-                    else visCtx.lineTo(centerX + Math.cos(angle)*r, centerY + Math.sin(angle)*r);
+                    
+                    const x = centerX + Math.cos(angle)*r;
+                    const y = centerY + Math.sin(angle)*r;
+                    if (i === 0) visCtx.moveTo(x, y);
+                    else visCtx.lineTo(x, y);
                 }
+                
+                // Draw Left Half (Perfect Mirror)
                 for (let i = dataPoints; i >= 0; i--) {
-                    const spike = Math.pow(dataArray[i] / 255, 1.8) * 160; 
-                    const r = baseRadius + spike;
+                    const val = dataArray[i];
+                    const spike = val > 120 ? Math.pow((val - 120) / 135, 2) * 250 : 0; 
+                    const r = baseRadius + (i % 2 === 0 ? spike : -spike * 0.2); 
                     const angle = -Math.PI/2 - (i * angleStep) + rotation;
                     visCtx.lineTo(centerX + Math.cos(angle)*r, centerY + Math.sin(angle)*r);
                 }
+                
                 visCtx.closePath();
-                visCtx.strokeStyle = '#ffffff'; visCtx.lineWidth = 1.5; visCtx.stroke();
+                visCtx.strokeStyle = '#ffffff'; 
+                visCtx.lineWidth = 1; // Razor thin lines
+                visCtx.stroke();
+                
+                // Pulsing Center Core
+                if (bassAvg > 200) {
+                    visCtx.beginPath();
+                    visCtx.arc(centerX, centerY, (bassAvg - 200) * 1.5, 0, Math.PI*2);
+                    visCtx.fillStyle = '#ffffff';
+                    visCtx.fill();
+                }
             }
 
-            // --- VIS 2: BRUTALIST SCANNER ---
+            // --- VIS 2: THE VOID SCANNER (Corrupted Barcode) ---
             else if (currentVisMode === 2) {
-                const activeData = Math.floor(bufferLength * 0.75); 
-                const barWidth = visCanvas.width / activeData;
+                const bands = 64; 
+                const blockHeight = visCanvas.height / bands;
                 
                 visCtx.fillStyle = '#ffffff';
-                for (let i = 0; i < activeData; i++) {
-                    const height = Math.pow(dataArray[i] / 255, 2) * (visCanvas.height / 2); 
-                    visCtx.fillRect(i * barWidth, centerY - height, barWidth - 1, height * 2);
+                for (let i = 0; i < bands; i++) {
+                    const val = dataArray[i * 2]; // Sample evenly
+                    if (val > 50) {
+                        const width = Math.pow(val / 255, 3) * (visCanvas.width * 0.8);
+                        const y = i * blockHeight;
+                        
+                        // Draw from center outwards horizontally
+                        visCtx.fillRect(centerX - (width/2), y, width, blockHeight - 2);
+                    }
                 }
-                const scanlineY = (Date.now() * 0.8) % visCanvas.height;
-                visCtx.fillStyle = 'rgba(255,255,255,0.4)';
-                visCtx.fillRect(0, scanlineY, visCanvas.width, 3);
+                
+                // Random vertical tear on snare/high-hat
+                if (highAvg > 100) {
+                    visCtx.fillStyle = '#ffffff';
+                    const tearX = centerX + (Math.random() * 400 - 200);
+                    visCtx.fillRect(tearX, 0, (Math.random() * 10) + 2, visCanvas.height);
+                }
             }
 
-            // --- VIS 3: STATIC GEOMETRY ---
+            // --- VIS 3: COLLAPSING ARCHITECTURE (Wireframe Tesseract) ---
             else if (currentVisMode === 3) {
-                const rotation = Date.now() * 0.0002;
-                const sides = 6; const baseRad = 200 + (bassAvg * 0.4);
+                const time = Date.now() * 0.0005;
+                const size = 180 + (bassAvg * 0.3);
+                
+                // 3D Rotation matrices projected to 2D
+                const nodes = [];
+                for(let i=0; i<8; i++) {
+                    // Create basic cube vertices
+                    let x = (i & 1 ? 1 : -1);
+                    let y = (i & 2 ? 1 : -1);
+                    let z = (i & 4 ? 1 : -1);
+                    
+                    // Audio distortion: Push vertices outward based on frequency
+                    const freqVal = dataArray[i * 10] / 255;
+                    const push = 1 + (freqVal * 1.5);
+                    x *= push; y *= push; z *= push;
 
-                function drawPoly(radius, offsetRot, strokeOpacity, distortAmp) {
-                    visCtx.beginPath();
-                    for (let i = 0; i <= sides; i++) {
-                        const angle = (i * (Math.PI * 2) / sides) + offsetRot;
-                        const freqIdx = Math.floor((i / sides) * 20); 
-                        const distortion = Math.pow(dataArray[freqIdx] / 255, 2) * distortAmp;
-                        const x = centerX + Math.cos(angle) * (radius + distortion);
-                        const y = centerY + Math.sin(angle) * (radius + distortion);
-                        if (i === 0) visCtx.moveTo(x, y); else visCtx.lineTo(x, y);
-                    }
-                    visCtx.strokeStyle = `rgba(255, 255, 255, ${strokeOpacity})`;
-                    visCtx.lineWidth = 2; visCtx.stroke();
+                    // Rotate X & Y
+                    const rx = x * Math.cos(time) - z * Math.sin(time);
+                    const rz = x * Math.sin(time) + z * Math.cos(time);
+                    const ry = y * Math.cos(time*0.7) - rz * Math.sin(time*0.7);
+                    
+                    // Perspective projection
+                    const scale = 500 / (500 + rz);
+                    nodes.push({ x: centerX + rx * size * scale, y: centerY + ry * size * scale });
                 }
 
-                drawPoly(baseRad, rotation, 1, 180); 
-                drawPoly(baseRad * 0.7, -rotation * 1.5, 0.4, 90); 
-                drawPoly(baseRad * 1.3, rotation * 0.5, 0.1, 250); 
+                visCtx.strokeStyle = '#ffffff';
+                visCtx.lineWidth = 1.5;
+                visCtx.beginPath();
+                
+                // Draw connecting edges
+                const edges = [
+                    [0,1], [1,3], [3,2], [2,0], // Front face
+                    [4,5], [5,7], [7,6], [6,4], // Back face
+                    [0,4], [1,5], [2,6], [3,7]  // Connecting lines
+                ];
+                
+                edges.forEach(edge => {
+                    visCtx.moveTo(nodes[edge[0]].x, nodes[edge[0]].y);
+                    visCtx.lineTo(nodes[edge[1]].x, nodes[edge[1]].y);
+                });
+                visCtx.stroke();
+                
+                // Inner chaotic lines when highly active
+                if (bassAvg > 150) {
+                    visCtx.beginPath();
+                    visCtx.strokeStyle = 'rgba(255,255,255,0.3)';
+                    visCtx.moveTo(nodes[0].x, nodes[0].y);
+                    visCtx.lineTo(nodes[7].x, nodes[7].y);
+                    visCtx.moveTo(nodes[1].x, nodes[1].y);
+                    visCtx.lineTo(nodes[6].x, nodes[6].y);
+                    visCtx.stroke();
+                }
             }
         }
 
-        // --- 4. TIMELINE SCRUBBING ---
+        // --- 5. TIMELINE SCRUBBING ---
         const progressBg = document.getElementById('progress-bg');
         const progressFill = document.getElementById('progress-fill');
         const currentTimeEl = document.getElementById('current-time');
@@ -535,20 +573,32 @@
         }
 
         audioEl.addEventListener('loadedmetadata', () => { durationEl.innerText = formatTime(audioEl.duration); });
-        audioEl.addEventListener('timeupdate', () => {
-            currentTimeEl.innerText = formatTime(audioEl.currentTime);
-            progressFill.style.width = `${(audioEl.currentTime / audioEl.duration) * 100}%`;
-        });
+        
+        // Use requestAnimationFrame for smoother scrubber updating instead of timeupdate event
+        function updateScrubber() {
+            if(isPlaying) {
+                currentTimeEl.innerText = formatTime(audioEl.currentTime);
+                progressFill.style.width = `${(audioEl.currentTime / audioEl.duration) * 100}%`;
+            }
+            requestAnimationFrame(updateScrubber);
+        }
+        updateScrubber();
+
         audioEl.addEventListener('ended', () => {
             isPlaying = false; playBtn.innerText = "PLAY"; statusText.innerText = "SYSTEM IDLE";
             progressFill.style.width = `0%`; visCtx.clearRect(0, 0, visCanvas.width, visCanvas.height);
             displayTitle.style.letterSpacing = "-2px";
+            displayTitle.style.transform = "scaleX(1)";
         });
 
         progressBg.addEventListener('click', (e) => {
             if (!audioEl.src) return; 
             const rect = progressBg.getBoundingClientRect();
             audioEl.currentTime = ((e.clientX - rect.left) / rect.width) * audioEl.duration;
+            if(!isPlaying) {
+                currentTimeEl.innerText = formatTime(audioEl.currentTime);
+                progressFill.style.width = `${(audioEl.currentTime / audioEl.duration) * 100}%`;
+            }
         });
     </script>
 </body>
