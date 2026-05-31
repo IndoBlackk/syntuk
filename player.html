@@ -17,21 +17,15 @@
             --serif-font: 'Cormorant Garamond', serif;
         }
 
-        * {
-            box-sizing: border-box; margin: 0; padding: 0;
-            cursor: none; user-select: none;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; cursor: none; user-select: none; }
 
         body {
-            background-color: var(--void);
-            color: var(--ash);
-            font-family: var(--mono-font);
-            overflow: hidden;
-            height: 100vh; width: 100vw;
-            position: relative;
+            background-color: var(--void); color: var(--ash);
+            font-family: var(--mono-font); overflow: hidden;
+            height: 100vh; width: 100vw; position: relative;
         }
 
-        /* --- VISUAL ENGINE (NO BORDERS, NO BLURS) --- */
+        /* --- VISUAL ENGINE --- */
         #visual-engine {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             z-index: 1; pointer-events: none;
@@ -40,13 +34,14 @@
 
         #visualizer-canvas {
             position: absolute; width: 100%; height: 100%;
-            /* Minimal, clean shadow to make the lines pop against the black */
-            filter: drop-shadow(0 0 8px rgba(255,255,255,0.3));
+            /* Minimal drop shadow for depth without messy blooming */
+            filter: drop-shadow(0 0 6px rgba(255,255,255,0.4));
         }
 
+        /* Refined, extremely subtle digital dust */
         #lo-fi-grain {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            pointer-events: none; z-index: 9999; opacity: 0.08; mix-blend-mode: overlay;
+            pointer-events: none; z-index: 9999; opacity: 0.06; mix-blend-mode: overlay;
         }
 
         /* --- PRECISION CROSSHAIR --- */
@@ -58,9 +53,8 @@
         }
 
         #crosshair-cursor::before, #crosshair-cursor::after {
-            content: ''; position: absolute; background-color: rgba(255,255,255,0.5); transition: all 0.2s ease;
+            content: ''; position: absolute; background-color: rgba(255,255,255,0.4); transition: all 0.2s ease;
         }
-        
         #crosshair-cursor::before { width: 100%; height: 1px; }
         #crosshair-cursor::after { height: 100%; width: 1px; }
 
@@ -78,7 +72,6 @@
             height: 100%; display: flex; flex-direction: column; justify-content: space-between;
         }
 
-        /* The Return Sequence */
         .left-axis { padding: 40px 0; align-items: center; border-right: 1px solid rgba(255,255,255,0.05); }
         .return-wrapper { display: flex; flex-direction: column; align-items: center; gap: 20px; }
         .sigil { font-family: var(--serif-font); font-style: italic; font-size: 2rem; color: rgba(255,255,255,0.6); text-decoration: none; transition: all 0.3s; }
@@ -93,26 +86,22 @@
         .audio-status { font-size: 0.65rem; font-weight: 700; letter-spacing: 4px; color: rgba(255, 255, 255, 0.4); text-transform: uppercase; }
         .audio-status span { color: var(--pure-light); }
 
-        /* Current Track Display */
         .current-track-display { text-align: left; margin-top: auto; margin-bottom: 60px; pointer-events: auto;}
         .current-index { font-family: var(--serif-font); font-style: italic; font-size: 3rem; color: rgba(255,255,255,0.3); line-height: 1; }
         .current-title { 
             font-size: 4rem; font-weight: 700; letter-spacing: -2px; color: var(--pure-light); 
             line-height: 1; margin-top: 10px; text-transform: uppercase;
-            transition: letter-spacing 0.1s ease, transform 0.1s ease;
-            transform-origin: left center;
+            transition: letter-spacing 0.1s ease, transform 0.1s ease; transform-origin: left center;
         }
         
         .play-toggle { display: inline-block; margin-top: 20px; font-size: 0.8rem; letter-spacing: 3px; border: 1px solid var(--ghost); padding: 10px 20px; transition: all 0.3s; }
         .play-toggle:hover { border-color: var(--pure-light); background: var(--pure-light); color: var(--void); }
 
-        /* Timeline Scrubber */
         .timeline-container { width: 100%; display: flex; align-items: center; gap: 20px; pointer-events: auto; }
         .time-display { font-size: 0.7rem; letter-spacing: 1px; font-weight: 700; width: 40px; text-align: center;}
         .progress-bar-bg { flex-grow: 1; height: 1px; background-color: var(--ghost); position: relative; padding: 15px 0; background-clip: content-box; }
         .progress-bar-fill { position: absolute; top: 15px; left: 0; height: 1px; background-color: var(--pure-light); width: 0%; box-shadow: 0 0 10px var(--pure-light); pointer-events: none;}
 
-        /* --- INDEX ARCHIVE (PLAYLIST) --- */
         .right-cloisters { border-right: none; padding: 60px 50px; justify-content: center; background: linear-gradient(to right, rgba(0,0,0,0), rgba(2,2,2,0.9)); }
         .section-header { font-size: 0.6rem; color: rgba(255, 255, 255, 0.3); letter-spacing: 4px; text-transform: uppercase; margin-bottom: 50px; }
         .directory-list { display: flex; flex-direction: column; gap: 0; border-top: 1px solid var(--ghost); }
@@ -134,7 +123,6 @@
             color: var(--pure-light); padding-left: 20px; 
             background: linear-gradient(90deg, rgba(255, 255, 255, 0.04) 0%, transparent 100%);
         }
-
         .dir-node:hover::before, .dir-node.active-track::before { width: 30px; left: -10px; }
         .dir-index { font-family: var(--serif-font); font-style: italic; font-size: 1.2rem; transition: color 0.3s; }
         .dir-node:hover .dir-index, .dir-node.active-track .dir-index { color: var(--pure-light); }
@@ -154,7 +142,7 @@
 </head>
 <body>
 
-    <audio id="audio-source" crossorigin="anonymous"></audio>
+    <audio id="audio-source"></audio>
 
     <div id="visual-engine">
         <canvas id="visualizer-canvas"></canvas>
@@ -205,19 +193,19 @@
                         </div>
                     </div>
                     
-                    <div class="dir-node interactive track-select" data-src="song2.mp3" data-vis="2" data-index="02" data-title="DEMO1">
+                    <div class="dir-node interactive track-select" data-src="song2.mp3" data-vis="2" data-index="02" data-title="DEMO_ONE">
                         <div class="dir-index">02</div>
                         <div class="dir-content">
-                            <div class="dir-title">DEMO1</div>
-                            <div class="dir-spec">Vis 02 // Obsidian Plane</div>
+                            <div class="dir-title">DEMO_ONE</div>
+                            <div class="dir-spec">Vis 02 // Lissajous Knot</div>
                         </div>
                     </div>
 
-                    <div class="dir-node interactive track-select" data-src="song3.mp3" data-vis="3" data-index="03" data-title="DEMO2">
+                    <div class="dir-node interactive track-select" data-src="song3.mp3" data-vis="3" data-index="03" data-title="DEMO_TWO">
                         <div class="dir-index">03</div>
                         <div class="dir-content">
-                            <div class="dir-title">DEMO2</div>
-                            <div class="dir-spec">Vis 03 // Sacred Cipher</div>
+                            <div class="dir-title">DEMO_TWO</div>
+                            <div class="dir-spec">Vis 03 // Arch Pillars</div>
                         </div>
                     </div>
 
@@ -227,7 +215,7 @@
     </div>
 
     <script>
-        // --- 1. HARSH B&W NOISE ENGINE ---
+        // --- 1. SUBTLE B&W DUST ENGINE ---
         const grainCanvas = document.getElementById('lo-fi-grain');
         const grainCtx = grainCanvas.getContext('2d', { alpha: false });
         let noiseCacheCanvas = null;
@@ -236,7 +224,7 @@
             grainCanvas.width = window.innerWidth; grainCanvas.height = window.innerHeight;
             const idata = grainCtx.createImageData(grainCanvas.width, grainCanvas.height);
             const buffer32 = new Uint32Array(idata.data.buffer);
-            for (let i = 0; i < buffer32.length; i++) buffer32[i] = Math.random() < 0.1 ? 0xff000000 : 0xffffffff; 
+            for (let i = 0; i < buffer32.length; i++) buffer32[i] = Math.random() < 0.04 ? 0xff000000 : 0xffffffff; 
             noiseCacheCanvas = document.createElement('canvas');
             noiseCacheCanvas.width = grainCanvas.width; noiseCacheCanvas.height = grainCanvas.height;
             noiseCacheCanvas.getContext('2d').putImageData(idata, 0, 0);
@@ -272,7 +260,7 @@
         });
 
 
-        // --- 3. HIGH FIDELITY AUDIO ENGINE ---
+        // --- 3. PURE AUDIO ENGINE ---
         const audioEl = document.getElementById('audio-source');
         const visCanvas = document.getElementById('visualizer-canvas');
         const visCtx = visCanvas.getContext('2d');
@@ -283,64 +271,100 @@
         const playBtn = document.getElementById('play-btn');
         const trackNodes = document.querySelectorAll('.track-select');
         
-        let audioCtx, analyser, source;
+        let audioCtx, analyser, source, tuningFilter;
         let dataArray, bufferLength;
         let isPlaying = false;
         let audioInitialized = false;
+        
+        // Transition and Vis State
+        let isTuning = false;
+        let tuneIntensity = 0;
         let currentVisMode = 1;
+        let animationFrameId = null;
 
-        // Variables for Visualizer 2 (The Obsidian Plane)
-        const historySize = 60;
-        let freqHistory = Array(historySize).fill(new Uint8Array(128));
-
-        function resizeCanvas() {
-            visCanvas.width = window.innerWidth; visCanvas.height = window.innerHeight;
-        }
+        function resizeCanvas() { visCanvas.width = window.innerWidth; visCanvas.height = window.innerHeight; }
         window.addEventListener('resize', resizeCanvas); resizeCanvas();
 
         function initWebAudio() {
             if (audioInitialized) return;
-            // Clean, direct audio routing. No distortion nodes. 
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             analyser = audioCtx.createAnalyser();
             source = audioCtx.createMediaElementSource(audioEl);
             
-            source.connect(analyser);
+            // Clean Bandpass filter used only during the track-switch transition
+            tuningFilter = audioCtx.createBiquadFilter();
+            tuningFilter.type = 'allpass'; 
+            tuningFilter.frequency.value = 24000; 
+
+            source.connect(tuningFilter);
+            tuningFilter.connect(analyser);
             analyser.connect(audioCtx.destination);
             
             analyser.fftSize = 512; 
             bufferLength = analyser.frequencyBinCount;
             dataArray = new Uint8Array(bufferLength);
+            
             audioInitialized = true;
         }
 
-        // --- TRACK SELECTION ---
+        // --- RADIO SIGNAL TRANSITION LOGIC ---
+        function executeTuningTransition(src, title, index, visMode, node) {
+            initWebAudio();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+
+            trackNodes.forEach(n => n.classList.remove('active-track'));
+            node.classList.add('active-track');
+            displayIndex.innerText = index;
+            displayTitle.innerText = title;
+            currentVisMode = visMode;
+            
+            if (!audioEl.src.endsWith(src)) audioEl.src = src;
+            audioEl.play().catch(e => console.log("Playback required"));
+            
+            if (!isPlaying) {
+                isPlaying = true;
+                if(animationFrameId) cancelAnimationFrame(animationFrameId);
+                renderVisualizer();
+            }
+            
+            playBtn.innerText = "PAUSE";
+            
+            // TRIGGER THE RADIO TRANSITION
+            isTuning = true;
+            statusText.innerText = "TUNING SIGNAL";
+            statusText.style.color = "var(--pure-light)";
+            
+            const now = audioCtx.currentTime;
+            
+            // Audio sweep (simulates a radio finding a station)
+            tuningFilter.type = 'bandpass';
+            tuningFilter.Q.value = 10;
+            tuningFilter.frequency.setValueAtTime(200, now);
+            tuningFilter.frequency.exponentialRampToValueAtTime(10000, now + 0.8);
+            
+            // Visual erratic intensity decays over 1 second
+            tuneIntensity = 1.0;
+            const tuningInterval = setInterval(() => {
+                tuneIntensity -= 0.05;
+                if(tuneIntensity <= 0) {
+                    tuneIntensity = 0;
+                    isTuning = false;
+                    tuningFilter.type = 'allpass'; // Reset filter to crystal clear
+                    statusText.innerText = "RESONATING";
+                    statusText.style.color = "var(--pure-light)";
+                    clearInterval(tuningInterval);
+                }
+            }, 40);
+        }
+
         trackNodes.forEach(node => {
             node.addEventListener('click', () => {
-                initWebAudio();
-                if (audioCtx.state === 'suspended') audioCtx.resume();
-
-                trackNodes.forEach(n => n.classList.remove('active-track'));
-                node.classList.add('active-track');
-
                 const src = node.getAttribute('data-src');
                 const title = node.getAttribute('data-title');
                 const index = node.getAttribute('data-index');
-                currentVisMode = parseInt(node.getAttribute('data-vis'));
-
-                if (!audioEl.src.endsWith(src)) audioEl.src = src;
-
-                displayIndex.innerText = index;
-                displayTitle.innerText = title;
-
-                audioEl.play().catch(e => console.log("Playback interrupted"));
-                isPlaying = true;
-                playBtn.innerText = "PAUSE";
-                statusText.innerText = "RESONATING";
+                const visMode = parseInt(node.getAttribute('data-vis'));
                 
-                // Clear the canvas cleanly on track switch
-                visCtx.clearRect(0, 0, visCanvas.width, visCanvas.height);
-                renderVisualizer();
+                executeTuningTransition(src, title, index, visMode, node);
             });
         });
 
@@ -350,57 +374,77 @@
             if (audioCtx.state === 'suspended') audioCtx.resume();
 
             if (isPlaying) {
-                audioEl.pause(); playBtn.innerText = "PLAY"; statusText.innerText = "PAUSED";
-                displayTitle.style.letterSpacing = "-2px"; 
-                displayTitle.style.transform = "scaleX(1)";
+                audioEl.pause(); 
+                isPlaying = false;
+                playBtn.innerText = "PLAY"; statusText.innerText = "PAUSED";
+                displayTitle.style.letterSpacing = "-2px"; displayTitle.style.transform = "scaleX(1)";
+                if(animationFrameId) cancelAnimationFrame(animationFrameId);
             } else {
-                audioEl.play(); playBtn.innerText = "PAUSE"; statusText.innerText = "RESONATING";
+                audioEl.play(); 
+                isPlaying = true;
+                playBtn.innerText = "PAUSE"; statusText.innerText = "RESONATING";
+                if(animationFrameId) cancelAnimationFrame(animationFrameId);
                 renderVisualizer();
             }
-            isPlaying = !isPlaying;
         });
-
 
         // --- MASTER RENDER LOOP ---
         function renderVisualizer() {
             if (!isPlaying) return;
-            requestAnimationFrame(renderVisualizer);
+            animationFrameId = requestAnimationFrame(renderVisualizer);
 
             analyser.getByteFrequencyData(dataArray);
-            
-            const centerX = visCanvas.width / 2; 
-            const centerY = visCanvas.height / 2;
-            
-            let bassSum = 0; for(let i = 0; i < 6; i++) bassSum += dataArray[i];
-            const bassAvg = bassSum / 6;
+            visCtx.clearRect(0, 0, visCanvas.width, visCanvas.height);
 
-            // Audio-Reactive Typography
-            const textStretch = 1 + Math.max(0, (bassAvg - 200) / 400);
-            const tracking = -2 + Math.max(0, (bassAvg - 200) / 10);
+            const centerX = visCanvas.width / 2; const centerY = visCanvas.height / 2;
+            
+            // Extract frequencies for reactivity
+            let bassSum = 0; for(let i = 0; i < 4; i++) bassSum += dataArray[i];
+            const bassAvg = bassSum / 4;
+            
+            let highSum = 0; for(let i = 100; i < 150; i++) highSum += dataArray[i];
+            const highAvg = highSum / 50;
+
+            // UI Reactivity
+            const textStretch = 1 + Math.max(0, (bassAvg - 180) / 400);
+            const tracking = -2 + Math.max(0, (bassAvg - 180) / 10);
             displayTitle.style.transform = `scaleX(${textStretch})`;
             displayTitle.style.letterSpacing = `${tracking}px`;
 
 
-            // --- VIS 1: THE TESSERACT (The Floating Cube) ---
-            if (currentVisMode === 1) {
-                // Motion blur trail effect
-                visCtx.fillStyle = 'rgba(2, 2, 2, 0.4)';
-                visCtx.fillRect(0, 0, visCanvas.width, visCanvas.height);
+            // --- THE RADIO TUNING VISUAL OVERRIDE ---
+            if (isTuning) {
+                // Draws a chaotic, horizontal searching signal
+                visCtx.beginPath();
+                visCtx.strokeStyle = `rgba(255, 255, 255, ${0.4 + tuneIntensity})`;
+                visCtx.lineWidth = 2;
+                
+                let yOffset = centerY;
+                for (let x = 0; x < visCanvas.width; x += 4) {
+                    // Combine a sine wave with harsh data noise
+                    const dataVal = (dataArray[(x / 4) % bufferLength] / 255) * 100;
+                    const noise = (Math.random() - 0.5) * (150 * tuneIntensity);
+                    const wave = Math.sin((x * 0.02) + (Date.now() * 0.01)) * (50 * tuneIntensity);
+                    
+                    const y = yOffset + wave + noise + dataVal * tuneIntensity;
+                    if (x === 0) visCtx.moveTo(x, y);
+                    else visCtx.lineTo(x, y);
+                }
+                visCtx.stroke();
+                
+                // Early exit to skip normal drawing while tuning
+                return; 
+            }
 
+            // --- VIS 1: THE TESSERACT (Refined Hypercube) ---
+            if (currentVisMode === 1) {
                 const time = Date.now() * 0.0005;
-                const size = 180 + (bassAvg * 0.4); // Core size reacts to bass
+                const size = 160 + (bassAvg * 0.2); 
                 
                 const nodes = [];
                 for(let i=0; i<8; i++) {
-                    let x = (i & 1 ? 1 : -1);
-                    let y = (i & 2 ? 1 : -1);
-                    let z = (i & 4 ? 1 : -1);
+                    let x = (i & 1 ? 1 : -1); let y = (i & 2 ? 1 : -1); let z = (i & 4 ? 1 : -1);
                     
-                    // Audio distortion: Push vertices outward based on high frequencies
-                    const freqVal = dataArray[10 + (i * 5)] / 255;
-                    const push = 1 + (freqVal * 0.8);
-                    x *= push; y *= push; z *= push;
-
                     const rx = x * Math.cos(time) - z * Math.sin(time);
                     const rz = x * Math.sin(time) + z * Math.cos(time);
                     const ry = y * Math.cos(time*0.7) - rz * Math.sin(time*0.7);
@@ -409,117 +453,93 @@
                     nodes.push({ x: centerX + rx * size * scale, y: centerY + ry * size * scale });
                 }
 
-                visCtx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
-                visCtx.lineWidth = 1.5;
+                visCtx.strokeStyle = 'rgba(255, 255, 255, 0.9)'; 
+                visCtx.lineWidth = 1.5; 
                 visCtx.beginPath();
                 
                 const edges = [
-                    [0,1], [1,3], [3,2], [2,0],
-                    [4,5], [5,7], [7,6], [6,4], 
-                    [0,4], [1,5], [2,6], [3,7]  
+                    [0,1], [1,3], [3,2], [2,0], [4,5], [5,7], [7,6], [6,4], [0,4], [1,5], [2,6], [3,7]  
                 ];
                 
-                edges.forEach(edge => {
-                    visCtx.moveTo(nodes[edge[0]].x, nodes[edge[0]].y);
-                    visCtx.lineTo(nodes[edge[1]].x, nodes[edge[1]].y);
+                edges.forEach(edge => { 
+                    // Creative logic: Bass dynamically pulls the connecting edges apart
+                    const disconnect = (highAvg / 255) * 30;
+                    const n1 = nodes[edge[0]];
+                    const n2 = nodes[edge[1]];
+                    
+                    // Move the line slightly inward from its true vertices to create a floating/broken effect
+                    visCtx.moveTo(n1.x + (n2.x - n1.x)*0.05*disconnect, n1.y + (n2.y - n1.y)*0.05*disconnect); 
+                    visCtx.lineTo(n2.x - (n2.x - n1.x)*0.05*disconnect, n2.y - (n2.y - n1.y)*0.05*disconnect); 
                 });
                 visCtx.stroke();
             }
 
-            // --- VIS 2: THE OBSIDIAN PLANE (3D Rolling Terrain) ---
+            // --- VIS 2: LISSAJOUS KNOT (Elegant 3D Flow) ---
             else if (currentVisMode === 2) {
-                visCtx.fillStyle = '#020202';
-                visCtx.fillRect(0, 0, visCanvas.width, visCanvas.height);
-
-                // Update history array
-                const currentData = new Uint8Array(128);
-                for(let i=0; i<128; i++) currentData[i] = dataArray[i * 2]; // Sample evenly
-                freqHistory.unshift(currentData);
-                freqHistory.pop();
-
-                visCtx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
-                visCtx.lineWidth = 1;
-
-                const lines = freqHistory.length;
-                const points = 128;
-                const width = visCanvas.width * 0.8;
-                const startX = centerX - (width / 2);
-                const stepX = width / points;
+                visCtx.strokeStyle = 'rgba(255, 255, 255, 0.7)'; 
+                visCtx.lineWidth = 1.5;
+                visCtx.beginPath();
                 
-                // Draw from back to front
-                for (let j = lines - 1; j >= 0; j--) {
-                    const data = freqHistory[j];
-                    if (!data) continue;
-
-                    // 3D Perspective scaling
-                    const z = j / lines; 
-                    const scale = 1 - z;
-                    const yOffset = centerY + (z * 300) - 100;
-                    const opacity = 1 - (z * 0.8);
-
-                    visCtx.beginPath();
-                    visCtx.strokeStyle = `rgba(255, 255, 255, ${opacity})`;
+                const time = Date.now() * 0.0002;
+                const resolution = 200;
+                
+                for (let i = 0; i <= resolution; i++) {
+                    const t = (i / resolution) * Math.PI * 2;
                     
-                    for (let i = 0; i < points; i++) {
-                        const val = data[i] / 255;
-                        const x = startX + (i * stepX);
-                        // Center is higher than edges
-                        const distanceToCenter = Math.abs((i / points) - 0.5) * 2;
-                        const dampener = Math.max(0, 1 - distanceToCenter);
-                        
-                        const y = yOffset - (val * 150 * dampener * scale);
+                    // Audio modulates the phase and complexity of the knot
+                    const mod = (dataArray[i % 50] / 255);
+                    const a = 3; 
+                    const b = 2 + (bassAvg * 0.005); 
+                    const d = Math.PI / 2;
+                    
+                    // Parametric Lissajous Equations
+                    let x = Math.sin(a * t + time) * (200 + mod * 100);
+                    let y = Math.sin(b * t + d) * (200 + mod * 100);
+                    
+                    // Simple 3D rotation applied to the 2D curve
+                    const rz = x * Math.sin(time*0.5);
+                    const scale = 500 / (500 + rz);
 
-                        // Perspective X
-                        const px = centerX + (x - centerX) * scale;
-
-                        if (i === 0) visCtx.moveTo(px, y);
-                        else visCtx.lineTo(px, y);
-                    }
-                    visCtx.stroke();
+                    if (i === 0) visCtx.moveTo(centerX + x * scale, centerY + y * scale);
+                    else visCtx.lineTo(centerX + x * scale, centerY + y * scale);
                 }
+                visCtx.stroke();
             }
 
-            // --- VIS 3: THE SACRED CIPHER (Symmetrical Geometric Rings) ---
+            // --- VIS 3: ARCHITECTURAL PILLARS (Brutalist Blocks) ---
             else if (currentVisMode === 3) {
-                visCtx.fillStyle = '#020202';
-                visCtx.fillRect(0, 0, visCanvas.width, visCanvas.height);
+                const numPillars = 8;
+                const pillarWidth = 40;
+                const spacing = 20;
+                const totalWidth = (numPillars * pillarWidth) + ((numPillars - 1) * spacing);
+                const startX = centerX - (totalWidth / 2);
 
-                const time = Date.now() * 0.0003;
-                const dataPoints = 64; 
-                const angleStep = Math.PI / dataPoints;
+                visCtx.strokeStyle = '#ffffff'; 
+                visCtx.lineWidth = 1;
 
-                function drawSymmetricalRing(radiusOffset, dataOffset, ampMultiplier, rotationDir, opacity) {
-                    const rBase = 150 + radiusOffset + (bassAvg * 0.3);
-                    visCtx.beginPath();
+                for(let i = 0; i < numPillars; i++) {
+                    const px = startX + (i * (pillarWidth + spacing));
+                    const dataVal = dataArray[i * 10] / 255;
+                    const highVal = dataArray[150 + (i*5)] / 255;
                     
-                    for (let i = 0; i <= dataPoints; i++) {
-                        const val = dataArray[i + dataOffset] || 0;
-                        const spike = (val / 255) * ampMultiplier; 
-                        const r = rBase + (i % 2 === 0 ? spike : -spike * 0.5); 
-                        const angle = -Math.PI/2 + (i * angleStep) + (time * rotationDir);
+                    // Base Pillar Height
+                    const ph = 100 + (dataVal * 250);
+                    const py = centerY - (ph / 2);
+
+                    // Draw the core wireframe pillar
+                    visCtx.strokeRect(px, py, pillarWidth, ph);
+
+                    // Creative logic: High frequencies draw horizontal cutting lines through the pillars
+                    if(highVal > 0.2) {
+                        const sliceY = centerY + (Math.sin(Date.now() * 0.002 + i) * ph/2);
+                        const sliceOffset = highVal * 40;
                         
-                        if (i === 0) visCtx.moveTo(centerX + Math.cos(angle)*r, centerY + Math.sin(angle)*r);
-                        else visCtx.lineTo(centerX + Math.cos(angle)*r, centerY + Math.sin(angle)*r);
+                        visCtx.beginPath();
+                        visCtx.moveTo(px - sliceOffset, sliceY);
+                        visCtx.lineTo(px + pillarWidth + sliceOffset, sliceY);
+                        visCtx.stroke();
                     }
-                    
-                    for (let i = dataPoints; i >= 0; i--) {
-                        const val = dataArray[i + dataOffset] || 0;
-                        const spike = (val / 255) * ampMultiplier; 
-                        const r = rBase + (i % 2 === 0 ? spike : -spike * 0.5); 
-                        const angle = -Math.PI/2 - (i * angleStep) + (time * rotationDir);
-                        visCtx.lineTo(centerX + Math.cos(angle)*r, centerY + Math.sin(angle)*r);
-                    }
-                    
-                    visCtx.closePath();
-                    visCtx.strokeStyle = `rgba(255, 255, 255, ${opacity})`; 
-                    visCtx.lineWidth = 1.5; 
-                    visCtx.stroke();
                 }
-
-                // Draw three distinct, reacting rings
-                drawSymmetricalRing(0, 0, 120, 1, 1); // Inner Bass Ring
-                drawSymmetricalRing(80, 20, 80, -0.5, 0.5); // Mid Ring
-                drawSymmetricalRing(150, 40, 50, 0.2, 0.2); // Outer Treble Ring
             }
         }
 
@@ -549,8 +569,8 @@
         audioEl.addEventListener('ended', () => {
             isPlaying = false; playBtn.innerText = "PLAY"; statusText.innerText = "SYSTEM IDLE";
             progressFill.style.width = `0%`; visCtx.clearRect(0, 0, visCanvas.width, visCanvas.height);
-            displayTitle.style.letterSpacing = "-2px";
-            displayTitle.style.transform = "scaleX(1)";
+            displayTitle.style.letterSpacing = "-2px"; displayTitle.style.transform = "scaleX(1)";
+            if(animationFrameId) cancelAnimationFrame(animationFrameId);
         });
 
         progressBg.addEventListener('click', (e) => {
