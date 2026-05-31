@@ -35,19 +35,6 @@
             position: relative;
         }
 
-        /* --- THE REACTIVE AURA --- */
-        #ambient-glow {
-            position: fixed;
-            top: 50%; left: 50%;
-            width: 70vw; height: 70vw;
-            transform: translate(-50%, -50%);
-            background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 60%);
-            z-index: 0;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.1s ease, transform 0.1s ease, background 0.5s ease;
-        }
-
         /* --- HARSH B&W NOISE --- */
         #lo-fi-grain {
             position: fixed;
@@ -59,13 +46,46 @@
             mix-blend-mode: overlay;
         }
 
-        /* --- REACTIVE AUDIO VISUALIZER CANVAS --- */
-        #visualizer-canvas {
+        /* --- VISUALIZER WRAPPER (PREVENTS BORDER EXPOSURE) --- */
+        #visual-engine {
             position: fixed;
             top: 0; left: 0;
             width: 100vw; height: 100vh;
             z-index: 1;
-            filter: drop-shadow(0 0 12px rgba(255,255,255,0.6));
+            pointer-events: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.05s ease;
+            /* Base scale slightly up so shakes never show body background */
+            transform: scale(1.02); 
+        }
+
+        #ambient-glow {
+            position: absolute;
+            width: 80vw; height: 80vw;
+            background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 60%);
+            opacity: 0;
+            transition: opacity 0.1s ease, transform 0.1s ease, background 0.5s ease;
+        }
+
+        #visualizer-canvas {
+            position: absolute;
+            width: 100%; height: 100%;
+            filter: drop-shadow(0 0 15px rgba(255,255,255,0.8));
+        }
+
+        /* The Professional Glitch Fix: Shakes the inner container, not the viewport */
+        body.glitch-shake #visual-engine {
+            animation: overdrive-shake 0.08s infinite;
+            transform: scale(1.08); 
+            filter: contrast(1.2) brightness(1.2);
+        }
+
+        @keyframes overdrive-shake {
+            0% { transform: scale(1.08) translate(6px, 4px) rotate(1deg); }
+            50% { transform: scale(1.08) translate(-6px, -4px) rotate(-1deg); }
+            100% { transform: scale(1.08) translate(4px, -2px) rotate(0deg); }
         }
 
         /* --- CROSSHAIR CURSOR --- */
@@ -125,7 +145,7 @@
         /* Current Track Display */
         .current-track-display { text-align: left; margin-top: auto; margin-bottom: 60px; pointer-events: auto;}
         .current-index { font-family: var(--serif-font); font-style: italic; font-size: 3rem; color: rgba(255,255,255,0.3); line-height: 1; }
-        .current-title { font-size: 4rem; font-weight: 700; letter-spacing: -2px; color: var(--pure-light); line-height: 1; margin-top: 10px; }
+        .current-title { font-size: 4rem; font-weight: 700; letter-spacing: -2px; color: var(--pure-light); line-height: 1; margin-top: 10px; text-transform: uppercase;}
         .play-toggle { display: inline-block; margin-top: 20px; font-size: 0.8rem; letter-spacing: 3px; border: 1px solid var(--ghost); padding: 10px 20px; transition: all 0.3s; }
         .play-toggle:hover { border-color: var(--pure-light); background: var(--pure-light); color: var(--void); }
 
@@ -172,18 +192,10 @@
         .dir-index { font-family: var(--serif-font); font-style: italic; font-size: 1.2rem; transition: color 0.3s; }
         .dir-node:hover .dir-index, .dir-node.active-track .dir-index { color: var(--pure-light); }
         
-        .dir-title { font-size: 1.1rem; font-weight: 700; letter-spacing: -0.5px; transition: letter-spacing 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        .dir-title { font-size: 1.1rem; font-weight: 700; letter-spacing: -0.5px; transition: letter-spacing 0.4s cubic-bezier(0.16, 1, 0.3, 1); text-transform: uppercase; }
         .dir-node:hover .dir-title, .dir-node.active-track .dir-title { letter-spacing: 2px; }
         
         .dir-spec { font-size: 0.55rem; margin-top: 6px; letter-spacing: 2px; text-transform: uppercase; opacity: 0.5; }
-
-        /* Environmental glitch controlled by bass */
-        .glitch-shake { animation: hard-shake 0.1s infinite; }
-        @keyframes hard-shake {
-            0% { transform: translate(3px, 2px) }
-            50% { transform: translate(-3px, -2px) }
-            100% { transform: translate(3px, -2px) }
-        }
 
         @media (max-width: 1024px) {
             .brutalist-grid { grid-template-columns: 1fr; height: auto; }
@@ -191,7 +203,7 @@
             .right-cloisters { height: auto; padding: 40px 20px; background: #000;}
             .center-nave { padding: 40px 20px; }
             body { overflow: auto; cursor: auto;}
-            #crosshair-cursor, #lo-fi-grain, #visualizer-canvas { display: none; }
+            #crosshair-cursor, #lo-fi-grain, #visual-engine { display: none; }
         }
     </style>
 </head>
@@ -199,10 +211,12 @@
 
     <audio id="audio-source" crossorigin="anonymous"></audio>
 
-    <div id="ambient-glow"></div>
+    <div id="visual-engine">
+        <div id="ambient-glow"></div>
+        <canvas id="visualizer-canvas"></canvas>
+    </div>
+    
     <canvas id="lo-fi-grain"></canvas>
-    <canvas id="visualizer-canvas"></canvas>
-
     <div id="crosshair-cursor"></div>
 
     <div class="brutalist-grid">
@@ -245,18 +259,18 @@
                         </div>
                     </div>
                     
-                    <div class="dir-node interactive track-select" data-src="song2.mp3" data-vis="2" data-index="02" data-title="OBSIDIAN_TEARS">
+                    <div class="dir-node interactive track-select" data-src="song2.mp3" data-vis="2" data-index="02" data-title="DEMO1">
                         <div class="dir-index">02</div>
                         <div class="dir-content">
-                            <div class="dir-title">OBSIDIAN_TEARS</div>
+                            <div class="dir-title">DEMO1</div>
                             <div class="dir-spec">Vis 02 // Brutalist Scanner</div>
                         </div>
                     </div>
 
-                    <div class="dir-node interactive track-select" data-src="song3.mp3" data-vis="3" data-index="03" data-title="STATIC_HEAVEN">
+                    <div class="dir-node interactive track-select" data-src="song3.mp3" data-vis="3" data-index="03" data-title="DEMO2">
                         <div class="dir-index">03</div>
                         <div class="dir-content">
-                            <div class="dir-title">STATIC_HEAVEN</div>
+                            <div class="dir-title">DEMO2</div>
                             <div class="dir-spec">Vis 03 // Collapsing Geometry</div>
                         </div>
                     </div>
@@ -354,7 +368,7 @@
             source.connect(analyser);
             analyser.connect(audioCtx.destination);
             
-            analyser.fftSize = 256; 
+            analyser.fftSize = 512; 
             bufferLength = analyser.frequencyBinCount;
             dataArray = new Uint8Array(bufferLength);
             audioInitialized = true;
@@ -366,26 +380,21 @@
                 initWebAudio();
                 if (audioCtx.state === 'suspended') audioCtx.resume();
 
-                // Clear active states
                 trackNodes.forEach(n => n.classList.remove('active-track'));
                 node.classList.add('active-track');
 
-                // Update Data
                 const src = node.getAttribute('data-src');
                 const title = node.getAttribute('data-title');
                 const index = node.getAttribute('data-index');
                 currentVisMode = parseInt(node.getAttribute('data-vis'));
 
-                // Only reload if it's a new track
                 if (!audioEl.src.endsWith(src)) {
                     audioEl.src = src;
                 }
 
-                // Update UI
                 displayIndex.innerText = index;
                 displayTitle.innerText = title;
 
-                // Play
                 audioEl.play();
                 isPlaying = true;
                 playBtn.innerText = "PAUSE";
@@ -396,7 +405,7 @@
 
         // --- PLAY/PAUSE TOGGLE ---
         playBtn.addEventListener('click', () => {
-            if (!audioInitialized) return; // Wait until a track is selected
+            if (!audioInitialized) return; 
             if (audioCtx.state === 'suspended') audioCtx.resume();
 
             if (isPlaying) {
@@ -424,103 +433,106 @@
             const centerX = visCanvas.width / 2;
             const centerY = visCanvas.height / 2;
             
-            // Frequency extraction
-            let bassSum = 0; for(let i = 0; i < 5; i++) bassSum += dataArray[i];
-            const bassAvg = bassSum / 5;
-            let midSum = 0; for(let i = 10; i < 50; i++) midSum += dataArray[i];
-            const midAvg = midSum / 40;
+            // Extract Sub-Bass specifically for environment reactivity
+            let bassSum = 0; 
+            for(let i = 0; i < 4; i++) bassSum += dataArray[i];
+            const bassAvg = bassSum / 4;
 
-            // Global Ambient Glow (Reacts to Bass)
             ambientGlow.style.opacity = (bassAvg / 255) * 0.4;
-            ambientGlow.style.transform = `translate(-50%, -50%) scale(${1 + (bassAvg / 255) * 0.6})`;
+            ambientGlow.style.transform = `scale(${1 + (bassAvg / 255) * 0.4})`;
 
-            // Glitch Shake on absolute peak bass
-            if (bassAvg > 230) document.body.classList.add('glitch-shake');
-            else document.body.classList.remove('glitch-shake');
+            // Professional Glitch Trigger: Requires massive bass output to trigger (> 245/255)
+            if (bassAvg > 245) {
+                document.body.classList.add('glitch-shake');
+            } else {
+                document.body.classList.remove('glitch-shake');
+            }
 
             // -----------------------------------------------------
-            // VISUALIZER MODE 1: THE JAGGED HALO (Circular Tearing)
+            // VISUALIZER MODE 1: PERFECT SYMMETRICAL HALO 
+            // Fixed the "Bug at the bottom" by perfectly mirroring the data
             // -----------------------------------------------------
             if (currentVisMode === 1) {
                 const baseRadius = 150 + (bassAvg * 0.2);
-                const points = bufferLength - 20; 
-                const angleStep = (Math.PI * 2) / points;
+                const dataPoints = 80; // Focus on active audible frequencies
+                const angleStep = Math.PI / dataPoints;
+                const rotation = Date.now() * 0.0003;
 
-                // Inner core
                 visCtx.beginPath();
                 visCtx.arc(centerX, centerY, baseRadius - 20, 0, Math.PI * 2);
                 visCtx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
                 visCtx.stroke();
 
-                // Tearing spikes
                 visCtx.beginPath();
-                for (let i = 0; i < points; i++) {
-                    const value = dataArray[i];
-                    const spikeAmp = (value / 255) * 200; 
-                    const angle = (i * angleStep) + (Date.now() * 0.0005); // Slow rotation
+                
+                // Draw Right Half (Top to Bottom)
+                for (let i = 0; i <= dataPoints; i++) {
+                    const val = dataArray[i];
+                    // Exponential math makes sharp spikes instead of soft waves
+                    const spike = Math.pow(val / 255, 1.8) * 160; 
+                    const r = baseRadius + spike;
+                    const angle = -Math.PI/2 + (i * angleStep) + rotation;
                     
-                    const r = baseRadius + spikeAmp;
                     const x = centerX + Math.cos(angle) * r;
                     const y = centerY + Math.sin(angle) * r;
-
                     if (i === 0) visCtx.moveTo(x, y);
                     else visCtx.lineTo(x, y);
                 }
+                
+                // Draw Left Half Mirrored (Bottom back to Top)
+                for (let i = dataPoints; i >= 0; i--) {
+                    const val = dataArray[i];
+                    const spike = Math.pow(val / 255, 1.8) * 160; 
+                    const r = baseRadius + spike;
+                    const angle = -Math.PI/2 - (i * angleStep) + rotation;
+                    
+                    const x = centerX + Math.cos(angle) * r;
+                    const y = centerY + Math.sin(angle) * r;
+                    visCtx.lineTo(x, y);
+                }
+                
                 visCtx.closePath();
                 visCtx.strokeStyle = '#ffffff';
                 visCtx.lineWidth = 1.5; 
                 visCtx.stroke();
-
-                // Ley lines connecting spikes
-                visCtx.beginPath();
-                for (let i = 0; i < points; i += 6) {
-                    const r = baseRadius + ((dataArray[i] / 255) * 200);
-                    const angle = (i * angleStep) + (Date.now() * 0.0005);
-                    visCtx.moveTo(centerX, centerY);
-                    visCtx.lineTo(centerX + Math.cos(angle) * r, centerY + Math.sin(angle) * r);
-                }
-                visCtx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
-                visCtx.stroke();
             }
 
             // -----------------------------------------------------
-            // VISUALIZER MODE 2: BRUTALIST SCANNER (Vertical Data)
+            // VISUALIZER MODE 2: BRUTALIST SCANNER 
             // -----------------------------------------------------
             else if (currentVisMode === 2) {
-                const barWidth = visCanvas.width / bufferLength;
+                const activeData = Math.floor(bufferLength * 0.75); // Skip high-end noise
+                const barWidth = visCanvas.width / activeData;
                 
                 visCtx.fillStyle = '#ffffff';
-                for (let i = 0; i < bufferLength; i++) {
-                    const value = dataArray[i];
-                    const percent = value / 255;
-                    const height = percent * (visCanvas.height / 2);
+                for (let i = 0; i < activeData; i++) {
+                    const percent = dataArray[i] / 255;
+                    // Exponential height to make transients snap
+                    const height = Math.pow(percent, 2) * (visCanvas.height / 2); 
                     const x = i * barWidth;
-                    
-                    // Draw from center top and bottom
                     visCtx.fillRect(x, centerY - height, barWidth - 1, height * 2);
                 }
 
-                // Scanline effect
-                const scanlineY = (Date.now() * 0.5) % visCanvas.height;
-                visCtx.fillStyle = 'rgba(255,255,255,0.5)';
-                visCtx.fillRect(0, scanlineY, visCanvas.width, 2);
+                // CRT Scanline Overlay
+                const scanlineY = (Date.now() * 0.8) % visCanvas.height;
+                visCtx.fillStyle = 'rgba(255,255,255,0.4)';
+                visCtx.fillRect(0, scanlineY, visCanvas.width, 3);
             }
 
             // -----------------------------------------------------
-            // VISUALIZER MODE 3: COLLAPSING GEOMETRY (Sacred Hexagon)
+            // VISUALIZER MODE 3: COLLAPSING GEOMETRY 
             // -----------------------------------------------------
             else if (currentVisMode === 3) {
                 const rotation = Date.now() * 0.0002;
                 const sides = 6;
-                const baseRad = 200 + (bassAvg * 0.5);
+                const baseRad = 200 + (bassAvg * 0.4);
 
                 function drawPoly(radius, offsetRot, strokeOpacity, distortAmp) {
                     visCtx.beginPath();
                     for (let i = 0; i <= sides; i++) {
                         const angle = (i * (Math.PI * 2) / sides) + offsetRot;
-                        // Map specific frequency bins to specific vertices for targeted distortion
                         const freqIdx = Math.floor((i / sides) * 20); 
-                        const distortion = (dataArray[freqIdx] / 255) * distortAmp;
+                        const distortion = Math.pow(dataArray[freqIdx] / 255, 2) * distortAmp;
                         
                         const r = radius + distortion;
                         const x = centerX + Math.cos(angle) * r;
@@ -534,21 +546,9 @@
                     visCtx.stroke();
                 }
 
-                // Multiple overlapping, counter-rotating layers
-                drawPoly(baseRad, rotation, 1, 150); // Main reactive shell
-                drawPoly(baseRad * 0.7, -rotation * 1.5, 0.4, 80); // Inner core
-                drawPoly(baseRad * 1.3, rotation * 0.5, 0.1, 200); // Outer phantom
-
-                // Connecting structure
-                visCtx.beginPath();
-                for (let i = 0; i < sides; i++) {
-                    const angle = (i * (Math.PI * 2) / sides) + rotation;
-                    const r = baseRad + ((dataArray[0] / 255) * 150);
-                    visCtx.moveTo(centerX, centerY);
-                    visCtx.lineTo(centerX + Math.cos(angle) * r, centerY + Math.sin(angle) * r);
-                }
-                visCtx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
-                visCtx.stroke();
+                drawPoly(baseRad, rotation, 1, 180); 
+                drawPoly(baseRad * 0.7, -rotation * 1.5, 0.4, 90); 
+                drawPoly(baseRad * 1.3, rotation * 0.5, 0.1, 250); 
             }
         }
 
@@ -583,9 +583,8 @@
             visCtx.clearRect(0, 0, visCanvas.width, visCanvas.height);
         });
 
-        // Click to scrub timeline
         progressBg.addEventListener('click', (e) => {
-            if (!audioEl.src) return; // Prevent scrub if no track loaded
+            if (!audioEl.src) return; 
             const rect = progressBg.getBoundingClientRect();
             const clickX = e.clientX - rect.left;
             const percent = clickX / rect.width;
