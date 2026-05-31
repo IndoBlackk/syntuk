@@ -230,7 +230,7 @@
                         <div class="dir-index">01</div>
                         <div class="dir-content">
                             <div class="dir-title">INSTRUMENTAL</div>
-                            <div class="dir-spec">Vis 01 // Jagged Halo</div>
+                            <div class="dir-spec">Vis 01 // Kinetic Geode</div>
                         </div>
                     </div>
                     
@@ -315,10 +315,8 @@
         let isPlaying = false;
         let audioInitialized = false;
         
-        // Mathematical Transition State
         let isDecoupling = false;
         let decoupleIntensity = 0;
-        
         let currentVisMode = 1;
         let animationFrameId = null;
 
@@ -427,12 +425,15 @@
             analyser.getByteFrequencyData(dataArray);
             visCtx.clearRect(0, 0, visCanvas.width, visCanvas.height);
 
-            const centerX = visCanvas.width / 2; const centerY = visCanvas.height / 2;
+            // --- OPTICAL CENTERING MATH ---
+            // Calculate true center based on the available space to the left of the tracklist
+            const uiOffset = window.innerWidth > 1024 ? -185 : 0; 
+            const centerX = (visCanvas.width / 2) + uiOffset; 
+            const centerY = visCanvas.height / 2;
             
             let bassSum = 0; for(let i = 0; i < 4; i++) bassSum += dataArray[i];
             const bassAvg = bassSum / 4;
 
-            // Decouple Line styling (The Dot Effect)
             if (isDecoupling) {
                 visCtx.setLineDash([2, 15 + (decoupleIntensity * 30)]);
                 visCtx.strokeStyle = `rgba(255, 255, 255, ${1 - decoupleIntensity})`;
@@ -442,45 +443,67 @@
             }
             visCtx.lineWidth = 1.5;
 
-            // --- VIS 1: JAGGED HALO ---
+            // --- VIS 1: THE KINETIC GEODE (3D Geometric Web) ---
             if (currentVisMode === 1) {
-                const baseRadius = 150 + (bassAvg * 0.2);
-                const dataPoints = 80; const angleStep = Math.PI / dataPoints;
-                const rotation = Date.now() * 0.0003;
+                const nodes = [];
+                const numNodes = 80;
+                const phi = Math.PI * (3 - Math.sqrt(5)); 
+                const radius = 180 + (bassAvg * 0.4);
+                const time = Date.now() * 0.0005;
 
-                visCtx.beginPath();
-                visCtx.arc(centerX, centerY, baseRadius - 20, 0, Math.PI * 2);
-                visCtx.strokeStyle = `rgba(255, 255, 255, ${isDecoupling ? 0 : 0.1})`;
-                visCtx.stroke();
+                // Fibonacci sphere node placement
+                for (let i = 0; i < numNodes; i++) {
+                    const y = 1 - (i / (numNodes - 1)) * 2; 
+                    const r = Math.sqrt(1 - y * y); 
+                    const theta = phi * i; 
 
-                visCtx.beginPath();
-                for (let i = 0; i <= dataPoints; i++) {
-                    const spike = Math.pow(dataArray[i] / 255, 1.8) * 160; 
-                    const r = baseRadius + spike;
-                    const angle = -Math.PI/2 + (i * angleStep) + rotation;
+                    let x = Math.cos(theta) * r;
+                    let z = Math.sin(theta) * r;
+
+                    const freqVal = dataArray[(i * 3) % bufferLength] / 255;
+                    const push = 1 + (freqVal * 0.8);
                     
-                    const jX = (Math.random() - 0.5) * (decoupleIntensity * 100);
-                    const jY = (Math.random() - 0.5) * (decoupleIntensity * 100);
+                    x *= push;
+                    let yPush = y * push;
+                    z *= push;
 
-                    const x = centerX + Math.cos(angle)*r + jX;
-                    const y = centerY + Math.sin(angle)*r + jY;
-                    if (i === 0) visCtx.moveTo(x, y); else visCtx.lineTo(x, y);
+                    const rx = x * Math.cos(time) - z * Math.sin(time);
+                    const rz = x * Math.sin(time) + z * Math.cos(time);
+                    const ry = yPush * Math.cos(time*0.7) - rz * Math.sin(time*0.7);
+
+                    const decoupleZ = rz + (decoupleIntensity * (i % 2 === 0 ? 300 : -300));
+                    const scale = 600 / (600 + decoupleZ);
+
+                    const jX = (Math.random() - 0.5) * (decoupleIntensity * 150);
+                    const jY = (Math.random() - 0.5) * (decoupleIntensity * 150);
+
+                    nodes.push({ x: centerX + rx * radius * scale + jX, y: centerY + ry * radius * scale + jY });
                 }
-                for (let i = dataPoints; i >= 0; i--) {
-                    const spike = Math.pow(dataArray[i] / 255, 1.8) * 160; 
-                    const r = baseRadius + spike;
-                    const angle = -Math.PI/2 - (i * angleStep) + rotation;
 
-                    const jX = (Math.random() - 0.5) * (decoupleIntensity * 100);
-                    const jY = (Math.random() - 0.5) * (decoupleIntensity * 100);
-
-                    const x = centerX + Math.cos(angle)*r + jX;
-                    const y = centerY + Math.sin(angle)*r + jY;
-                    visCtx.lineTo(x, y);
+                // Draw proximity web
+                visCtx.strokeStyle = `rgba(255, 255, 255, ${isDecoupling ? (1 - decoupleIntensity) : 0.3})`;
+                visCtx.beginPath();
+                for (let i = 0; i < numNodes; i++) {
+                    for (let j = i + 1; j < numNodes; j++) {
+                        const dx = nodes[i].x - nodes[j].x;
+                        const dy = nodes[i].y - nodes[j].y;
+                        const dist = Math.sqrt(dx*dx + dy*dy);
+                        // Connect lines based on proximity and bass
+                        if (dist < 80 * (1 + bassAvg/255)) { 
+                            visCtx.moveTo(nodes[i].x, nodes[i].y);
+                            visCtx.lineTo(nodes[j].x, nodes[j].y);
+                        }
+                    }
                 }
-                visCtx.closePath();
-                visCtx.strokeStyle = `rgba(255, 255, 255, ${isDecoupling ? (1-decoupleIntensity) : 0.9})`; 
                 visCtx.stroke();
+                
+                // Draw vertices
+                visCtx.fillStyle = `rgba(255, 255, 255, ${1 - decoupleIntensity})`;
+                nodes.forEach(n => {
+                    visCtx.beginPath();
+                    visCtx.arc(n.x, n.y, 2, 0, Math.PI*2);
+                    visCtx.fill();
+                });
             }
 
             // --- VIS 2: DATA MONOLITHS (3D Pillar Array) ---
