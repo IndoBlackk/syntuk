@@ -23,6 +23,7 @@
             background-color: var(--void); color: var(--ash);
             font-family: var(--mono-font); overflow: hidden;
             height: 100vh; width: 100vw; position: relative;
+            transition: background-color 0.1s ease-out;
         }
 
         /* --- VISUAL ENGINE --- */
@@ -42,22 +43,38 @@
             pointer-events: none; z-index: 9999; opacity: 0.05; mix-blend-mode: overlay;
         }
 
-        /* --- PRECISION CROSSHAIR --- */
-        #crosshair-cursor {
-            position: fixed; top: 0; left: 0; width: 40px; height: 40px;
-            transform: translate(-50%, -50%); pointer-events: none; z-index: 10000;
+        /* --- 3D GEOMETRIC CURSOR --- */
+        #cursor-wrapper {
+            position: fixed; top: 0; left: 0; width: 30px; height: 30px;
+            pointer-events: none; z-index: 10000;
             display: flex; justify-content: center; align-items: center;
-            transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1), height 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s;
+            transform: translate(-50%, -50%);
         }
 
-        #crosshair-cursor::before, #crosshair-cursor::after {
-            content: ''; position: absolute; background-color: rgba(255,255,255,0.4); transition: all 0.2s ease;
+        #geo-cursor {
+            width: 100%; height: 100%;
+            transform-style: preserve-3d;
+            animation: slowSpin 6s linear infinite;
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        #crosshair-cursor::before { width: 100%; height: 1px; }
-        #crosshair-cursor::after { height: 100%; width: 1px; }
 
-        .hovering #crosshair-cursor { width: 80px; height: 80px; transform: translate(-50%, -50%) rotate(45deg); }
-        .hovering #crosshair-cursor::before, .hovering #crosshair-cursor::after { background-color: var(--pure-light); box-shadow: 0 0 10px var(--pure-light); }
+        .cursor-ring {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+        }
+
+        .cursor-ring:nth-child(2) { transform: rotateX(60deg) rotateY(45deg); border-radius: 0; }
+        .cursor-ring:nth-child(3) { transform: rotateX(-60deg) rotateY(-45deg); border-radius: 0; }
+
+        .hovering #geo-cursor { transform: scale(1.5); }
+        .hovering .cursor-ring { border-color: var(--pure-light); box-shadow: 0 0 8px rgba(255,255,255,0.4); }
+        .clicking #geo-cursor { transform: scale(0.6) rotate(45deg); animation-duration: 1s; }
+
+        @keyframes slowSpin {
+            0% { transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg); }
+            100% { transform: rotateX(360deg) rotateY(360deg) rotateZ(360deg); }
+        }
 
         /* --- BRUTALIST UI ARCHITECTURE --- */
         .brutalist-grid {
@@ -89,47 +106,52 @@
         .current-title { 
             font-size: 4rem; font-weight: 700; letter-spacing: -2px; color: var(--pure-light); 
             line-height: 1; margin-top: 10px; text-transform: uppercase;
-            transition: opacity 0.3s ease; 
+            transition: opacity 0.3s ease, text-shadow 0.3s ease; 
         }
+        .current-title:hover { text-shadow: 0 0 15px rgba(255, 255, 255, 0.3); }
         
-        .play-toggle { display: inline-block; margin-top: 20px; font-size: 0.8rem; letter-spacing: 3px; border: 1px solid var(--ghost); padding: 10px 20px; transition: all 0.3s; }
-        .play-toggle:hover { border-color: var(--pure-light); background: var(--pure-light); color: var(--void); }
+        .controls-row { display: flex; gap: 15px; margin-top: 20px; }
+        .btn-toggle { 
+            font-size: 0.7rem; letter-spacing: 3px; border: 1px solid var(--ghost); 
+            padding: 10px 20px; transition: all 0.3s; color: rgba(255,255,255,0.7);
+        }
+        .btn-toggle:hover { border-color: var(--pure-light); color: var(--pure-light); text-shadow: 0 0 5px rgba(255,255,255,0.5); }
+        .btn-toggle.active { background: var(--pure-light); color: var(--void); }
 
-        /* --- ADVANCED TIMELINE SCRUBBER --- */
+        /* --- INTERACTIVE WAVEFORM SCRUBBER --- */
         .timeline-container { width: 100%; display: flex; align-items: center; gap: 20px; pointer-events: auto; }
         .time-display { font-size: 0.7rem; letter-spacing: 1px; font-weight: 700; width: 40px; text-align: center; color: rgba(255,255,255,0.5);}
         
-        .progress-bar-bg { 
-            flex-grow: 1; height: 16px; position: relative; display: flex; align-items: center; cursor: pointer;
+        .waveform-wrapper {
+            flex-grow: 1; height: 30px; display: flex; align-items: flex-end; gap: 2px;
+            cursor: pointer; position: relative; padding-bottom: 5px;
         }
-        .progress-bar-track { width: 100%; height: 2px; background-color: var(--ghost); position: relative; pointer-events: none;}
-        .progress-bar-fill { position: absolute; top: 0; left: 0; height: 100%; background-color: var(--pure-light); width: 0%; box-shadow: 0 0 10px var(--pure-light); pointer-events: none;}
-        
-        .playhead { 
-            position: absolute; top: 50%; left: 0%; width: 10px; height: 10px; 
-            background: var(--pure-light); border-radius: 50%; 
-            transform: translate(-50%, -50%) scale(0); transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1); 
-            pointer-events: none;
+
+        .wave-bar {
+            flex: 1; background-color: var(--ghost); border-radius: 1px;
+            transition: background-color 0.1s, height 0.2s ease;
+            transform-origin: bottom; pointer-events: none;
         }
-        .progress-bar-bg:hover .playhead { transform: translate(-50%, -50%) scale(1); }
+
+        .wave-bar.filled { background-color: var(--pure-light); box-shadow: 0 0 5px rgba(255,255,255,0.4); }
+        .waveform-wrapper:hover .wave-bar { opacity: 0.8; }
 
         /* --- DROPDOWN VOLUME CONTROLLER --- */
-        .volume-wrapper { position: relative; display: flex; align-items: center; justify-content: center; width: 40px; height: 30px; cursor: pointer; }
-        .volume-icon { font-size: 0.6rem; font-weight: 700; letter-spacing: 1px; color: rgba(255,255,255,0.5); transition: color 0.2s; }
-        .volume-wrapper:hover .volume-icon { color: var(--pure-light); }
+        .volume-wrapper { position: relative; display: flex; align-items: center; justify-content: center; width: 40px; height: 30px; }
+        .volume-icon { font-size: 0.6rem; font-weight: 700; letter-spacing: 1px; color: rgba(255,255,255,0.5); transition: color 0.2s; cursor: pointer; }
+        .volume-wrapper:hover .volume-icon { color: var(--pure-light); text-shadow: 0 0 5px rgba(255,255,255,0.5); }
         
         .volume-dropdown { 
             position: absolute; bottom: 35px; left: 50%; transform: translateX(-50%); 
-            width: 30px; height: 100px; background: var(--void); border: 1px solid var(--ghost); 
+            width: 30px; height: 100px; background: var(--void); border: 1px solid rgba(255,255,255,0.2); 
             display: flex; align-items: center; justify-content: center; 
             opacity: 0; pointer-events: none; transition: opacity 0.2s, bottom 0.2s; padding: 10px 0; 
         }
         .volume-wrapper:hover .volume-dropdown { opacity: 1; pointer-events: auto; bottom: 40px; }
         
-        .vol-track-bg { width: 2px; height: 100%; background: var(--ghost); position: relative; }
-        .vol-fill { position: absolute; bottom: 0; left: 0; width: 100%; height: 100%; background: var(--pure-light); box-shadow: 0 0 5px var(--pure-light); }
-        .vol-handle { position: absolute; top: 0; left: 50%; width: 8px; height: 8px; background: #fff; border-radius: 50%; transform: translate(-50%, -50%); }
-
+        .vol-track-bg { width: 4px; height: 100%; background: var(--ghost); position: relative; cursor: pointer; }
+        .vol-fill { position: absolute; bottom: 0; left: 0; width: 100%; height: 100%; background: var(--pure-light); box-shadow: 0 0 5px var(--pure-light); pointer-events: none; }
+        .vol-handle { position: absolute; top: 0; left: 50%; width: 12px; height: 4px; background: #fff; transform: translate(-50%, -50%); pointer-events: none; }
 
         /* --- DIRECTORY (PLAYLIST) --- */
         .right-cloisters { border-right: none; padding: 60px 50px; justify-content: center; background: linear-gradient(to right, rgba(0,0,0,0), rgba(2,2,2,0.9)); }
@@ -144,20 +166,22 @@
         }
 
         .dir-node::before {
-            content: ''; position: absolute; left: -20px; top: 50%; transform: translateY(-50%);
-            width: 0px; height: 1px; background-color: var(--pure-light);
-            transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1), left 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            content: '['; position: absolute; left: -15px; opacity: 0;
+            font-family: var(--mono-font); color: var(--pure-light); font-size: 0.8rem;
+            transition: all 0.3s ease; transform: translateX(10px);
         }
 
         .dir-node:hover, .dir-node.active-track {
-            color: var(--pure-light); padding-left: 20px; 
-            background: linear-gradient(90deg, rgba(255, 255, 255, 0.04) 0%, transparent 100%);
+            color: var(--pure-light); padding-left: 15px; 
+            background: linear-gradient(90deg, rgba(255, 255, 255, 0.03) 0%, transparent 100%);
         }
-        .dir-node:hover::before, .dir-node.active-track::before { width: 30px; left: -10px; }
+        .dir-node:hover::before, .dir-node.active-track::before { opacity: 1; transform: translateX(0); }
+        
         .dir-index { font-family: var(--serif-font); font-style: italic; font-size: 1.2rem; transition: color 0.3s; }
         .dir-node:hover .dir-index, .dir-node.active-track .dir-index { color: var(--pure-light); }
-        .dir-title { font-size: 1.1rem; font-weight: 700; letter-spacing: -0.5px; transition: letter-spacing 0.4s cubic-bezier(0.16, 1, 0.3, 1); text-transform: uppercase; }
-        .dir-node:hover .dir-title, .dir-node.active-track .dir-title { letter-spacing: 2px; }
+        
+        .dir-title { font-size: 1.1rem; font-weight: 700; letter-spacing: -0.5px; transition: letter-spacing 0.4s cubic-bezier(0.16, 1, 0.3, 1), text-shadow 0.3s; text-transform: uppercase; }
+        .dir-node:hover .dir-title, .dir-node.active-track .dir-title { letter-spacing: 2px; text-shadow: 0 0 8px rgba(255,255,255,0.3); }
         .dir-spec { font-size: 0.55rem; margin-top: 6px; letter-spacing: 2px; text-transform: uppercase; opacity: 0.5; }
 
         @media (max-width: 1024px) {
@@ -166,20 +190,27 @@
             .right-cloisters { height: auto; padding: 40px 20px; background: #000;}
             .center-nave { padding: 40px 20px; }
             body { overflow: auto; cursor: auto;}
-            #crosshair-cursor, #lo-fi-grain, #visual-engine { display: none; }
+            #cursor-wrapper, #lo-fi-grain, #visual-engine { display: none; }
         }
     </style>
 </head>
 <body>
 
-    <audio id="audio-source"></audio>
+    <audio id="audio-source" crossorigin="anonymous"></audio>
 
     <div id="visual-engine">
         <canvas id="visualizer-canvas"></canvas>
     </div>
     
     <canvas id="lo-fi-grain"></canvas>
-    <div id="crosshair-cursor"></div>
+    
+    <div id="cursor-wrapper">
+        <div id="geo-cursor">
+            <div class="cursor-ring"></div>
+            <div class="cursor-ring"></div>
+            <div class="cursor-ring"></div>
+        </div>
+    </div>
 
     <div class="brutalist-grid">
         <div class="panel left-axis">
@@ -194,23 +225,22 @@
             <div class="current-track-display">
                 <div class="current-index" id="display-index">00</div>
                 <div class="current-title" id="display-title">SELECT TRACK</div>
-                <div class="play-toggle interactive" id="play-btn">PLAY</div>
+                <div class="controls-row">
+                    <div class="btn-toggle interactive" id="play-btn">PLAY</div>
+                    <div class="btn-toggle interactive" id="sync-btn">SYNC PULSE: OFF</div>
+                </div>
             </div>
 
-            <div class="timeline-container interactive" id="timeline">
+            <div class="timeline-container" id="timeline">
                 <div class="time-display" id="current-time">0:00</div>
                 
-                <div class="progress-bar-bg" id="progress-bg">
-                    <div class="progress-bar-track">
-                        <div class="progress-bar-fill" id="progress-fill"></div>
-                        <div class="playhead" id="playhead"></div>
+                <div class="waveform-wrapper interactive" id="waveform-bg">
                     </div>
-                </div>
                 
                 <div class="time-display" id="duration">0:00</div>
                 
                 <div class="volume-wrapper">
-                    <div class="volume-icon">[VOL]</div>
+                    <div class="volume-icon interactive">[VOL]</div>
                     <div class="volume-dropdown">
                         <div class="vol-track-bg" id="vol-track">
                             <div class="vol-fill" id="vol-fill"></div>
@@ -281,26 +311,43 @@
         window.addEventListener('resize', initNoiseEngine);
         initNoiseEngine(); setInterval(drawBlitNoise, 60); 
 
-        // --- 2. CURSOR PHYSICS ---
-        const crosshairCursor = document.getElementById('crosshair-cursor');
+        // --- 2. 3D CURSOR PHYSICS ---
+        const cursorWrapper = document.getElementById('cursor-wrapper');
         let curX = window.innerWidth / 2, curY = window.innerHeight / 2;
         let tarX = curX, tarY = curY;
 
         document.addEventListener('mousemove', (e) => { tarX = e.clientX; tarY = e.clientY; });
+        document.addEventListener('mousedown', () => cursorWrapper.classList.add('clicking'));
+        document.addEventListener('mouseup', () => cursorWrapper.classList.remove('clicking'));
 
         function renderCursor() {
             curX += (tarX - curX) * 0.25; curY += (tarY - curY) * 0.25;
-            crosshairCursor.style.left = curX + 'px'; crosshairCursor.style.top = curY + 'px';
+            cursorWrapper.style.left = curX + 'px'; cursorWrapper.style.top = curY + 'px';
             requestAnimationFrame(renderCursor);
         }
         renderCursor();
 
         document.querySelectorAll('.interactive').forEach(el => {
-            el.addEventListener('mouseenter', () => crosshairCursor.classList.add('hovering'));
-            el.addEventListener('mouseleave', () => crosshairCursor.classList.remove('hovering'));
+            el.addEventListener('mouseenter', () => cursorWrapper.classList.add('hovering'));
+            el.addEventListener('mouseleave', () => cursorWrapper.classList.remove('hovering'));
         });
 
-        // --- 3. PURE AUDIO ENGINE & DOT DECOUPLE LOGIC ---
+        // --- 3. WAVEFORM GENERATOR ---
+        const waveformBg = document.getElementById('waveform-bg');
+        const numBars = 80; 
+        const bars = [];
+        
+        for(let i=0; i<numBars; i++) {
+            const bar = document.createElement('div');
+            bar.classList.add('wave-bar');
+            // Generate a random aesthetic sine-like height
+            const pseudoHeight = Math.abs(Math.sin(i * 0.2)) * 60 + Math.random() * 40;
+            bar.style.height = `${Math.max(10, pseudoHeight)}%`;
+            waveformBg.appendChild(bar);
+            bars.push(bar);
+        }
+
+        // --- 4. AUDIO ENGINE & PULSE LOGIC ---
         const audioEl = document.getElementById('audio-source');
         const visCanvas = document.getElementById('visualizer-canvas');
         const visCtx = visCanvas.getContext('2d');
@@ -308,6 +355,7 @@
         const displayIndex = document.getElementById('display-index');
         const displayTitle = document.getElementById('display-title');
         const playBtn = document.getElementById('play-btn');
+        const syncBtn = document.getElementById('sync-btn');
         const trackNodes = document.querySelectorAll('.track-select');
         
         let audioCtx, analyser, source, decoupleFilter;
@@ -319,6 +367,9 @@
         let decoupleIntensity = 0;
         let currentVisMode = 1;
         let animationFrameId = null;
+
+        let pulseEnabled = false;
+        let lastPulseTime = 0;
 
         function resizeCanvas() { visCanvas.width = window.innerWidth; visCanvas.height = window.innerHeight; }
         window.addEventListener('resize', resizeCanvas); resizeCanvas();
@@ -344,7 +395,6 @@
             audioInitialized = true;
         }
 
-        // --- THE DOT SCATTER DECOUPLE TRANSITION ---
         function executeDecoupleTransition(src, title, index, visMode, node) {
             initWebAudio();
             if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -369,6 +419,7 @@
 
                 if (!isPlaying) {
                     isPlaying = true;
+                    playBtn.classList.add('active');
                     if(animationFrameId) cancelAnimationFrame(animationFrameId);
                     renderVisualizer();
                 }
@@ -398,7 +449,6 @@
             });
         });
 
-        // --- PLAY/PAUSE TOGGLE ---
         playBtn.addEventListener('click', () => {
             if (!audioInitialized) return; 
             if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -407,17 +457,31 @@
                 audioEl.pause(); 
                 isPlaying = false;
                 playBtn.innerText = "PLAY";
+                playBtn.classList.remove('active');
                 if(animationFrameId) cancelAnimationFrame(animationFrameId);
             } else {
                 audioEl.play(); 
                 isPlaying = true;
                 playBtn.innerText = "PAUSE";
+                playBtn.classList.add('active');
                 if(animationFrameId) cancelAnimationFrame(animationFrameId);
                 renderVisualizer();
             }
         });
 
-        // --- MASTER RENDER LOOP ---
+        syncBtn.addEventListener('click', () => {
+            pulseEnabled = !pulseEnabled;
+            if (pulseEnabled) {
+                syncBtn.innerText = "SYNC PULSE: ON";
+                syncBtn.classList.add('active');
+            } else {
+                syncBtn.innerText = "SYNC PULSE: OFF";
+                syncBtn.classList.remove('active');
+                document.body.style.backgroundColor = 'var(--void)';
+            }
+        });
+
+        // --- 5. VISUAL RENDER LOOP (RESTRICTED SIZES) ---
         function renderVisualizer() {
             if (!isPlaying && !isDecoupling) return;
             animationFrameId = requestAnimationFrame(renderVisualizer);
@@ -425,14 +489,26 @@
             analyser.getByteFrequencyData(dataArray);
             visCtx.clearRect(0, 0, visCanvas.width, visCanvas.height);
 
-            // --- OPTICAL CENTERING MATH ---
-            // Calculate true center based on the available space to the left of the tracklist
             const uiOffset = window.innerWidth > 1024 ? -185 : 0; 
             const centerX = (visCanvas.width / 2) + uiOffset; 
             const centerY = visCanvas.height / 2;
             
-            let bassSum = 0; for(let i = 0; i < 4; i++) bassSum += dataArray[i];
-            const bassAvg = bassSum / 4;
+            let bassSum = 0; for(let i = 0; i < 6; i++) bassSum += dataArray[i];
+            const bassAvg = bassSum / 6;
+
+            // Restrict bounds so it never scales infinitely off-screen
+            const maxRadius = Math.min(window.innerWidth, window.innerHeight) * 0.35;
+
+            // --- KINETIC PULSE LOGIC (Replaces annoying strobes) ---
+            if (pulseEnabled) {
+                const now = Date.now();
+                if (bassAvg > 210 && (now - lastPulseTime > 300)) { 
+                    // Subtle monochrome flash mapping to beat
+                    document.body.style.backgroundColor = 'rgba(30, 30, 30, 1)';
+                    lastPulseTime = now;
+                    setTimeout(() => { document.body.style.backgroundColor = 'var(--void)'; }, 100);
+                }
+            }
 
             if (isDecoupling) {
                 visCtx.setLineDash([2, 15 + (decoupleIntensity * 30)]);
@@ -443,15 +519,15 @@
             }
             visCtx.lineWidth = 1.5;
 
-            // --- VIS 1: THE KINETIC GEODE (3D Geometric Web) ---
+            // --- VIS 1: KINETIC GEODE ---
             if (currentVisMode === 1) {
                 const nodes = [];
                 const numNodes = 80;
                 const phi = Math.PI * (3 - Math.sqrt(5)); 
-                const radius = 180 + (bassAvg * 0.4);
+                const baseRadius = 180 + (bassAvg * 0.4);
+                const radius = Math.min(baseRadius, maxRadius); // Boundary check
                 const time = Date.now() * 0.0005;
 
-                // Fibonacci sphere node placement
                 for (let i = 0; i < numNodes; i++) {
                     const y = 1 - (i / (numNodes - 1)) * 2; 
                     const r = Math.sqrt(1 - y * y); 
@@ -480,16 +556,13 @@
                     nodes.push({ x: centerX + rx * radius * scale + jX, y: centerY + ry * radius * scale + jY });
                 }
 
-                // Draw proximity web
                 visCtx.strokeStyle = `rgba(255, 255, 255, ${isDecoupling ? (1 - decoupleIntensity) : 0.3})`;
                 visCtx.beginPath();
                 for (let i = 0; i < numNodes; i++) {
                     for (let j = i + 1; j < numNodes; j++) {
                         const dx = nodes[i].x - nodes[j].x;
                         const dy = nodes[i].y - nodes[j].y;
-                        const dist = Math.sqrt(dx*dx + dy*dy);
-                        // Connect lines based on proximity and bass
-                        if (dist < 80 * (1 + bassAvg/255)) { 
+                        if (Math.sqrt(dx*dx + dy*dy) < 80 * (1 + bassAvg/255)) { 
                             visCtx.moveTo(nodes[i].x, nodes[i].y);
                             visCtx.lineTo(nodes[j].x, nodes[j].y);
                         }
@@ -497,24 +570,23 @@
                 }
                 visCtx.stroke();
                 
-                // Draw vertices
                 visCtx.fillStyle = `rgba(255, 255, 255, ${1 - decoupleIntensity})`;
                 nodes.forEach(n => {
-                    visCtx.beginPath();
-                    visCtx.arc(n.x, n.y, 2, 0, Math.PI*2);
-                    visCtx.fill();
+                    visCtx.beginPath(); visCtx.arc(n.x, n.y, 2, 0, Math.PI*2); visCtx.fill();
                 });
             }
 
-            // --- VIS 2: DATA MONOLITHS (3D Pillar Array) ---
+            // --- VIS 2: DATA MONOLITHS ---
             else if (currentVisMode === 2) {
                 const numPillars = 40;
-                const radius = 220 + (bassAvg * 0.3) + (decoupleIntensity * 150);
+                const baseRadius = 220 + (bassAvg * 0.3) + (decoupleIntensity * 150);
+                const radius = Math.min(baseRadius, maxRadius * 1.2); 
                 const time = Date.now() * 0.0005;
 
                 for(let i = 0; i < numPillars; i++) {
                     const val = dataArray[i * 2] / 255; 
-                    const height = 10 + Math.pow(val, 2) * 200;
+                    const heightRaw = 10 + Math.pow(val, 2) * 200;
+                    const height = Math.min(heightRaw, maxRadius * 1.5); // Cap vertical height
                     const angle = (i / numPillars) * Math.PI * 2 + time;
                     
                     const x3d = Math.cos(angle) * radius;
@@ -529,26 +601,23 @@
 
                     visCtx.beginPath();
                     visCtx.strokeStyle = `rgba(255,255,255,${(0.1 + (val * 0.8)) * (1 - decoupleIntensity)})`;
-                    visCtx.moveTo(x, y);
-                    visCtx.lineTo(x, y - (height * scale));
-                    visCtx.stroke();
+                    visCtx.moveTo(x, y); visCtx.lineTo(x, y - (height * scale)); visCtx.stroke();
                     
                     visCtx.beginPath();
                     visCtx.fillStyle = `rgba(255,255,255,${1 - decoupleIntensity})`;
-                    visCtx.arc(x, y - (height * scale), 2 * scale, 0, Math.PI*2);
-                    visCtx.fill();
+                    visCtx.arc(x, y - (height * scale), 2 * scale, 0, Math.PI*2); visCtx.fill();
                 }
             }
 
-            // --- VIS 3: THE TESSERACT (Refined Hypercube) ---
+            // --- VIS 3: THE TESSERACT ---
             else if (currentVisMode === 3) {
                 const time = Date.now() * 0.0005;
-                const size = 160 + (bassAvg * 0.2); 
+                const baseSize = 160 + (bassAvg * 0.2); 
+                const size = Math.min(baseSize, maxRadius); // Boundary check
                 
                 const nodes = [];
                 for(let i=0; i<8; i++) {
                     let x = (i & 1 ? 1 : -1); let y = (i & 2 ? 1 : -1); let z = (i & 4 ? 1 : -1);
-                    
                     const freqVal = dataArray[10 + (i * 5)] / 255;
                     const push = 1 + (freqVal * 0.6);
                     x *= push; y *= push; z *= push;
@@ -567,23 +636,17 @@
                 }
 
                 visCtx.beginPath();
-                const edges = [
-                    [0,1], [1,3], [3,2], [2,0], [4,5], [5,7], [7,6], [6,4], [0,4], [1,5], [2,6], [3,7]  
-                ];
+                const edges = [[0,1], [1,3], [3,2], [2,0], [4,5], [5,7], [7,6], [6,4], [0,4], [1,5], [2,6], [3,7]];
                 edges.forEach(edge => { 
                     const n1 = nodes[edge[0]]; const n2 = nodes[edge[1]];
                     visCtx.moveTo(n1.x, n1.y); visCtx.lineTo(n2.x, n2.y); 
                 });
                 visCtx.stroke();
             }
-            
             visCtx.setLineDash([]);
         }
 
-        // --- 4. ADVANCED SCRUBBER & VOLUME UI ---
-        const progressBg = document.getElementById('progress-bg');
-        const progressFill = document.getElementById('progress-fill');
-        const playhead = document.getElementById('playhead');
+        // --- 6. ADVANCED SCRUBBER & VOLUME UI FIXES ---
         const currentTimeEl = document.getElementById('current-time');
         const durationEl = document.getElementById('duration');
         
@@ -602,44 +665,52 @@
         // Scrubbing State
         let isScrubbing = false;
         
-        progressBg.addEventListener('mousedown', (e) => { isScrubbing = true; scrubTimeline(e); });
+        waveformBg.addEventListener('mousedown', (e) => { isScrubbing = true; scrubTimeline(e); });
         window.addEventListener('mousemove', (e) => { if(isScrubbing) scrubTimeline(e); });
         window.addEventListener('mouseup', () => { isScrubbing = false; });
 
         function scrubTimeline(e) {
             if (!audioEl.src || isDecoupling) return; 
-            const rect = progressBg.getBoundingClientRect();
+            const rect = waveformBg.getBoundingClientRect();
             let percent = (e.clientX - rect.left) / rect.width;
             percent = Math.max(0, Math.min(1, percent));
             
             audioEl.currentTime = percent * audioEl.duration;
-            progressFill.style.width = `${percent * 100}%`;
-            playhead.style.left = `${percent * 100}%`;
             currentTimeEl.innerText = formatTime(audioEl.currentTime);
+            updateWaveformUI(percent);
         }
 
-        function updateScrubber() {
-            if(isPlaying && !isDecoupling && !isScrubbing) {
-                const percent = (audioEl.currentTime / audioEl.duration) * 100;
-                currentTimeEl.innerText = formatTime(audioEl.currentTime);
-                progressFill.style.width = `${percent}%`;
-                playhead.style.left = `${percent}%`;
-            }
-            requestAnimationFrame(updateScrubber);
+        function updateWaveformUI(percent) {
+            const activeBars = Math.floor(percent * numBars);
+            bars.forEach((bar, index) => {
+                if(index <= activeBars) bar.classList.add('filled');
+                else bar.classList.remove('filled');
+            });
         }
-        updateScrubber();
+
+        function syncTimelineLoop() {
+            if(isPlaying && !isDecoupling && !isScrubbing) {
+                const percent = (audioEl.currentTime / audioEl.duration);
+                currentTimeEl.innerText = formatTime(audioEl.currentTime);
+                updateWaveformUI(percent);
+            }
+            requestAnimationFrame(syncTimelineLoop);
+        }
+        syncTimelineLoop();
 
         audioEl.addEventListener('ended', () => {
-            isPlaying = false; playBtn.innerText = "PLAY";
-            progressFill.style.width = `0%`; playhead.style.left = `0%`;
-            visCtx.clearRect(0, 0, visCanvas.width, visCanvas.height);
+            isPlaying = false; playBtn.innerText = "PLAY"; playBtn.classList.remove('active');
+            updateWaveformUI(0); visCtx.clearRect(0, 0, visCanvas.width, visCanvas.height);
             if(animationFrameId) cancelAnimationFrame(animationFrameId);
         });
 
-        // Volume State
+        // Fixed Volume Logic
         let isVolDragging = false;
         
-        volTrack.parentElement.addEventListener('mousedown', (e) => { isVolDragging = true; scrubVolume(e); });
+        // Initialize volume visually to max
+        audioEl.volume = 1;
+        
+        volTrack.addEventListener('mousedown', (e) => { isVolDragging = true; scrubVolume(e); });
         window.addEventListener('mousemove', (e) => { if(isVolDragging) scrubVolume(e); });
         window.addEventListener('mouseup', () => { isVolDragging = false; });
 
