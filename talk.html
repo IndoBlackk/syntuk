@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>AI Chat</title>
+</head>
+<body>
+
+<h1>AI Chat</h1>
+
+<div id="chat"></div>
+
+<input id="message" placeholder="Type something">
+<button onclick="sendMessage()">Send</button>
+
+<script>
+
+const WORKER_URL =
+"https://tiny-feather-2294.archiepipe.workers.dev/";
+
+async function sendMessage() {
+
+  const input =
+    document.getElementById("message");
+
+  const message =
+    input.value.trim();
+
+  if (!message) return;
+
+  document.getElementById("chat")
+    .innerHTML +=
+    "<p><b>You:</b> " +
+    message +
+    "</p>";
+
+  input.value = "";
+
+  const response =
+    await fetch(
+      WORKER_URL,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type":
+          "application/json"
+        },
+        body: JSON.stringify({
+          message
+        })
+      }
+    );
+
+  const data =
+    await response.json();
+
+  document.getElementById("chat")
+    .innerHTML +=
+    "<p><b>AI:</b> " +
+    data.reply +
+    "</p>";
+
+  const speech =
+    new SpeechSynthesisUtterance(
+      data.reply
+    );
+
+  speechSynthesis.speak(speech);
+}
+
+</script>
+
+</body>
+</html>
