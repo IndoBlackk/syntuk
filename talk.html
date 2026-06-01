@@ -98,6 +98,12 @@
         .brutalist-grid.active { opacity: 1; }
 
         .left-axis { border-right: 1px solid var(--ghost); display: flex; flex-direction: column; justify-content: space-between; padding: 40px 0; align-items: center; }
+        
+        .axis-controls { display: flex; flex-direction: column; gap: 40px; align-items: center; margin-bottom: 20px;}
+        .axis-btn { transform: rotate(-90deg); white-space: nowrap; font-size: 0.55rem; color: rgba(255, 255, 255, 0.3); letter-spacing: 6px; text-transform: uppercase; transition: color 0.3s; }
+        .axis-btn:hover { color: var(--pure-light); text-shadow: 0 0 10px var(--pure-light); }
+        .axis-btn.danger:hover { color: #ff3333; text-shadow: 0 0 10px #ff3333; }
+
         .sigil { font-family: var(--serif-font); font-style: italic; font-size: 1.8rem; color: rgba(255,255,255,0.3); text-decoration: none; transition: all 1s ease; }
         .sigil:hover { color: #ff3333; text-shadow: 0 0 15px #ff3333; }
         .vertical-marker { transform: rotate(-90deg); white-space: nowrap; font-size: 0.55rem; color: rgba(255, 255, 255, 0.15); letter-spacing: 8px; text-transform: uppercase;}
@@ -157,7 +163,6 @@
     <canvas id="lo-fi-grain"></canvas>
     <canvas id="void-dust"></canvas>
 
-    <!-- SECRETS: ADMIN GATES -->
     <div id="admin-overlay">
         <div id="gate-entry">
             <div class="gate-title">do you wish to open the gates</div>
@@ -166,12 +171,10 @@
         <div id="admin-controls">
             <div class="gate-title" style="color: #ff3333; text-shadow: 0 0 20px #ff3333;">SYSTEM // OVERRIDE</div>
             <div class="admin-btn danger" id="btn-purge-msg">[ PURGE ALL TRANSMISSIONS ]</div>
-            <div class="admin-btn" id="btn-logout">[ SEVER CONNECTION ]</div>
             <div class="admin-btn" id="btn-close-admin">[ SEAL GATES ]</div>
         </div>
     </div>
 
-    <!-- INITIATION LOBBY (SECURE) -->
     <div id="initiation-layer">
         <a href="index.html" class="lobby-back">[ ← ABORT ]</a>
         <div class="init-title">synt.</div>
@@ -205,17 +208,19 @@
         <div class="system-msg" id="init-msg"></div>
     </div>
 
-    <!-- OPTICS -->
     <div id="cursor-core">+</div>
     <div id="cursor-trail"></div>
     <canvas id="ethereal-wave"></canvas>
 
-    <!-- MAIN CHAT INTERFACE -->
     <div class="brutalist-grid" id="main-interface">
         <div class="left-axis">
             <a href="#" class="sigil" id="admin-trigger">†</a>
-            <div class="vertical-marker">RELAY // SECURE</div>
-            <div class="vertical-marker" style="color: rgba(255,255,255,0.08);">0X1900</div>
+            <div class="vertical-marker" style="margin-top: 20px;">RELAY // SECURE</div>
+            
+            <div class="axis-controls">
+                <div class="axis-btn danger" id="btn-exit-relay">EXIT [X]</div>
+                <div class="axis-btn" id="btn-toggle-audio">AUDIO [ON]</div>
+            </div>
         </div>
 
         <div class="void-nave" id="chat-scroller">
@@ -233,7 +238,6 @@
         </div>
     </div>
 
-    <!-- FIREBASE AUTH & DATABASE MODULES -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, set, get, push, onChildAdded, remove, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
@@ -241,14 +245,13 @@
 
         // === UPDATE THIS WITH YOUR FIREBASE KEYS ===
         const firebaseConfig = {
-            apiKey: "AIzaSyDBjq5YHs2IeZP-qMgmL6WWt28xeiFM2x4",
+            apiKey: "YOUR_API_KEY",
             authDomain: "synt-relay.firebaseapp.com",
             databaseURL: "https://synt-relay-default-rtdb.europe-west1.firebasedatabase.app/",
             projectId: "synt-relay",
             storageBucket: "synt-relay.firebasestorage.app",
             messagingSenderId: "88858140166",
-            appId: "1:88858140166:web:b7be1b4b72a96dd98aed87",
-            measurementId: "G-DZYMDQXX8G"
+            appId: "1:88858140166:web:b7be1b4b72a96dd98aed87"
         };
         // ============================================
 
@@ -301,6 +304,7 @@
         // --- SECURE AUTHENTICATION STATE ---
         let activeAvatarSVG = ''; let activeUserName = '';
         let isLoginMode = false; // Starts in Sign Up mode
+        let isAudioEnabled = true;
         
         const initLayer = document.getElementById('initiation-layer');
         const emailInput = document.getElementById('auth-email');
@@ -384,25 +388,21 @@
             }
 
             if (isLoginMode) {
-                // LOGIN
                 signInWithEmailAndPassword(auth, email, pass)
                     .catch(error => {
                         console.error("Firebase Login Error:", error);
                         showError("[ INCORRECT CREDENTIALS ]");
                     });
             } else {
-                // SIGN UP
                 if (!designation || activeAvatarSVG === '') {
                     showError("[ SELECT FORM AND DESIGNATION ]");
                     return;
                 }
 
-                // Check global name registry
                 get(ref(db, 'globalNames/' + designation)).then((snap) => {
                     if (snap.exists()) {
                         showError("[ DESIGNATION ALREADY BOUND ]");
                     } else {
-                        // Diagnostic Error Handling injected here
                         createUserWithEmailAndPassword(auth, email, pass)
                             .then((userCredential) => {
                                 const user = userCredential.user;
@@ -437,7 +437,6 @@
             initMsg.innerText = msg;
             initMsg.classList.add('error');
             initMsg.style.opacity = '1';
-            // Clear error after 4 seconds to let the user read it
             setTimeout(() => { initMsg.classList.remove('error'); initMsg.style.opacity = '0'; }, 4000);
         }
 
@@ -461,6 +460,26 @@
             
             listenForMessages(); 
         }
+
+        // --- NEW CONTROLS: EXIT AND AUDIO ---
+        const btnExit = document.getElementById('btn-exit-relay');
+        const btnAudio = document.getElementById('btn-toggle-audio');
+
+        btnExit.addEventListener('click', () => {
+            signOut(auth).then(() => { window.location.reload(); });
+        });
+
+        btnAudio.addEventListener('click', () => {
+            isAudioEnabled = !isAudioEnabled;
+            btnAudio.innerText = isAudioEnabled ? "AUDIO [ON]" : "AUDIO [OFF]";
+            if (audioCtx) {
+                if (isAudioEnabled) {
+                    audioCtx.resume();
+                } else {
+                    audioCtx.suspend();
+                }
+            }
+        });
 
         // --- DATABASE: MESSAGE SYNC ---
         const stream = document.getElementById('stream');
@@ -498,7 +517,7 @@
                 </div>`;
             
             stream.appendChild(msgBlock);
-            if (isSystemAwake) playEtherealChime();
+            if (isSystemAwake && isAudioEnabled) playEtherealChime();
             chatScroller.scrollTo({ top: chatScroller.scrollHeight, behavior: 'smooth' });
         }
 
@@ -528,7 +547,6 @@
         const adminControls = document.getElementById('admin-controls');
         
         const btnPurgeMsg = document.getElementById('btn-purge-msg');
-        const btnLogout = document.getElementById('btn-logout');
         const btnCloseAdmin = document.getElementById('btn-close-admin');
 
         adminTrigger.addEventListener('click', (e) => {
@@ -559,11 +577,6 @@
             });
         });
 
-        // SECURE LOGOUT
-        btnLogout.addEventListener('click', () => {
-            signOut(auth).then(() => { window.location.reload(); });
-        });
-
         btnCloseAdmin.addEventListener('click', () => {
             adminOverlay.style.opacity = '0';
             setTimeout(() => { 
@@ -578,9 +591,9 @@
 
         // --- AUDIO ENGINE ---
         let audioCtx; let isDronePlaying = false;
-        function initAudioSystemWake() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); if (audioCtx.state === 'suspended') audioCtx.resume(); const dropOsc = audioCtx.createOscillator(), dropGain = audioCtx.createGain(); dropOsc.type = 'sine'; dropOsc.frequency.setValueAtTime(200, audioCtx.currentTime); dropOsc.frequency.exponentialRampToValueAtTime(20, audioCtx.currentTime + 2); dropGain.gain.setValueAtTime(1, audioCtx.currentTime); dropGain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 3); dropOsc.connect(dropGain); dropGain.connect(audioCtx.destination); dropOsc.start(); dropOsc.stop(audioCtx.currentTime + 3); startBreathingDrone(); }
-        function startBreathingDrone() { if (!isDronePlaying && audioCtx) { const droneGain = audioCtx.createGain(); droneGain.gain.value = 0.02; const filter = audioCtx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.value = 150; const osc1 = audioCtx.createOscillator(); osc1.type = 'sine'; osc1.frequency.value = 43.65; const osc2 = audioCtx.createOscillator(); osc2.type = 'triangle'; osc2.frequency.value = 44.10; const lfo = audioCtx.createOscillator(); lfo.type = 'sine'; lfo.frequency.value = 0.04; const lfoGain = audioCtx.createGain(); lfoGain.gain.value = 0.015; lfo.connect(lfoGain); lfoGain.connect(droneGain.gain); osc1.connect(filter); osc2.connect(filter); filter.connect(droneGain); droneGain.connect(audioCtx.destination); osc1.start(); osc2.start(); lfo.start(); isDronePlaying = true; } }
-        function playEtherealChime() { if (!audioCtx) return; const osc = audioCtx.createOscillator(), gainNode = audioCtx.createGain(), filter = audioCtx.createBiquadFilter(); osc.type = 'sine'; osc.frequency.setValueAtTime(70 + Math.random() * 40, audioCtx.currentTime); filter.type = 'lowpass'; filter.frequency.setValueAtTime(300, audioCtx.currentTime); gainNode.gain.setValueAtTime(0, audioCtx.currentTime); gainNode.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + 1.2); gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 8.0); osc.connect(filter); filter.connect(gainNode); gainNode.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 8.0); }
+        function initAudioSystemWake() { if (!isAudioEnabled) return; if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); if (audioCtx.state === 'suspended') audioCtx.resume(); const dropOsc = audioCtx.createOscillator(), dropGain = audioCtx.createGain(); dropOsc.type = 'sine'; dropOsc.frequency.setValueAtTime(200, audioCtx.currentTime); dropOsc.frequency.exponentialRampToValueAtTime(20, audioCtx.currentTime + 2); dropGain.gain.setValueAtTime(1, audioCtx.currentTime); dropGain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 3); dropOsc.connect(dropGain); dropGain.connect(audioCtx.destination); dropOsc.start(); dropOsc.stop(audioCtx.currentTime + 3); startBreathingDrone(); }
+        function startBreathingDrone() { if (!isAudioEnabled) return; if (!isDronePlaying && audioCtx) { const droneGain = audioCtx.createGain(); droneGain.gain.value = 0.02; const filter = audioCtx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.value = 150; const osc1 = audioCtx.createOscillator(); osc1.type = 'sine'; osc1.frequency.value = 43.65; const osc2 = audioCtx.createOscillator(); osc2.type = 'triangle'; osc2.frequency.value = 44.10; const lfo = audioCtx.createOscillator(); lfo.type = 'sine'; lfo.frequency.value = 0.04; const lfoGain = audioCtx.createGain(); lfoGain.gain.value = 0.015; lfo.connect(lfoGain); lfoGain.connect(droneGain.gain); osc1.connect(filter); osc2.connect(filter); filter.connect(droneGain); droneGain.connect(audioCtx.destination); osc1.start(); osc2.start(); lfo.start(); isDronePlaying = true; } }
+        function playEtherealChime() { if (!audioCtx || !isAudioEnabled) return; const osc = audioCtx.createOscillator(), gainNode = audioCtx.createGain(), filter = audioCtx.createBiquadFilter(); osc.type = 'sine'; osc.frequency.setValueAtTime(70 + Math.random() * 40, audioCtx.currentTime); filter.type = 'lowpass'; filter.frequency.setValueAtTime(300, audioCtx.currentTime); gainNode.gain.setValueAtTime(0, audioCtx.currentTime); gainNode.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + 1.2); gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 8.0); osc.connect(filter); filter.connect(gainNode); gainNode.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 8.0); }
 
         // --- BACKGROUND EFFECTS ---
         const grainCanvas = document.getElementById('lo-fi-grain'); const gCtx = grainCanvas.getContext('2d', { alpha: false }); let grainCache = null;
