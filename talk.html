@@ -3,452 +3,481 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SYNT // THE VOID</title>
+    <title>SYNT // ETHEREAL RELAY [ZERO-G]</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,400;1,600&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,300;1,400&family=Space+Mono:wght@400&display=swap');
 
         :root {
             --void: #020202;
             --ash: #ececec;
             --pure-light: #ffffff;
-            --ghost: rgba(255, 255, 255, 0.05);
-            
+            --ghost: rgba(255, 255, 255, 0.04);
             --mono-font: 'Space Mono', monospace;
             --serif-font: 'Cormorant Garamond', serif;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; cursor: none; user-select: none; }
+        * { box-sizing: border-box; margin: 0; padding: 0; cursor: none !important; }
 
         body {
             background-color: var(--void); color: var(--ash);
             font-family: var(--mono-font); overflow: hidden;
-            height: 100vh; width: 100vw; position: relative;
-            background-image: radial-gradient(circle at center, transparent 10%, #000000 100%);
+            height: 100vh; width: 100vw;
         }
 
-        /* --- VISUAL ENGINES --- */
+        /* --- VOID DUST & FILM GRAIN --- */
         #lo-fi-grain {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            pointer-events: none; z-index: 9999; opacity: 0.12; mix-blend-mode: overlay;
+            pointer-events: none; z-index: 9999;
+            opacity: 0.035; mix-blend-mode: overlay;
         }
 
-        #neural-loom {
+        #void-dust {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            z-index: 0; pointer-events: none; opacity: 0.4;
-            transition: opacity 1s ease;
+            z-index: 0; pointer-events: none; opacity: 0.85; /* Increased visibility */
         }
 
-        body.void-thinking #neural-loom { opacity: 0.8; }
-
-        /* --- 3D GEOMETRIC CURSOR --- */
-        #cursor-wrapper {
-            position: fixed; top: 0; left: 0; width: 40px; height: 40px;
+        /* --- BESPOKE BRUTALIST CURSOR --- */
+        #cursor-core {
+            position: fixed; top: 0; left: 0;
+            color: var(--pure-light); font-family: var(--mono-font);
+            font-size: 14px; transform: translate(-50%, -50%);
             pointer-events: none; z-index: 10000;
-            display: flex; justify-content: center; align-items: center;
-            transform: translate(-50%, -50%);
+            text-shadow: 0 0 8px var(--pure-light);
         }
 
-        #geo-cursor {
-            width: 100%; height: 100%; transform-style: preserve-3d;
-            animation: slowSpin 8s linear infinite;
-            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        #cursor-trail {
+            position: fixed; top: 0; left: 0;
+            width: 35px; height: 35px;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            transform: translate(-50%, -50%); pointer-events: none; z-index: 9998;
+            transition: width 0.3s, height 0.3s;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        
+        /* The geometric bracket aesthetic */
+        #cursor-trail::before, #cursor-trail::after {
+            content: ''; height: 40%; width: 2px; background: var(--pure-light);
+            box-shadow: 0 0 10px var(--pure-light);
         }
 
-        .cursor-ring {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 50%;
-            transition: border-color 0.3s, box-shadow 0.3s;
+        /* --- LUMINESCENT WAVEFORM --- */
+        #ethereal-wave {
+            position: fixed; bottom: 0; left: 0;
+            width: 100vw; height: 35vh; z-index: 1;
+            pointer-events: none; opacity: 0.5;
         }
 
-        .cursor-ring:nth-child(2) { transform: rotateX(60deg) rotateY(45deg); border-radius: 0; }
-        .cursor-ring:nth-child(3) { transform: rotateX(-60deg) rotateY(-45deg); border-radius: 0; }
-
-        .hovering #geo-cursor { transform: scale(1.5); }
-        .hovering .cursor-ring { border-color: var(--pure-light); box-shadow: 0 0 10px rgba(255,255,255,0.3); }
-
-        body.void-thinking #geo-cursor { animation-duration: 1.5s; transform: scale(0.8); }
-        body.void-thinking .cursor-ring { border-color: rgba(255,255,255,0.8); }
-
-        @keyframes slowSpin { 0% { transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg); } 100% { transform: rotateX(360deg) rotateY(360deg) rotateZ(360deg); } }
-
-        /* --- MINIMAL ARCHITECTURE --- */
+        /* --- ARCHITECTURAL GRID --- */
         .brutalist-grid {
             display: grid; grid-template-columns: 80px 1fr;
             height: 100vh; width: 100vw; position: relative; z-index: 10;
         }
 
-        .panel {
-            position: relative; height: 100%; display: flex; flex-direction: column; justify-content: space-between;
+        .left-axis { 
+            border-right: 1px solid var(--ghost); display: flex; flex-direction: column; 
+            justify-content: space-between; padding: 40px 0; align-items: center; 
         }
 
-        .left-axis { padding: 40px 0; align-items: center; border-right: 1px solid var(--ghost); }
-        .sigil { font-family: var(--serif-font); font-style: italic; font-size: 1.8rem; color: rgba(255,255,255,0.4); text-decoration: none; transition: color 0.2s; }
-        .sigil:hover { color: var(--pure-light); text-shadow: 0 0 15px var(--pure-light); }
-        .vertical-marker { transform: rotate(-90deg); white-space: nowrap; font-size: 0.55rem; color: rgba(255, 255, 255, 0.3); letter-spacing: 6px; text-transform: uppercase;}
+        .sigil { font-family: var(--serif-font); font-style: italic; font-size: 1.8rem; color: rgba(255,255,255,0.3); text-decoration: none; transition: all 1s ease; }
+        .sigil:hover ~ #cursor-trail { width: 55px; height: 55px; border-radius: 50%; border-color: transparent; }
+        .vertical-marker { transform: rotate(-90deg); white-space: nowrap; font-size: 0.55rem; color: rgba(255, 255, 255, 0.15); letter-spacing: 8px; text-transform: uppercase;}
 
-        .back-btn { 
-            writing-mode: vertical-rl; transform: rotate(180deg);
-            font-size: 0.6rem; font-weight: 700; letter-spacing: 4px; 
-            color: rgba(255, 255, 255, 0.4); text-decoration: none; text-transform: uppercase;
-            transition: color 0.3s, letter-spacing 0.3s; margin-top: 60px;
+        /* --- THE VOID (CHAT AREA) --- */
+        .void-nave {
+            display: flex; flex-direction: column; justify-content: flex-end;
+            padding: 15vh 15vw; position: relative;
+            -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 25%, black 100%);
+            mask-image: linear-gradient(to bottom, transparent 0%, black 25%, black 100%);
         }
-        .back-btn:hover { color: var(--pure-light); letter-spacing: 6px; text-shadow: 0 0 8px rgba(255,255,255,0.4);}
 
-        /* --- THE VOID CANVAS --- */
-        .center-nave { padding: 0; position: relative; justify-content: flex-end; }
+        .message-stream {
+            display: flex; flex-direction: column; gap: 60px;
+            padding-bottom: 80px; width: 100%;
+        }
+
+        /* --- ZERO-GRAVITY PHYSICS --- */
+        .tx-wrapper {
+            opacity: 0; filter: blur(15px);
+            transform: translateY(60px) scale(0.95);
+            /* Lengthened floaty entrance */
+            animation: emerge 4.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            transition: opacity 8s ease, filter 8s ease;
+        }
+
+        .tx-physics-body {
+            display: flex; flex-direction: column; gap: 8px; transform-origin: center left;
+        }
+
+        .tx-wrapper.decay { opacity: 0.05; filter: blur(8px); }
+
+        @keyframes emerge { to { opacity: 1; filter: blur(0px); transform: translateY(0) scale(1); } }
         
-        #void-display {
-            position: absolute; top: 0; left: 0; width: 100%; height: calc(100% - 120px);
-            display: flex; flex-wrap: wrap; align-content: center; justify-content: center;
-            padding: 80px; gap: 15px 25px; overflow: hidden;
-            perspective: 1000px;
+        /* Expanded drift radius for spacey feel */
+        @keyframes liquid-drift {
+            0% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-12px) rotate(1.2deg); }
+            100% { transform: translateY(0px) rotate(0deg); }
         }
 
-        .user-echo {
-            position: absolute; top: 60px; left: 50%; transform: translateX(-50%);
-            font-family: var(--mono-font); font-size: 0.65rem; letter-spacing: 8px; text-transform: uppercase;
-            color: rgba(255,255,255,0.4); opacity: 0; transition: opacity 1.5s ease-out; text-align: center;
+        .tx-meta { font-size: 0.55rem; color: rgba(255, 255, 255, 0.15); letter-spacing: 4px; }
+
+        .tx-content-container {
+            font-family: var(--serif-font); font-style: italic; font-size: 2.6rem; 
+            font-weight: 300; line-height: 1.1; color: var(--ash); max-width: 850px;
         }
 
-        .void-word {
-            font-family: var(--serif-font); font-style: italic; font-size: clamp(2.5rem, 6vw, 5.5rem);
-            color: rgba(255,255,255,0.4); line-height: 1.1;
-            display: inline-block;
-            transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), color 0.4s, text-shadow 0.4s, filter 0.8s;
-            pointer-events: none; filter: blur(10px); opacity: 0;
+        /* Standard character node */
+        .tx-char {
+            display: inline-block; will-change: transform, color, text-shadow;
+            transition: transform 0.6s cubic-bezier(0.19, 1, 0.22, 1), color 0.6s, text-shadow 0.6s;
         }
 
-        .void-word.materialized { filter: blur(0); opacity: 1; }
-
-        /* --- INPUT & STATUS DOCK --- */
-        #input-dock {
-            width: 100%; height: 120px; border-top: 1px solid transparent;
-            display: flex; align-items: center; justify-content: space-between; padding: 0 80px;
-            background: linear-gradient(to top, rgba(0,0,0,1) 20%, transparent);
-            position: relative; z-index: 20; transition: opacity 0.5s;
+        /* --- 35% ANOMALY EFFECT (OPTIC DISPLACEMENT) --- */
+        .tx-wrapper.anomaly {
+            animation: anomaly-emerge 3.5s cubic-bezier(0.19, 1, 0.22, 1) forwards;
         }
 
-        .input-wrapper { display: flex; align-items: center; flex-grow: 1; }
-        .input-prefix { font-family: var(--mono-font); color: rgba(255,255,255,0.2); font-size: 0.8rem; margin-right: 20px; letter-spacing: 2px;}
-        
-        #void-input {
-            flex-grow: 1; background: transparent; border: none; outline: none;
-            color: var(--pure-light); font-family: var(--mono-font); font-size: 1.2rem;
-            letter-spacing: 1px;
-        }
-        #void-input::placeholder { color: rgba(255,255,255,0.1); font-style: italic; font-family: var(--serif-font); letter-spacing: 3px; font-size: 1.5rem;}
-
-        /* Elegant Processing State */
-        #status-indicator {
-            position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
-            font-family: var(--mono-font); font-size: 0.6rem; letter-spacing: 6px;
-            color: rgba(255,255,255,0.5); opacity: 0; pointer-events: none; transition: opacity 0.5s;
-            display: flex; align-items: center; gap: 15px; text-transform: uppercase;
+        @keyframes anomaly-emerge {
+            0% { filter: blur(20px); letter-spacing: 15px; opacity: 0; transform: scale(1.05) translateY(30px); color: var(--pure-light); text-shadow: 0 0 20px var(--pure-light);}
+            30% { filter: blur(2px); letter-spacing: 5px; opacity: 1; transform: scale(1.02) translateY(5px); color: var(--pure-light);}
+            100% { filter: blur(0px); letter-spacing: 0.5px; opacity: 1; transform: scale(1) translateY(0); color: var(--ash); text-shadow: none;}
         }
 
-        .spinner { width: 12px; height: 12px; border: 1px solid rgba(255,255,255,0.2); border-top-color: var(--pure-light); border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        body.void-thinking #input-dock .input-wrapper { opacity: 0; pointer-events: none; }
-        body.void-thinking #status-indicator { opacity: 1; }
-
-        @media (max-width: 1024px) {
-            .left-axis { display: none; }
-            .brutalist-grid { grid-template-columns: 1fr; }
-            #input-dock { padding: 0 30px; }
-            #void-display { padding: 40px 20px; }
-            #cursor-wrapper, #neural-loom { display: none; }
+        /* --- GENERATIVE INPUT MEMBRANE --- */
+        .input-membrane {
+            position: absolute; bottom: 60px; left: 15vw; right: 15vw;
+            display: flex; align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 15px;
+            transition: border-color 0.8s ease; cursor: none;
         }
+
+        .input-membrane:focus-within { border-color: rgba(255,255,255,0.3); }
+
+        /* The real input is hidden, used only to capture keystrokes */
+        #hidden-void-input {
+            position: absolute; opacity: 0; pointer-events: none;
+        }
+
+        /* The visible, generative text display */
+        #custom-input-display {
+            font-family: var(--serif-font); font-style: italic; font-size: 1.6rem;
+            color: var(--pure-light); letter-spacing: 1px; display: flex; flex-wrap: wrap;
+        }
+
+        .input-placeholder { color: rgba(255,255,255,0.08); font-family: var(--serif-font); font-style: italic; font-size: 1.6rem; position: absolute; pointer-events: none; transition: opacity 0.3s; }
+
+        /* Effect applied to newly typed characters */
+        .type-char { display: inline-block; }
+        .type-char.fade-in {
+            animation: structural-snap 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes structural-snap {
+            0% { opacity: 0; filter: blur(4px); transform: translateY(5px) scale(0.9); }
+            100% { opacity: 1; filter: blur(0px); transform: translateY(0) scale(1); }
+        }
+
+        /* Blinking terminal cursor */
+        .blinking-cursor {
+            display: inline-block; width: 8px; height: 2px;
+            background-color: var(--pure-light); margin-left: 4px; margin-top: auto; margin-bottom: 4px;
+            animation: blink 1s infinite steps(2); box-shadow: 0 0 5px var(--pure-light);
+        }
+
+        @keyframes blink { 0% { opacity: 1; } 100% { opacity: 0; } }
+
     </style>
 </head>
 <body>
 
-    <canvas id="neural-loom"></canvas>
     <canvas id="lo-fi-grain"></canvas>
-    
-    <div id="cursor-wrapper">
-        <div id="geo-cursor">
-            <div class="cursor-ring"></div>
-            <div class="cursor-ring"></div>
-            <div class="cursor-ring"></div>
-        </div>
-    </div>
+    <canvas id="void-dust"></canvas>
+
+    <div id="cursor-core">+</div>
+    <div id="cursor-trail"></div>
+    <canvas id="ethereal-wave"></canvas>
 
     <div class="brutalist-grid">
-        <div class="panel left-axis">
-            <a href="index.html" class="sigil interactive">†</a>
-            <a href="index.html" class="back-btn interactive">[ GO BACK ]</a>
-            <div class="vertical-marker" style="margin-top: auto; color: rgba(255,255,255,0.8);">0X2000</div>
+        <div class="left-axis">
+            <a href="index.html" class="sigil">†</a>
+            <div class="vertical-marker">RELAY // ZERO-G</div>
+            <div class="vertical-marker" style="color: rgba(255,255,255,0.08);">0X1900</div>
         </div>
 
-        <div class="panel center-nave">
-            <div class="user-echo" id="user-echo"></div>
+        <div class="void-nave">
+            <div class="message-stream" id="stream"></div>
             
-            <div id="void-display">
-                <span class="void-word materialized" data-word="Speak.">Speak.</span>
-            </div>
-
-            <div id="input-dock">
-                <div class="input-wrapper">
-                    <span class="input-prefix">TRANSMIT //</span>
-                    <input id="void-input" class="interactive" type="text" placeholder="Offer a thought..." autocomplete="off">
-                </div>
-                <div id="status-indicator">
-                    <div class="spinner"></div>
-                    <span id="status-text">SYNT_IS_SYNTHESIZING</span>
-                </div>
+            <div class="input-membrane" id="membrane-container">
+                <div class="input-placeholder" id="placeholder-text">Type...</div>
+                <div id="custom-input-display"><span class="blinking-cursor"></span></div>
+                <input type="text" id="hidden-void-input" autocomplete="off" autofocus>
             </div>
         </div>
     </div>
 
     <script>
-        // --- 1. HARSH B&W NOISE ENGINE ---
+        // --- 1. FILM GRAIN ---
         const grainCanvas = document.getElementById('lo-fi-grain');
-        const grainCtx = grainCanvas.getContext('2d', { alpha: false });
-        let noiseCacheCanvas = null;
+        const gCtx = grainCanvas.getContext('2d', { alpha: false });
+        let grainCache = null;
         
-        function initNoiseEngine() {
+        function initGrain() {
             grainCanvas.width = window.innerWidth; grainCanvas.height = window.innerHeight;
-            const idata = grainCtx.createImageData(grainCanvas.width, grainCanvas.height);
+            const idata = gCtx.createImageData(grainCanvas.width, grainCanvas.height);
             const buffer32 = new Uint32Array(idata.data.buffer);
-            for (let i = 0; i < buffer32.length; i++) buffer32[i] = Math.random() < 0.2 ? 0xff000000 : 0xffffffff; 
-            noiseCacheCanvas = document.createElement('canvas');
-            noiseCacheCanvas.width = grainCanvas.width; noiseCacheCanvas.height = grainCanvas.height;
-            noiseCacheCanvas.getContext('2d').putImageData(idata, 0, 0);
+            for (let i = 0; i < buffer32.length; i++) buffer32[i] = Math.random() < 0.5 ? 0xff000000 : 0xffffffff; 
+            grainCache = document.createElement('canvas'); grainCache.width = grainCanvas.width; grainCache.height = grainCanvas.height;
+            grainCache.getContext('2d').putImageData(idata, 0, 0);
         }
 
-        function drawBlitNoise() {
-            if (!noiseCacheCanvas) return;
-            const jitterX = Math.floor((Math.random() * 30) - 15);
-            const jitterY = Math.floor((Math.random() * 30) - 15);
-            grainCtx.clearRect(0, 0, grainCanvas.width, grainCanvas.height);
-            grainCtx.drawImage(noiseCacheCanvas, jitterX, jitterY);
+        function drawGrain() {
+            if (!grainCache) return;
+            gCtx.clearRect(0, 0, grainCanvas.width, grainCanvas.height);
+            gCtx.drawImage(grainCache, Math.floor((Math.random() * 30) - 15), Math.floor((Math.random() * 30) - 15));
         }
-        window.addEventListener('resize', initNoiseEngine);
-        initNoiseEngine(); setInterval(drawBlitNoise, 40); 
+        window.addEventListener('resize', initGrain); initGrain(); setInterval(drawGrain, 50);
 
-        // --- 2. GENERATIVE NEURAL LOOM BACKGROUND ---
-        const loomCanvas = document.getElementById('neural-loom');
-        const loomCtx = loomCanvas.getContext('2d');
-        let nodes = [];
-        const numNodes = window.innerWidth > 1024 ? 120 : 50;
+        // --- 2. ENHANCED VOID DUST ---
+        const dustCanvas = document.getElementById('void-dust');
+        const dCtx = dustCanvas.getContext('2d');
+        let dustParticles = [];
 
-        function initLoom() {
-            loomCanvas.width = window.innerWidth; loomCanvas.height = window.innerHeight;
-            nodes = [];
-            for(let i = 0; i < numNodes; i++) {
-                nodes.push({
-                    x: Math.random() * loomCanvas.width, y: Math.random() * loomCanvas.height,
-                    vx: (Math.random() - 0.5) * 0.5, vy: (Math.random() - 0.5) * 0.5,
-                    baseX: 0, baseY: 0
+        function initDust() {
+            dustCanvas.width = window.innerWidth; dustCanvas.height = window.innerHeight;
+            dustParticles = [];
+            // Increased particle count and radius
+            for(let i = 0; i < 200; i++) {
+                dustParticles.push({
+                    x: Math.random() * dustCanvas.width, y: Math.random() * dustCanvas.height,
+                    radius: Math.random() * 2.2, // Larger
+                    vx: (Math.random() - 0.5) * 0.15, vy: Math.random() * -0.4 - 0.1,
+                    alpha: Math.random() * 0.35 // Brighter
                 });
             }
         }
-        window.addEventListener('resize', initLoom); initLoom();
+        window.addEventListener('resize', initDust); initDust();
 
-        let curX = window.innerWidth / 2, curY = window.innerHeight / 2;
-        let tarX = curX, tarY = curY;
-
-        document.addEventListener('mousemove', (e) => { tarX = e.clientX; tarY = e.clientY; });
-
-        function renderLoom() {
-            curX += (tarX - curX) * 0.25; curY += (tarY - curY) * 0.25;
-            loomCtx.clearRect(0, 0, loomCanvas.width, loomCanvas.height);
+        function drawDust(cursorX, cursorY) {
+            dCtx.clearRect(0, 0, dustCanvas.width, dustCanvas.height);
+            dCtx.fillStyle = '#ffffff';
             
-            const isThinking = document.body.classList.contains('void-thinking');
-
-            nodes.forEach(node => {
-                if (isThinking) {
-                    const dx = (loomCanvas.width/2) - node.x; const dy = (loomCanvas.height/2) - node.y;
-                    node.vx += dx * 0.0001; node.vy += dy * 0.0001;
-                    node.vx *= 0.98; node.vy *= 0.98;
-                } else {
-                    node.vx += (Math.random() - 0.5) * 0.05; node.vy += (Math.random() - 0.5) * 0.05;
-                    node.vx = Math.max(-1, Math.min(1, node.vx)); node.vy = Math.max(-1, Math.min(1, node.vy));
+            dustParticles.forEach(p => {
+                const dx = p.x - cursorX, dy = p.y - cursorY, dist = Math.hypot(dx, dy);
+                if (dist < 250) {
+                    const force = (250 - dist) / 250;
+                    p.vx += (dx / dist) * force * 0.04; p.vy += (dy / dist) * force * 0.04;
                 }
+                p.x += p.vx; p.y += p.vy; p.vx *= 0.98; p.vy *= 0.98;
+                if (p.y < 0) p.y = dustCanvas.height; if (p.x < 0) p.x = dustCanvas.width; if (p.x > dustCanvas.width) p.x = 0;
 
-                const distToCursor = Math.hypot(node.x - curX, node.y - curY);
-                if (distToCursor < 150) {
-                    const angle = Math.atan2(node.y - curY, node.x - curX);
-                    node.x += Math.cos(angle) * 2; node.y += Math.sin(angle) * 2;
-                }
-
-                node.x += node.vx; node.y += node.vy;
-
-                if (node.x < 0) node.x = loomCanvas.width; if (node.x > loomCanvas.width) node.x = 0;
-                if (node.y < 0) node.y = loomCanvas.height; if (node.y > loomCanvas.height) node.y = 0;
-
-                loomCtx.fillStyle = "rgba(255,255,255,0.3)";
-                loomCtx.beginPath(); loomCtx.arc(node.x, node.y, 1.5, 0, Math.PI*2); loomCtx.fill();
-            });
-
-            loomCtx.strokeStyle = "rgba(255,255,255,0.05)";
-            loomCtx.lineWidth = 1;
-            for(let i=0; i<nodes.length; i++) {
-                for(let j=i+1; j<nodes.length; j++) {
-                    const dist = Math.hypot(nodes[i].x - nodes[j].x, nodes[i].y - nodes[j].y);
-                    if (dist < 120) {
-                        loomCtx.beginPath(); loomCtx.moveTo(nodes[i].x, nodes[i].y); loomCtx.lineTo(nodes[j].x, nodes[j].y); loomCtx.stroke();
-                    }
-                }
-            }
-        }
-
-        // --- 3. CURSOR PHYSICS & TEXT MAGNETISM ---
-        const cursorWrapper = document.getElementById('cursor-wrapper');
-        let voidWordsElements = []; 
-
-        function cacheWordPositions() {
-            voidWordsElements = Array.from(document.querySelectorAll('.void-word')).map(el => {
-                const rect = el.getBoundingClientRect();
-                return { el, centerX: rect.left + rect.width / 2, centerY: rect.top + rect.height / 2, originalWord: el.getAttribute('data-word') };
+                dCtx.globalAlpha = p.alpha; dCtx.beginPath(); dCtx.arc(p.x, p.y, p.radius, 0, Math.PI * 2); dCtx.fill();
             });
         }
-        window.addEventListener('resize', cacheWordPositions);
 
-        function renderAtmosphere() {
-            cursorWrapper.style.left = curX + 'px'; cursorWrapper.style.top = curY + 'px';
-            renderLoom();
+        // --- 3. BRUTALIST CURSOR PHYSICS ---
+        const cursorCore = document.getElementById('cursor-core');
+        const cursorTrail = document.getElementById('cursor-trail');
+        let mouseX = window.innerWidth / 2, mouseY = window.innerHeight / 2;
+        let trailX = mouseX, trailY = mouseY;
+        let rotationAngle = 0;
 
-            voidWordsElements.forEach(data => {
-                if(!data.el.classList.contains('materialized')) return;
-                
-                const dist = Math.hypot(tarX - data.centerX, tarY - data.centerY);
-                const influenceRadius = 250;
-
-                if (dist < influenceRadius) {
-                    const angle = Math.atan2(data.centerY - tarY, data.centerX - tarX);
-                    const force = (influenceRadius - dist) / influenceRadius; 
-                    
-                    const pushX = Math.cos(angle) * force * 40; 
-                    const pushY = Math.sin(angle) * force * 40;
-                    
-                    data.el.style.transform = `translate(${pushX}px, ${pushY}px) scale(${1 + force * 0.15})`;
-                    data.el.style.color = "var(--pure-light)";
-                    data.el.style.textShadow = "0 0 20px rgba(255,255,255,0.6)";
-                } else {
-                    data.el.style.transform = `translate(0px, 0px) scale(1)`;
-                    data.el.style.color = "rgba(255,255,255,0.4)";
-                    data.el.style.textShadow = "none";
-                }
-            });
-
-            requestAnimationFrame(renderAtmosphere);
-        }
-        renderAtmosphere();
-        setTimeout(cacheWordPositions, 500); 
-
-        document.querySelectorAll('.interactive').forEach(el => {
-            el.addEventListener('mouseenter', () => cursorWrapper.classList.add('hovering'));
-            el.addEventListener('mouseleave', () => cursorWrapper.classList.remove('hovering'));
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX; mouseY = e.clientY;
+            cursorCore.style.left = `${mouseX}px`; cursorCore.style.top = `${mouseY}px`;
         });
 
-        // --- 4. NEURAL LINK & CIPHER REVEAL ---
-        const WORKER_URL = "https://tiny-feather-2294.archiepipe.workers.dev/";
-        const inputField = document.getElementById('void-input');
-        const userEcho = document.getElementById('user-echo');
-        const voidDisplay = document.getElementById('void-display');
-        const statusText = document.getElementById('status-text');
-
-        const symbols = ['+', '-', '0', '1', '/', '\\', '*', '>', '<', '|', ':'];
-        
-        function cipherReveal(element, targetWord, delay) {
-            setTimeout(() => {
-                element.classList.add('materialized');
-                let iterations = 0;
-                const maxIterations = 10;
-                
-                const interval = setInterval(() => {
-                    element.innerText = targetWord.split('').map((letter, index) => {
-                        if(index < iterations / (maxIterations / targetWord.length)) {
-                            return targetWord[index];
-                        }
-                        return symbols[Math.floor(Math.random() * symbols.length)];
-                    }).join('');
-                    
-                    iterations++;
-                    if(iterations >= maxIterations) {
-                        clearInterval(interval);
-                        element.innerText = targetWord;
-                    }
-                }, 40);
-            }, delay);
-        }
-
-        function renderVoidResponse(text) {
-            voidDisplay.innerHTML = ""; 
-            const words = text.split(/\s+/);
+        function animateCursor() {
+            // Calculate velocity for dynamic rotation
+            const dx = mouseX - trailX; const dy = mouseY - trailY;
+            const velocity = Math.hypot(dx, dy);
             
-            words.forEach((word, index) => {
-                const span = document.createElement('span');
-                span.className = 'void-word';
-                span.setAttribute('data-word', word);
-                voidDisplay.appendChild(span);
+            trailX += dx * 0.15; trailY += dy * 0.15;
+            
+            // Spin the geometric brackets based on speed
+            rotationAngle += velocity * 0.1;
+            
+            cursorTrail.style.left = `${trailX}px`; cursorTrail.style.top = `${trailY}px`;
+            cursorTrail.style.transform = `translate(-50%, -50%) rotate(${rotationAngle}deg)`;
+
+            drawDust(trailX, trailY);
+
+            // Magnetic Flutter for text nodes
+            const charNodes = document.querySelectorAll('.tx-char');
+            const timeOffset = Date.now() * 0.003;
+            
+            charNodes.forEach((node, index) => {
+                const rect = node.getBoundingClientRect();
+                const dist = Math.hypot(trailX - (rect.left + rect.width / 2), trailY - (rect.top + rect.height / 2));
                 
-                cipherReveal(span, word, index * 100);
+                if (dist < 120) {
+                    const inf = 1 - (dist / 120);
+                    const fX = Math.sin(timeOffset + index) * (inf * 8);
+                    const fY = Math.cos(timeOffset * 1.2 + index) * (inf * 8);
+                    node.style.transition = 'none'; 
+                    node.style.transform = `translate(${fX}px, ${fY}px) rotate(${Math.sin(timeOffset + index)*(inf*15)}deg)`;
+                    node.style.color = `rgba(255, 255, 255, ${0.8 + inf * 0.2})`;
+                    node.style.textShadow = `0 0 ${inf * 15}px rgba(255, 255, 255, ${inf * 0.6})`;
+                } else if (node.style.transform !== '') {
+                    node.style.transition = 'transform 0.6s cubic-bezier(0.19, 1, 0.22, 1), color 0.6s, text-shadow 0.6s';
+                    node.style.transform = ''; node.style.color = 'var(--ash)'; node.style.textShadow = 'none';
+                }
             });
-
-            setTimeout(cacheWordPositions, words.length * 100 + 500);
+            requestAnimationFrame(animateCursor);
         }
+        animateCursor();
 
-        async function sendMessage() {
-            const message = inputField.value.trim();
-            if (!message) return;
+        // --- 4. THE "BREATHING" DRONE (LFO) ---
+        let audioCtx;
+        let isDronePlaying = false;
 
-            // Flash user's thought
-            userEcho.innerText = message;
-            userEcho.style.opacity = "1";
-            setTimeout(() => { userEcho.style.opacity = "0"; }, 2500);
-
-            inputField.value = "";
-            voidDisplay.innerHTML = ""; 
+        function initAudio() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
             
-            // Clean UI Processing State
-            document.body.classList.add('void-thinking');
-            statusText.innerText = "SYNT_IS_SYNTHESIZING";
-            
-            // LOCK INPUT: Disables box immediately to mitigate rapid group clicks
-            inputField.disabled = true;
-            inputField.placeholder = "SYSTEM // RECHARGING...";
-
-            try {
-                const response = await fetch(WORKER_URL, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ message })
-                });
-
-                const data = await response.json();
+            if (!isDronePlaying && audioCtx) {
+                // Main drone gain
+                const droneGain = audioCtx.createGain();
+                droneGain.gain.value = 0.02; // Very quiet base
                 
-                document.body.classList.remove('void-thinking');
-                renderVoidResponse(data.reply);
+                // Lowpass filter to keep it deep
+                const filter = audioCtx.createBiquadFilter();
+                filter.type = 'lowpass'; filter.frequency.value = 150; 
+                
+                // The oscillators (Sub frequencies)
+                const osc1 = audioCtx.createOscillator(); osc1.type = 'sine'; osc1.frequency.value = 43.65;
+                const osc2 = audioCtx.createOscillator(); osc2.type = 'triangle'; osc2.frequency.value = 44.10; // Detuned to phase
+                
+                // The LFO (Low Frequency Oscillator) to make it breathe
+                const lfo = audioCtx.createOscillator();
+                lfo.type = 'sine';
+                lfo.frequency.value = 0.04; // Very slow cycle (~25 seconds)
+                const lfoGain = audioCtx.createGain();
+                lfoGain.gain.value = 0.015; // Amount of volume swelling
+                
+                // Connect LFO to modulate the main drone gain
+                lfo.connect(lfoGain);
+                lfoGain.connect(droneGain.gain);
 
-                // Deep TTS 
-                const speech = new SpeechSynthesisUtterance(data.reply);
-                const voices = speechSynthesis.getVoices();
-                speech.voice = voices.find(v => v.name.includes("David")) || voices[0];
-                speech.rate = 0.8; 
-                speech.pitch = 0.2; 
-                speech.volume = 1;
-
-                speechSynthesis.cancel();
-                speechSynthesis.speak(speech);
-
-            } catch (error) {
-                document.body.classList.remove('void-thinking');
-                renderVoidResponse("Transmission lost. The void is silent.");
-            } finally {
-                // COOLDOWN: Enforces a structural 3-second delay after rendering
-                setTimeout(() => {
-                    inputField.disabled = false;
-                    inputField.placeholder = "Offer a thought...";
-                    inputField.focus();
-                }, 3000);
+                osc1.connect(filter); osc2.connect(filter);
+                filter.connect(droneGain); droneGain.connect(audioCtx.destination);
+                
+                osc1.start(); osc2.start(); lfo.start();
+                isDronePlaying = true;
             }
         }
 
-        inputField.addEventListener("keydown", function(e) {
-            if (e.key === "Enter") sendMessage();
+        function playEtherealChime() {
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator(), gainNode = audioCtx.createGain(), filter = audioCtx.createBiquadFilter();
+            osc.type = 'sine'; osc.frequency.setValueAtTime(70 + Math.random() * 40, audioCtx.currentTime);
+            filter.type = 'lowpass'; filter.frequency.setValueAtTime(300, audioCtx.currentTime);
+            gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + 1.2); 
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 8.0); // 8s decay
+            osc.connect(filter); filter.connect(gainNode); gainNode.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + 8.0);
+        }
+
+        // --- 5. GENERATIVE WAVEFORM ---
+        const waveCanvas = document.getElementById('ethereal-wave');
+        const wCtx = waveCanvas.getContext('2d');
+        let wWidth, wHeight, time = 0, typingIntensity = 0;
+
+        function resizeWave() { wWidth = waveCanvas.width = window.innerWidth; wHeight = waveCanvas.height = window.innerHeight * 0.35; }
+        window.addEventListener('resize', resizeWave); resizeWave();
+
+        function drawWaveform() {
+            wCtx.clearRect(0, 0, wWidth, wHeight); typingIntensity *= 0.96; 
+            wCtx.beginPath(); wCtx.lineWidth = 1.5;
+            wCtx.strokeStyle = `rgba(255, 255, 255, ${0.05 + (typingIntensity * 0.15)})`;
+            wCtx.shadowBlur = 10 + (typingIntensity * 20); wCtx.shadowColor = 'rgba(255, 255, 255, 0.4)';
+            const yCenter = wHeight / 2; const amp = 15 + (typingIntensity * 60); 
+
+            for (let x = 0; x < wWidth; x++) {
+                let y = yCenter + Math.sin(x * 0.003 + time) * amp + Math.cos(x * 0.009 - time * 0.8) * (amp * 0.6);
+                if (x === 0) wCtx.moveTo(x, y); else wCtx.lineTo(x, y);
+            }
+            wCtx.stroke(); wCtx.shadowBlur = 0; time += 0.012 + (typingIntensity * 0.03);
+            requestAnimationFrame(drawWaveform);
+        }
+        drawWaveform();
+
+        // --- 6. GENERATIVE TYPING & TRANSMISSION ---
+        const hiddenInput = document.getElementById('hidden-void-input');
+        const displayDiv = document.getElementById('custom-input-display');
+        const placeholder = document.getElementById('placeholder-text');
+        const membrane = document.getElementById('membrane-container');
+        const stream = document.getElementById('stream');
+        
+        let lastInputVal = "";
+
+        // Keep hidden input focused
+        membrane.addEventListener('click', () => { hiddenInput.focus(); initAudio(); });
+        document.body.addEventListener('click', initAudio, { once: true });
+
+        hiddenInput.addEventListener('input', (e) => {
+            const val = e.target.value;
+            typingIntensity = Math.min(typingIntensity + 0.15, 1);
+            
+            // Hide/Show placeholder
+            placeholder.style.opacity = val.length > 0 ? '0' : '1';
+
+            // Rebuild visual string
+            displayDiv.innerHTML = '';
+            for(let i=0; i<val.length; i++) {
+                const char = val[i] === ' ' ? '&nbsp;' : val[i];
+                // Only trigger the fade-in animation on the newly typed character
+                const isNewChar = (i === val.length - 1 && val.length > lastInputVal.length);
+                displayDiv.innerHTML += `<span class="type-char ${isNewChar ? 'fade-in' : ''}">${char}</span>`;
+            }
+            // Re-append blinking cursor
+            displayDiv.innerHTML += `<span class="blinking-cursor"></span>`;
+            
+            lastInputVal = val;
+        });
+
+        hiddenInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && this.value.trim() !== '') {
+                initAudio();
+                const rawText = this.value;
+                this.value = '';
+                lastInputVal = '';
+                displayDiv.innerHTML = '<span class="blinking-cursor"></span>';
+                placeholder.style.opacity = '1';
+                
+                const now = new Date();
+                const timeStr = `[ ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')} ]`;
+
+                const splitText = rawText.split('').map(char => {
+                    return char === ' ' ? '&nbsp;' : `<span class="tx-char">${char}</span>`;
+                }).join('');
+
+                const driftDuration = 12 + Math.random() * 8; 
+                const driftDelay = Math.random() * -15; 
+
+                // 35% Chance for Anomaly Effect
+                const isAnomaly = Math.random() < 0.35;
+                const baseClass = isAnomaly ? 'tx-wrapper anomaly' : 'tx-wrapper';
+
+                const msgBlock = document.createElement('div');
+                msgBlock.className = baseClass;
+                
+                msgBlock.innerHTML = `
+                    <div class="tx-physics-body" style="animation: liquid-drift ${driftDuration}s ease-in-out ${driftDelay}s infinite alternate;">
+                        <div class="tx-meta">${timeStr}</div>
+                        <div class="tx-content-container">${splitText}</div>
+                    </div>
+                `;
+                
+                stream.appendChild(msgBlock);
+                playEtherealChime();
+                typingIntensity = 3.5;
+
+                const allMessages = document.querySelectorAll('.tx-wrapper');
+                if (allMessages.length > 5) allMessages[allMessages.length - 6].classList.add('decay');
+
+                window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+            }
         });
     </script>
 </body>
