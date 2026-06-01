@@ -3,187 +3,125 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SYNT // ETHEREAL RELAY [ZERO-G]</title>
+    <title>SYNT // ETHEREAL RELAY [ONLINE]</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,300;1,400&family=Space+Mono:wght@400&display=swap');
 
         :root {
-            --void: #020202;
-            --ash: #ececec;
-            --pure-light: #ffffff;
+            --void: #020202; --ash: #ececec; --pure-light: #ffffff;
             --ghost: rgba(255, 255, 255, 0.04);
-            --mono-font: 'Space Mono', monospace;
-            --serif-font: 'Cormorant Garamond', serif;
+            --mono-font: 'Space Mono', monospace; --serif-font: 'Cormorant Garamond', serif;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; cursor: none !important; }
 
         body {
             background-color: var(--void); color: var(--ash);
-            font-family: var(--mono-font); overflow: hidden;
-            height: 100vh; width: 100vw;
+            font-family: var(--mono-font); overflow: hidden; height: 100vh; width: 100vw;
         }
 
-        /* --- VOID DUST & FILM GRAIN --- */
-        #lo-fi-grain {
+        #lo-fi-grain { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 9999; opacity: 0.035; mix-blend-mode: overlay; }
+        #void-dust { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 0; pointer-events: none; opacity: 0.85; }
+
+        /* --- ABORT BUTTON --- */
+        .lobby-back {
+            position: absolute; top: 40px; left: 40px; font-family: var(--mono-font);
+            font-size: 0.6rem; color: rgba(255,255,255,0.3); letter-spacing: 4px;
+            text-decoration: none; text-transform: uppercase; transition: color 0.3s; z-index: 5001;
+        }
+        .lobby-back:hover { color: var(--pure-light); }
+
+        /* --- INITIATION PROTOCOL --- */
+        #initiation-layer {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            pointer-events: none; z-index: 9999;
-            opacity: 0.035; mix-blend-mode: overlay;
+            background: rgba(2, 2, 2, 0.85); backdrop-filter: blur(20px); z-index: 5000;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            transition: opacity 2s cubic-bezier(0.16, 1, 0.3, 1), transform 2s cubic-bezier(0.16, 1, 0.3, 1);
         }
+        #initiation-layer.dissolve { opacity: 0; pointer-events: none; transform: scale(1.05); }
 
-        #void-dust {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            z-index: 0; pointer-events: none; opacity: 0.85; /* Increased visibility */
-        }
+        .init-title { font-family: var(--serif-font); font-style: italic; font-size: 3rem; color: var(--pure-light); margin-bottom: 50px; letter-spacing: 2px; animation: pulse-glow 4s infinite alternate; }
+        @keyframes pulse-glow { 0% { text-shadow: 0 0 10px rgba(255,255,255,0.1); } 100% { text-shadow: 0 0 30px rgba(255,255,255,0.4); } }
 
-        /* --- BESPOKE BRUTALIST CURSOR --- */
-        #cursor-core {
-            position: fixed; top: 0; left: 0;
-            color: var(--pure-light); font-family: var(--mono-font);
-            font-size: 14px; transform: translate(-50%, -50%);
-            pointer-events: none; z-index: 10000;
-            text-shadow: 0 0 8px var(--pure-light);
-        }
+        .init-label { font-size: 0.55rem; color: rgba(255, 255, 255, 0.3); letter-spacing: 6px; text-transform: uppercase; margin-bottom: 20px; }
 
-        #cursor-trail {
-            position: fixed; top: 0; left: 0;
-            width: 35px; height: 35px;
-            border: 1px solid rgba(255, 255, 255, 0.25);
-            transform: translate(-50%, -50%); pointer-events: none; z-index: 9998;
-            transition: width 0.3s, height 0.3s;
-            display: flex; justify-content: space-between; align-items: center;
+        .avatar-carousel {
+            display: flex; gap: 30px; width: 800px; max-width: 90vw; overflow-x: auto; padding: 20px 60px; margin-bottom: 60px; scrollbar-width: none;
+            -webkit-mask-image: linear-gradient(to right, transparent 0%, black 15%, black 85%, transparent 100%);
+            mask-image: linear-gradient(to right, transparent 0%, black 15%, black 85%, transparent 100%);
         }
+        .avatar-carousel::-webkit-scrollbar { display: none; }
         
-        /* The geometric bracket aesthetic */
-        #cursor-trail::before, #cursor-trail::after {
-            content: ''; height: 40%; width: 2px; background: var(--pure-light);
-            box-shadow: 0 0 10px var(--pure-light);
+        .avatar-node { flex: 0 0 auto; width: 50px; height: 50px; border: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: center; align-items: center; opacity: 0.3; transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        .avatar-node svg { width: 22px; height: 22px; stroke: var(--pure-light); stroke-width: 1.2; fill: none; transition: transform 0.6s cubic-bezier(0.19, 1, 0.22, 1); }
+        .avatar-node:hover { opacity: 1; border-color: rgba(255,255,255,0.4); }
+        .avatar-node:hover svg { transform: scale(1.3); }
+        .avatar-node.selected { opacity: 1; border-color: var(--pure-light); background: rgba(255,255,255,0.05); box-shadow: 0 0 20px rgba(255,255,255,0.15); }
+        .avatar-node.selected svg { transform: scale(1.2); stroke-width: 1.8; }
+
+        .identity-input-wrapper { position: relative; width: 300px; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 10px; }
+        .identity-input-wrapper:focus-within { border-color: var(--pure-light); }
+        #identity-input { background: transparent; border: none; outline: none; color: var(--pure-light); font-family: var(--mono-font); font-size: 1rem; width: 100%; text-align: center; letter-spacing: 2px; text-transform: uppercase; }
+        #identity-input::placeholder { color: rgba(255,255,255,0.1); }
+
+        .system-msg { margin-top: 30px; font-size: 0.6rem; color: var(--pure-light); letter-spacing: 4px; text-transform: uppercase; opacity: 0; transition: opacity 0.3s, color 0.3s; }
+        
+        /* Error state for taken usernames */
+        .system-msg.error { color: #ff3333; animation: glitch-text 0.1s infinite; text-shadow: 0 0 10px #ff3333; }
+        @keyframes glitch-text {
+            0% { transform: translate(0); } 20% { transform: translate(-2px, 1px); }
+            40% { transform: translate(-1px, -1px); } 60% { transform: translate(2px, 1px); }
+            80% { transform: translate(1px, -1px); } 100% { transform: translate(0); }
         }
 
-        /* --- LUMINESCENT WAVEFORM --- */
-        #ethereal-wave {
-            position: fixed; bottom: 0; left: 0;
-            width: 100vw; height: 35vh; z-index: 1;
-            pointer-events: none; opacity: 0.5;
-        }
+        /* --- CURSOR --- */
+        #cursor-core { position: fixed; top: 0; left: 0; color: var(--pure-light); font-family: var(--mono-font); font-size: 14px; transform: translate(-50%, -50%); pointer-events: none; z-index: 10000; text-shadow: 0 0 8px var(--pure-light); }
+        #cursor-trail { position: fixed; top: 0; left: 0; width: 35px; height: 35px; border: 1px solid rgba(255, 255, 255, 0.25); transform: translate(-50%, -50%); pointer-events: none; z-index: 9998; transition: width 0.3s, height 0.3s; display: flex; justify-content: space-between; align-items: center; }
+        #cursor-trail::before, #cursor-trail::after { content: ''; height: 40%; width: 2px; background: var(--pure-light); box-shadow: 0 0 10px var(--pure-light); }
 
-        /* --- ARCHITECTURAL GRID --- */
-        .brutalist-grid {
-            display: grid; grid-template-columns: 80px 1fr;
-            height: 100vh; width: 100vw; position: relative; z-index: 10;
-        }
+        /* --- CHAT GRID & PHYSICS --- */
+        #ethereal-wave { position: fixed; bottom: 0; left: 0; width: 100vw; height: 35vh; z-index: 1; pointer-events: none; opacity: 0; transition: opacity 3s ease 1s; }
+        #ethereal-wave.active { opacity: 0.5; }
 
-        .left-axis { 
-            border-right: 1px solid var(--ghost); display: flex; flex-direction: column; 
-            justify-content: space-between; padding: 40px 0; align-items: center; 
-        }
+        .brutalist-grid { display: grid; grid-template-columns: 80px 1fr; height: 100vh; width: 100vw; position: relative; z-index: 10; opacity: 0; transition: opacity 3s ease 0.5s; }
+        .brutalist-grid.active { opacity: 1; }
 
+        .left-axis { border-right: 1px solid var(--ghost); display: flex; flex-direction: column; justify-content: space-between; padding: 40px 0; align-items: center; }
         .sigil { font-family: var(--serif-font); font-style: italic; font-size: 1.8rem; color: rgba(255,255,255,0.3); text-decoration: none; transition: all 1s ease; }
-        .sigil:hover ~ #cursor-trail { width: 55px; height: 55px; border-radius: 50%; border-color: transparent; }
         .vertical-marker { transform: rotate(-90deg); white-space: nowrap; font-size: 0.55rem; color: rgba(255, 255, 255, 0.15); letter-spacing: 8px; text-transform: uppercase;}
 
-        /* --- THE VOID (CHAT AREA) --- */
-        .void-nave {
-            display: flex; flex-direction: column; justify-content: flex-end;
-            padding: 15vh 15vw; position: relative;
-            -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 25%, black 100%);
-            mask-image: linear-gradient(to bottom, transparent 0%, black 25%, black 100%);
-        }
+        .void-nave { display: flex; flex-direction: column; justify-content: flex-start; padding: 10vh 15vw 15vh 15vw; position: relative; overflow-y: auto; overflow-x: hidden; scrollbar-width: none; -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%); mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%); }
+        .void-nave::-webkit-scrollbar { display: none; }
+        .message-stream { display: flex; flex-direction: column; gap: 60px; padding-bottom: 80px; width: 100%; min-height: 100%; justify-content: flex-end;}
 
-        .message-stream {
-            display: flex; flex-direction: column; gap: 60px;
-            padding-bottom: 80px; width: 100%;
-        }
-
-        /* --- ZERO-GRAVITY PHYSICS --- */
-        .tx-wrapper {
-            opacity: 0; filter: blur(15px);
-            transform: translateY(60px) scale(0.95);
-            /* Lengthened floaty entrance */
-            animation: emerge 4.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-            transition: opacity 8s ease, filter 8s ease;
-        }
-
-        .tx-physics-body {
-            display: flex; flex-direction: column; gap: 8px; transform-origin: center left;
-        }
-
-        .tx-wrapper.decay { opacity: 0.05; filter: blur(8px); }
-
+        .tx-wrapper { opacity: 0; filter: blur(15px); transform: translateY(60px) scale(0.95); animation: emerge 4.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; transition: opacity 8s ease, filter 8s ease; }
+        .tx-physics-body { display: flex; flex-direction: column; gap: 12px; transform-origin: center left; }
         @keyframes emerge { to { opacity: 1; filter: blur(0px); transform: translateY(0) scale(1); } }
-        
-        /* Expanded drift radius for spacey feel */
-        @keyframes liquid-drift {
-            0% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-12px) rotate(1.2deg); }
-            100% { transform: translateY(0px) rotate(0deg); }
-        }
+        @keyframes liquid-drift { 0% { transform: translateY(0px) rotate(0deg); } 50% { transform: translateY(-12px) rotate(1.2deg); } 100% { transform: translateY(0px) rotate(0deg); } }
 
-        .tx-meta { font-size: 0.55rem; color: rgba(255, 255, 255, 0.15); letter-spacing: 4px; }
-
-        .tx-content-container {
-            font-family: var(--serif-font); font-style: italic; font-size: 2.6rem; 
-            font-weight: 300; line-height: 1.1; color: var(--ash); max-width: 850px;
-        }
-
-        /* Standard character node */
-        .tx-char {
-            display: inline-block; will-change: transform, color, text-shadow;
-            transition: transform 0.6s cubic-bezier(0.19, 1, 0.22, 1), color 0.6s, text-shadow 0.6s;
-        }
-
-        /* --- 35% ANOMALY EFFECT (OPTIC DISPLACEMENT) --- */
-        .tx-wrapper.anomaly {
-            animation: anomaly-emerge 3.5s cubic-bezier(0.19, 1, 0.22, 1) forwards;
-        }
-
-        @keyframes anomaly-emerge {
-            0% { filter: blur(20px); letter-spacing: 15px; opacity: 0; transform: scale(1.05) translateY(30px); color: var(--pure-light); text-shadow: 0 0 20px var(--pure-light);}
-            30% { filter: blur(2px); letter-spacing: 5px; opacity: 1; transform: scale(1.02) translateY(5px); color: var(--pure-light);}
-            100% { filter: blur(0px); letter-spacing: 0.5px; opacity: 1; transform: scale(1) translateY(0); color: var(--ash); text-shadow: none;}
-        }
+        .tx-header { display: flex; align-items: center; gap: 15px; }
+        .tx-avatar-display svg { width: 18px; height: 18px; stroke: var(--pure-light); stroke-width: 1.2; fill: none; filter: drop-shadow(0 0 5px rgba(255,255,255,0.5)); }
+        .tx-meta { font-size: 0.6rem; color: rgba(255, 255, 255, 0.3); letter-spacing: 4px; text-transform: uppercase; font-family: var(--mono-font); }
+        .tx-meta .tx-name { color: var(--pure-light); margin-right: 10px; font-weight: bold; }
+        .tx-content-container { font-family: var(--serif-font); font-style: italic; font-size: 2.6rem; font-weight: 300; line-height: 1.1; color: var(--ash); max-width: 850px; }
+        .tx-char { display: inline-block; will-change: transform, color, text-shadow; transition: transform 0.6s cubic-bezier(0.19, 1, 0.22, 1), color 0.6s, text-shadow 0.6s; }
 
         /* --- GENERATIVE INPUT MEMBRANE --- */
-        .input-membrane {
-            position: absolute; bottom: 60px; left: 15vw; right: 15vw;
-            display: flex; align-items: center;
-            border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 15px;
-            transition: border-color 0.8s ease; cursor: none;
-        }
-
+        .input-membrane { position: absolute; bottom: 40px; left: 15vw; right: 15vw; display: flex; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 15px; transition: border-color 0.8s ease; cursor: none; z-index: 100;}
         .input-membrane:focus-within { border-color: rgba(255,255,255,0.3); }
 
-        /* The real input is hidden, used only to capture keystrokes */
-        #hidden-void-input {
-            position: absolute; opacity: 0; pointer-events: none;
-        }
+        #live-identity-badge { display: none; align-items: center; gap: 15px; margin-right: 20px; padding-right: 20px; border-right: 1px solid rgba(255,255,255,0.1); opacity: 0.5; transition: opacity 0.3s; }
+        .input-membrane:focus-within #live-identity-badge { opacity: 1; }
+        #live-avatar-slot svg { width: 18px; height: 18px; stroke: var(--pure-light); stroke-width: 1.2; fill: none; filter: drop-shadow(0 0 5px rgba(255,255,255,0.3)); }
+        #live-name-slot { font-size: 0.6rem; color: var(--pure-light); letter-spacing: 2px; text-transform: uppercase; }
 
-        /* The visible, generative text display */
-        #custom-input-display {
-            font-family: var(--serif-font); font-style: italic; font-size: 1.6rem;
-            color: var(--pure-light); letter-spacing: 1px; display: flex; flex-wrap: wrap;
-        }
-
+        #hidden-void-input { position: absolute; opacity: 0; pointer-events: none; }
+        #custom-input-display { font-family: var(--serif-font); font-style: italic; font-size: 1.6rem; color: var(--pure-light); letter-spacing: 1px; display: flex; flex-wrap: wrap; flex-grow: 1; }
         .input-placeholder { color: rgba(255,255,255,0.08); font-family: var(--serif-font); font-style: italic; font-size: 1.6rem; position: absolute; pointer-events: none; transition: opacity 0.3s; }
-
-        /* Effect applied to newly typed characters */
         .type-char { display: inline-block; }
-        .type-char.fade-in {
-            animation: structural-snap 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-
-        @keyframes structural-snap {
-            0% { opacity: 0; filter: blur(4px); transform: translateY(5px) scale(0.9); }
-            100% { opacity: 1; filter: blur(0px); transform: translateY(0) scale(1); }
-        }
-
-        /* Blinking terminal cursor */
-        .blinking-cursor {
-            display: inline-block; width: 8px; height: 2px;
-            background-color: var(--pure-light); margin-left: 4px; margin-top: auto; margin-bottom: 4px;
-            animation: blink 1s infinite steps(2); box-shadow: 0 0 5px var(--pure-light);
-        }
-
+        .type-char.fade-in { animation: structural-snap 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes structural-snap { 0% { opacity: 0; filter: blur(4px); transform: translateY(5px) scale(0.9); } 100% { opacity: 1; filter: blur(0px); transform: translateY(0) scale(1); } }
+        .blinking-cursor { display: inline-block; width: 8px; height: 2px; background-color: var(--pure-light); margin-left: 4px; margin-top: auto; margin-bottom: 4px; animation: blink 1s infinite steps(2); box-shadow: 0 0 5px var(--pure-light); }
         @keyframes blink { 0% { opacity: 1; } 100% { opacity: 0; } }
 
     </style>
@@ -193,292 +131,295 @@
     <canvas id="lo-fi-grain"></canvas>
     <canvas id="void-dust"></canvas>
 
+    <div id="initiation-layer">
+        <a href="index.html" class="lobby-back">[ ← ABORT ]</a>
+        <div class="init-title">synt.</div>
+        
+        <div class="init-label" style="opacity: 0.5;">[ ← SCROLL → ]</div>
+        
+        <div class="avatar-carousel" id="avatar-ribbon"></div>
+
+        <div class="init-label">IDENTITY //</div>
+        <div class="identity-input-wrapper">
+            <input type="text" id="identity-input" placeholder="DESIGNATION..." autocomplete="off">
+        </div>
+        <div class="system-msg" id="init-msg">[ PRESS ENTER TO WAKE SYSTEM ]</div>
+    </div>
+
     <div id="cursor-core">+</div>
     <div id="cursor-trail"></div>
     <canvas id="ethereal-wave"></canvas>
 
-    <div class="brutalist-grid">
+    <div class="brutalist-grid" id="main-interface">
         <div class="left-axis">
             <a href="index.html" class="sigil">†</a>
-            <div class="vertical-marker">RELAY // ZERO-G</div>
+            <div class="vertical-marker">RELAY // ONLINE</div>
             <div class="vertical-marker" style="color: rgba(255,255,255,0.08);">0X1900</div>
         </div>
 
-        <div class="void-nave">
+        <div class="void-nave" id="chat-scroller">
             <div class="message-stream" id="stream"></div>
-            
-            <div class="input-membrane" id="membrane-container">
-                <div class="input-placeholder" id="placeholder-text">Type...</div>
-                <div id="custom-input-display"><span class="blinking-cursor"></span></div>
-                <input type="text" id="hidden-void-input" autocomplete="off" autofocus>
+        </div>
+        
+        <div class="input-membrane" id="membrane-container">
+            <div id="live-identity-badge">
+                <div id="live-avatar-slot"></div>
+                <div id="live-name-slot"></div>
             </div>
+            <div class="input-placeholder" id="placeholder-text" style="left: calc(15vw + 120px);">Type...</div>
+            <div id="custom-input-display"><span class="blinking-cursor"></span></div>
+            <input type="text" id="hidden-void-input" autocomplete="off" disabled>
         </div>
     </div>
 
-    <script>
-        // --- 1. FILM GRAIN ---
-        const grainCanvas = document.getElementById('lo-fi-grain');
-        const gCtx = grainCanvas.getContext('2d', { alpha: false });
-        let grainCache = null;
-        
-        function initGrain() {
-            grainCanvas.width = window.innerWidth; grainCanvas.height = window.innerHeight;
-            const idata = gCtx.createImageData(grainCanvas.width, grainCanvas.height);
-            const buffer32 = new Uint32Array(idata.data.buffer);
-            for (let i = 0; i < buffer32.length; i++) buffer32[i] = Math.random() < 0.5 ? 0xff000000 : 0xffffffff; 
-            grainCache = document.createElement('canvas'); grainCache.width = grainCanvas.width; grainCache.height = grainCanvas.height;
-            grainCache.getContext('2d').putImageData(idata, 0, 0);
-        }
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, set, get, child, push, onChildAdded } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        function drawGrain() {
-            if (!grainCache) return;
-            gCtx.clearRect(0, 0, grainCanvas.width, grainCanvas.height);
-            gCtx.drawImage(grainCache, Math.floor((Math.random() * 30) - 15), Math.floor((Math.random() * 30) - 15));
-        }
-        window.addEventListener('resize', initGrain); initGrain(); setInterval(drawGrain, 50);
+        // === REPLACE THIS WITH YOUR FIREBASE CONFIG ===
+        const firebaseConfig = {
+  apiKey: "AIzaSyDBjq5YHs2IeZP-qMgmL6WWt28xeiFM2x4",
+  authDomain: "synt-relay.firebaseapp.com",
+  databaseURL: "https://synt-relay-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "synt-relay",
+  storageBucket: "synt-relay.firebasestorage.app",
+  messagingSenderId: "88858140166",
+  appId: "1:88858140166:web:b7be1b4b72a96dd98aed87",
+  measurementId: "G-DZYMDQXX8G"
+};
+        // ===============================================
 
-        // --- 2. ENHANCED VOID DUST ---
-        const dustCanvas = document.getElementById('void-dust');
-        const dCtx = dustCanvas.getContext('2d');
-        let dustParticles = [];
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
 
-        function initDust() {
-            dustCanvas.width = window.innerWidth; dustCanvas.height = window.innerHeight;
-            dustParticles = [];
-            // Increased particle count and radius
-            for(let i = 0; i < 200; i++) {
-                dustParticles.push({
-                    x: Math.random() * dustCanvas.width, y: Math.random() * dustCanvas.height,
-                    radius: Math.random() * 2.2, // Larger
-                    vx: (Math.random() - 0.5) * 0.15, vy: Math.random() * -0.4 - 0.1,
-                    alpha: Math.random() * 0.35 // Brighter
-                });
-            }
-        }
-        window.addEventListener('resize', initDust); initDust();
+        // --- THE 20 KINETIC IDENTITIES ---
+        const geometricForms = [
+            `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="2" x2="12" y2="22"/><line x1="2" y1="12" x2="22" y2="12"><animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="12s" repeatCount="indefinite"/></line></svg>`,
+            `<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18"/><rect x="8" y="8" width="8" height="8"><animateTransform attributeName="transform" type="scale" values="1; 1.5; 1" keyTimes="0; 0.5; 1" dur="6s" repeatCount="indefinite" additive="sum"/><animateTransform attributeName="transform" type="translate" values="0 0; -3 -3; 0 0" keyTimes="0; 0.5; 1" dur="6s" repeatCount="indefinite" additive="sum"/></rect></svg>`,
+            `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="2"><animate attributeName="r" values="2; 10; 2" dur="4s" repeatCount="indefinite"/><animate attributeName="opacity" values="1; 0; 1" dur="4s" repeatCount="indefinite"/></circle></svg>`,
+            `<svg viewBox="0 0 24 24"><polygon points="12,2 22,20 2,20"><animateTransform attributeName="transform" type="rotate" from="0 12 14" to="-360 12 14" dur="15s" repeatCount="indefinite"/></polygon></svg>`,
+            `<svg viewBox="0 0 24 24"><path d="M 2 12 Q 7 2 12 12 T 22 12"><animate attributeName="d" values="M 2 12 Q 7 2 12 12 T 22 12; M 2 12 Q 7 22 12 12 T 22 12; M 2 12 Q 7 2 12 12 T 22 12" dur="4s" repeatCount="indefinite"/></path></svg>`,
+            `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-dasharray="10 5"><animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="20s" repeatCount="indefinite"/></circle><circle cx="12" cy="12" r="6" stroke-dasharray="5 5"><animateTransform attributeName="transform" type="rotate" from="0 12 12" to="-360 12 12" dur="10s" repeatCount="indefinite"/></circle></svg>`,
+            `<svg viewBox="0 0 24 24"><polygon points="12,2 22,12 12,22 2,12"><animate attributeName="points" values="12,2 22,12 12,22 2,12; 4,4 20,4 20,20 4,20; 12,2 22,12 12,22 2,12" dur="8s" repeatCount="indefinite"/></polygon></svg>`,
+            `<svg viewBox="0 0 24 24"><line x1="6" y1="2" x2="6" y2="22"><animate attributeName="y1" values="2; 8; 2" dur="2s" repeatCount="indefinite"/></line><line x1="12" y1="2" x2="12" y2="22"><animate attributeName="y1" values="2; 8; 2" dur="2s" begin="0.5s" repeatCount="indefinite"/></line><line x1="18" y1="2" x2="18" y2="22"><animate attributeName="y1" values="2; 8; 2" dur="2s" begin="1s" repeatCount="indefinite"/></line></svg>`,
+            `<svg viewBox="0 0 24 24"><path d="M 4 2 L 20 2 L 4 22 L 20 22 Z"><animateTransform attributeName="transform" type="rotate" from="0 12 12" to="180 12 12" dur="6s" repeatCount="indefinite"/></path></svg>`,
+            `<svg viewBox="0 0 24 24"><line x1="12" y1="2" x2="12" y2="18"><animateTransform attributeName="transform" type="rotate" values="-30 12 2; 30 12 2; -30 12 2" dur="3s" repeatCount="indefinite"/></line><circle cx="12" cy="18" r="3"><animateTransform attributeName="transform" type="rotate" values="-30 12 2; 30 12 2; -30 12 2" dur="3s" repeatCount="indefinite"/></circle></svg>`,
+            `<svg viewBox="0 0 24 24"><polygon points="12,2 20.66,7 20.66,17 12,22 3.34,17 3.34,7"><animateTransform attributeName="transform" type="scale" values="1; 0.8; 1" keyTimes="0; 0.5; 1" dur="5s" repeatCount="indefinite" additive="sum"/><animateTransform attributeName="transform" type="translate" values="0 0; 2.4 2.4; 0 0" keyTimes="0; 0.5; 1" dur="5s" repeatCount="indefinite" additive="sum"/></polygon></svg>`,
+            `<svg viewBox="0 0 24 24"><path d="M 12 2 A 10 10 0 0 0 12 22"><animateTransform attributeName="transform" type="translate" values="0 0; -2 0; 0 0" dur="4s" repeatCount="indefinite"/></path><path d="M 12 2 A 10 10 0 0 1 12 22"><animateTransform attributeName="transform" type="translate" values="0 0; 2 0; 0 0" dur="4s" repeatCount="indefinite"/></path></svg>`,
+            `<svg viewBox="0 0 24 24"><polygon points="12,2 22,7 22,17 12,22 2,17 2,7"/><line x1="12" y1="12" x2="12" y2="22"/><line x1="12" y1="12" x2="22" y2="7"/><line x1="12" y1="12" x2="2" y2="7"><animate attributeName="opacity" values="1; 0.2; 1" dur="3s" repeatCount="indefinite"/></line></svg>`,
+            `<svg viewBox="0 0 24 24"><polygon points="12,2 14,10 22,12 14,14 12,22 10,14 2,12 10,10"><animateTransform attributeName="transform" type="rotate" from="0 12 12" to="90 12 12" dur="8s" repeatCount="indefinite"/></polygon></svg>`,
+            `<svg viewBox="0 0 24 24"><line x1="12" y1="8" x2="12" y2="16"><animate attributeName="y1" values="8; 2; 8" dur="4s" repeatCount="indefinite"/><animate attributeName="y2" values="16; 22; 16" dur="4s" repeatCount="indefinite"/></line><line x1="8" y1="12" x2="16" y2="12"><animate attributeName="x1" values="8; 2; 8" dur="4s" repeatCount="indefinite"/><animate attributeName="x2" values="16; 22; 16" dur="4s" repeatCount="indefinite"/></line></svg>`,
+            `<svg viewBox="0 0 24 24"><circle cx="4" cy="12" r="2"><animate attributeName="cy" values="12; 8; 12" dur="2s" repeatCount="indefinite"/></circle><circle cx="12" cy="12" r="2"><animate attributeName="cy" values="12; 8; 12" dur="2s" begin="0.3s" repeatCount="indefinite"/></circle><circle cx="20" cy="12" r="2"><animate attributeName="cy" values="12; 8; 12" dur="2s" begin="0.6s" repeatCount="indefinite"/></circle></svg>`,
+            `<svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20"/><rect x="8" y="8" width="8" height="8"><animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="10s" repeatCount="indefinite"/></rect></svg>`,
+            `<svg viewBox="0 0 24 24"><path d="M 2 12 Q 12 2 22 12 Q 12 22 2 12"><animate attributeName="d" values="M 2 12 Q 12 2 22 12 Q 12 22 2 12; M 2 12 Q 12 10 22 12 Q 12 14 2 12; M 2 12 Q 12 2 22 12 Q 12 22 2 12" dur="6s" repeatCount="indefinite"/></path><circle cx="12" cy="12" r="3"/></svg>`,
+            `<svg viewBox="0 0 24 24"><line x1="6" y1="22" x2="18" y2="2"/><line x1="6" y1="2" x2="18" y2="22"><animate attributeName="x1" values="6; 18; 6" dur="5s" repeatCount="indefinite"/><animate attributeName="x2" values="18; 6; 18" dur="5s" repeatCount="indefinite"/></line></svg>`,
+            `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-dasharray="2 6"><animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="30s" repeatCount="indefinite"/></circle><circle cx="12" cy="12" r="5" stroke-dasharray="2 4"><animateTransform attributeName="transform" type="rotate" from="0 12 12" to="-360 12 12" dur="15s" repeatCount="indefinite"/></circle></svg>`
+        ];
 
-        function drawDust(cursorX, cursorY) {
-            dCtx.clearRect(0, 0, dustCanvas.width, dustCanvas.height);
-            dCtx.fillStyle = '#ffffff';
-            
-            dustParticles.forEach(p => {
-                const dx = p.x - cursorX, dy = p.y - cursorY, dist = Math.hypot(dx, dy);
-                if (dist < 250) {
-                    const force = (250 - dist) / 250;
-                    p.vx += (dx / dist) * force * 0.04; p.vy += (dy / dist) * force * 0.04;
-                }
-                p.x += p.vx; p.y += p.vy; p.vx *= 0.98; p.vy *= 0.98;
-                if (p.y < 0) p.y = dustCanvas.height; if (p.x < 0) p.x = dustCanvas.width; if (p.x > dustCanvas.width) p.x = 0;
-
-                dCtx.globalAlpha = p.alpha; dCtx.beginPath(); dCtx.arc(p.x, p.y, p.radius, 0, Math.PI * 2); dCtx.fill();
-            });
-        }
-
-        // --- 3. BRUTALIST CURSOR PHYSICS ---
-        const cursorCore = document.getElementById('cursor-core');
-        const cursorTrail = document.getElementById('cursor-trail');
-        let mouseX = window.innerWidth / 2, mouseY = window.innerHeight / 2;
-        let trailX = mouseX, trailY = mouseY;
-        let rotationAngle = 0;
-
-        document.addEventListener('mousemove', (e) => {
-            mouseX = e.clientX; mouseY = e.clientY;
-            cursorCore.style.left = `${mouseX}px`; cursorCore.style.top = `${mouseY}px`;
+        const ribbon = document.getElementById('avatar-ribbon');
+        geometricForms.forEach(svgStr => {
+            const div = document.createElement('div');
+            div.className = 'avatar-node'; div.innerHTML = svgStr; div.setAttribute('data-svg', svgStr);
+            ribbon.appendChild(div);
         });
 
-        function animateCursor() {
-            // Calculate velocity for dynamic rotation
-            const dx = mouseX - trailX; const dy = mouseY - trailY;
-            const velocity = Math.hypot(dx, dy);
-            
-            trailX += dx * 0.15; trailY += dy * 0.15;
-            
-            // Spin the geometric brackets based on speed
-            rotationAngle += velocity * 0.1;
-            
-            cursorTrail.style.left = `${trailX}px`; cursorTrail.style.top = `${trailY}px`;
-            cursorTrail.style.transform = `translate(-50%, -50%) rotate(${rotationAngle}deg)`;
+        // --- GLOBAL STATE ---
+        let activeAvatarSVG = ''; let activeUserName = '';
+        const initLayer = document.getElementById('initiation-layer');
+        const avatarNodes = document.querySelectorAll('.avatar-node');
+        const idInput = document.getElementById('identity-input');
+        const initMsg = document.getElementById('init-msg');
+        let isSystemAwake = false;
 
-            drawDust(trailX, trailY);
-
-            // Magnetic Flutter for text nodes
-            const charNodes = document.querySelectorAll('.tx-char');
-            const timeOffset = Date.now() * 0.003;
-            
-            charNodes.forEach((node, index) => {
-                const rect = node.getBoundingClientRect();
-                const dist = Math.hypot(trailX - (rect.left + rect.width / 2), trailY - (rect.top + rect.height / 2));
-                
-                if (dist < 120) {
-                    const inf = 1 - (dist / 120);
-                    const fX = Math.sin(timeOffset + index) * (inf * 8);
-                    const fY = Math.cos(timeOffset * 1.2 + index) * (inf * 8);
-                    node.style.transition = 'none'; 
-                    node.style.transform = `translate(${fX}px, ${fY}px) rotate(${Math.sin(timeOffset + index)*(inf*15)}deg)`;
-                    node.style.color = `rgba(255, 255, 255, ${0.8 + inf * 0.2})`;
-                    node.style.textShadow = `0 0 ${inf * 15}px rgba(255, 255, 255, ${inf * 0.6})`;
-                } else if (node.style.transform !== '') {
-                    node.style.transition = 'transform 0.6s cubic-bezier(0.19, 1, 0.22, 1), color 0.6s, text-shadow 0.6s';
-                    node.style.transform = ''; node.style.color = 'var(--ash)'; node.style.textShadow = 'none';
-                }
+        avatarNodes.forEach(node => {
+            node.addEventListener('click', () => {
+                avatarNodes.forEach(n => n.classList.remove('selected'));
+                node.classList.add('selected'); activeAvatarSVG = node.getAttribute('data-svg'); checkInitStatus();
             });
-            requestAnimationFrame(animateCursor);
+        });
+
+        idInput.addEventListener('input', () => {
+            initMsg.classList.remove('error'); checkInitStatus();
+        });
+
+        function checkInitStatus() {
+            if (activeAvatarSVG !== '' && idInput.value.trim().length > 0) {
+                initMsg.innerText = "[ PRESS ENTER TO WAKE SYSTEM ]"; initMsg.style.opacity = '1';
+            } else { initMsg.style.opacity = '0'; }
         }
-        animateCursor();
 
-        // --- 4. THE "BREATHING" DRONE (LFO) ---
-        let audioCtx;
-        let isDronePlaying = false;
+        // DATABASE: IDENTITY CHECK
+        idInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && activeAvatarSVG !== '' && idInput.value.trim().length > 0) {
+                const requestedName = idInput.value.trim().toUpperCase();
+                const userRef = ref(db, `users/${requestedName}`);
+                
+                get(userRef).then((snapshot) => {
+                    if (snapshot.exists()) {
+                        // Username Taken
+                        initMsg.innerText = "[ IDENTITY TAKEN ]";
+                        initMsg.classList.add('error');
+                    } else {
+                        // Username Free - Claim it
+                        set(userRef, { active: true, joined: Date.now() });
+                        activeUserName = requestedName;
+                        wakeSystem();
+                    }
+                }).catch((error) => {
+                    console.error("DB Error:", error);
+                });
+            }
+        });
 
-        function initAudio() {
-            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            if (audioCtx.state === 'suspended') audioCtx.resume();
+        function wakeSystem() {
+            isSystemAwake = true;
+            initAudioSystemWake();
+            initLayer.classList.add('dissolve');
+            setTimeout(() => { initLayer.style.display = 'none'; }, 2000);
+
+            document.getElementById('live-identity-badge').style.display = 'flex';
+            document.getElementById('live-avatar-slot').innerHTML = activeAvatarSVG;
+            document.getElementById('live-name-slot').innerText = activeUserName;
+            document.getElementById('placeholder-text').style.left = 'auto';
+            document.getElementById('placeholder-text').style.position = 'relative';
+
+            document.getElementById('ethereal-wave').classList.add('active');
+            document.getElementById('main-interface').classList.add('active');
+
+            const hiddenInput = document.getElementById('hidden-void-input');
+            hiddenInput.disabled = false;
+            setTimeout(() => { hiddenInput.focus(); }, 1500);
             
-            if (!isDronePlaying && audioCtx) {
-                // Main drone gain
-                const droneGain = audioCtx.createGain();
-                droneGain.gain.value = 0.02; // Very quiet base
-                
-                // Lowpass filter to keep it deep
-                const filter = audioCtx.createBiquadFilter();
-                filter.type = 'lowpass'; filter.frequency.value = 150; 
-                
-                // The oscillators (Sub frequencies)
-                const osc1 = audioCtx.createOscillator(); osc1.type = 'sine'; osc1.frequency.value = 43.65;
-                const osc2 = audioCtx.createOscillator(); osc2.type = 'triangle'; osc2.frequency.value = 44.10; // Detuned to phase
-                
-                // The LFO (Low Frequency Oscillator) to make it breathe
-                const lfo = audioCtx.createOscillator();
-                lfo.type = 'sine';
-                lfo.frequency.value = 0.04; // Very slow cycle (~25 seconds)
-                const lfoGain = audioCtx.createGain();
-                lfoGain.gain.value = 0.015; // Amount of volume swelling
-                
-                // Connect LFO to modulate the main drone gain
-                lfo.connect(lfoGain);
-                lfoGain.connect(droneGain.gain);
-
-                osc1.connect(filter); osc2.connect(filter);
-                filter.connect(droneGain); droneGain.connect(audioCtx.destination);
-                
-                osc1.start(); osc2.start(); lfo.start();
-                isDronePlaying = true;
-            }
+            listenForMessages(); // Start real-time DB listener
         }
 
-        function playEtherealChime() {
-            if (!audioCtx) return;
-            const osc = audioCtx.createOscillator(), gainNode = audioCtx.createGain(), filter = audioCtx.createBiquadFilter();
-            osc.type = 'sine'; osc.frequency.setValueAtTime(70 + Math.random() * 40, audioCtx.currentTime);
-            filter.type = 'lowpass'; filter.frequency.setValueAtTime(300, audioCtx.currentTime);
-            gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
-            gainNode.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + 1.2); 
-            gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 8.0); // 8s decay
-            osc.connect(filter); filter.connect(gainNode); gainNode.connect(audioCtx.destination);
-            osc.start(); osc.stop(audioCtx.currentTime + 8.0);
+        // --- DATABASE: MESSAGE SENDING & RECEIVING ---
+        const stream = document.getElementById('stream');
+        const chatScroller = document.getElementById('chat-scroller');
+
+        function listenForMessages() {
+            const messagesRef = ref(db, 'messages');
+            onChildAdded(messagesRef, (data) => {
+                const msg = data.val();
+                renderMessageToDOM(msg.text, msg.name, msg.avatar, msg.timestamp);
+            });
         }
 
-        // --- 5. GENERATIVE WAVEFORM ---
-        const waveCanvas = document.getElementById('ethereal-wave');
-        const wCtx = waveCanvas.getContext('2d');
-        let wWidth, wHeight, time = 0, typingIntensity = 0;
-
-        function resizeWave() { wWidth = waveCanvas.width = window.innerWidth; wHeight = waveCanvas.height = window.innerHeight * 0.35; }
-        window.addEventListener('resize', resizeWave); resizeWave();
-
-        function drawWaveform() {
-            wCtx.clearRect(0, 0, wWidth, wHeight); typingIntensity *= 0.96; 
-            wCtx.beginPath(); wCtx.lineWidth = 1.5;
-            wCtx.strokeStyle = `rgba(255, 255, 255, ${0.05 + (typingIntensity * 0.15)})`;
-            wCtx.shadowBlur = 10 + (typingIntensity * 20); wCtx.shadowColor = 'rgba(255, 255, 255, 0.4)';
-            const yCenter = wHeight / 2; const amp = 15 + (typingIntensity * 60); 
-
-            for (let x = 0; x < wWidth; x++) {
-                let y = yCenter + Math.sin(x * 0.003 + time) * amp + Math.cos(x * 0.009 - time * 0.8) * (amp * 0.6);
-                if (x === 0) wCtx.moveTo(x, y); else wCtx.lineTo(x, y);
-            }
-            wCtx.stroke(); wCtx.shadowBlur = 0; time += 0.012 + (typingIntensity * 0.03);
-            requestAnimationFrame(drawWaveform);
+        function renderMessageToDOM(text, name, avatar, timestamp) {
+            const date = new Date(timestamp);
+            const timeStr = `[ ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')} ]`;
+            
+            const splitText = text.split('').map(char => char === ' ' ? '&nbsp;' : `<span class="tx-char">${char}</span>`).join('');
+            
+            const msgBlock = document.createElement('div');
+            msgBlock.className = 'tx-wrapper'; // Removed anomaly for global sync consistency, but can be added back locally
+            
+            msgBlock.innerHTML = `
+                <div class="tx-physics-body" style="animation: liquid-drift ${12 + Math.random() * 8}s ease-in-out ${Math.random() * -15}s infinite alternate;">
+                    <div class="tx-header">
+                        <div class="tx-avatar-display">${avatar}</div>
+                        <div class="tx-meta"><span class="tx-name">${name}</span> // ${timeStr}</div>
+                    </div>
+                    <div class="tx-content-container">${splitText}</div>
+                </div>`;
+            
+            stream.appendChild(msgBlock);
+            if (isSystemAwake) playEtherealChime();
+            
+            // Auto scroll to bottom
+            chatScroller.scrollTo({ top: chatScroller.scrollHeight, behavior: 'smooth' });
         }
-        drawWaveform();
 
-        // --- 6. GENERATIVE TYPING & TRANSMISSION ---
         const hiddenInput = document.getElementById('hidden-void-input');
         const displayDiv = document.getElementById('custom-input-display');
         const placeholder = document.getElementById('placeholder-text');
         const membrane = document.getElementById('membrane-container');
-        const stream = document.getElementById('stream');
-        
         let lastInputVal = "";
 
-        // Keep hidden input focused
-        membrane.addEventListener('click', () => { hiddenInput.focus(); initAudio(); });
-        document.body.addEventListener('click', initAudio, { once: true });
+        membrane.addEventListener('click', () => { if(!hiddenInput.disabled) hiddenInput.focus(); });
 
         hiddenInput.addEventListener('input', (e) => {
             const val = e.target.value;
-            typingIntensity = Math.min(typingIntensity + 0.15, 1);
-            
-            // Hide/Show placeholder
-            placeholder.style.opacity = val.length > 0 ? '0' : '1';
-
-            // Rebuild visual string
-            displayDiv.innerHTML = '';
-            for(let i=0; i<val.length; i++) {
-                const char = val[i] === ' ' ? '&nbsp;' : val[i];
-                // Only trigger the fade-in animation on the newly typed character
-                const isNewChar = (i === val.length - 1 && val.length > lastInputVal.length);
-                displayDiv.innerHTML += `<span class="type-char ${isNewChar ? 'fade-in' : ''}">${char}</span>`;
-            }
-            // Re-append blinking cursor
-            displayDiv.innerHTML += `<span class="blinking-cursor"></span>`;
-            
-            lastInputVal = val;
+            placeholder.style.opacity = val.length > 0 ? '0' : '1'; displayDiv.innerHTML = '';
+            for(let i=0; i<val.length; i++) { const char = val[i] === ' ' ? '&nbsp;' : val[i], isNewChar = (i === val.length - 1 && val.length > lastInputVal.length); displayDiv.innerHTML += `<span class="type-char ${isNewChar ? 'fade-in' : ''}">${char}</span>`; }
+            displayDiv.innerHTML += `<span class="blinking-cursor"></span>`; lastInputVal = val;
         });
 
         hiddenInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter' && this.value.trim() !== '') {
-                initAudio();
-                const rawText = this.value;
-                this.value = '';
-                lastInputVal = '';
-                displayDiv.innerHTML = '<span class="blinking-cursor"></span>';
-                placeholder.style.opacity = '1';
+                const rawText = this.value; this.value = ''; lastInputVal = '';
+                displayDiv.innerHTML = '<span class="blinking-cursor"></span>'; placeholder.style.opacity = '1';
                 
-                const now = new Date();
-                const timeStr = `[ ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')} ]`;
-
-                const splitText = rawText.split('').map(char => {
-                    return char === ' ' ? '&nbsp;' : `<span class="tx-char">${char}</span>`;
-                }).join('');
-
-                const driftDuration = 12 + Math.random() * 8; 
-                const driftDelay = Math.random() * -15; 
-
-                // 35% Chance for Anomaly Effect
-                const isAnomaly = Math.random() < 0.35;
-                const baseClass = isAnomaly ? 'tx-wrapper anomaly' : 'tx-wrapper';
-
-                const msgBlock = document.createElement('div');
-                msgBlock.className = baseClass;
-                
-                msgBlock.innerHTML = `
-                    <div class="tx-physics-body" style="animation: liquid-drift ${driftDuration}s ease-in-out ${driftDelay}s infinite alternate;">
-                        <div class="tx-meta">${timeStr}</div>
-                        <div class="tx-content-container">${splitText}</div>
-                    </div>
-                `;
-                
-                stream.appendChild(msgBlock);
-                playEtherealChime();
-                typingIntensity = 3.5;
-
-                const allMessages = document.querySelectorAll('.tx-wrapper');
-                if (allMessages.length > 5) allMessages[allMessages.length - 6].classList.add('decay');
-
-                window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+                // PUSH TO DATABASE instead of just rendering locally
+                push(ref(db, 'messages'), {
+                    text: rawText,
+                    name: activeUserName,
+                    avatar: activeAvatarSVG,
+                    timestamp: Date.now()
+                });
             }
         });
+
+        // --- AUDIO ENGINE ---
+        let audioCtx; let isDronePlaying = false;
+        function initAudioSystemWake() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const dropOsc = audioCtx.createOscillator(), dropGain = audioCtx.createGain(); dropOsc.type = 'sine'; dropOsc.frequency.setValueAtTime(200, audioCtx.currentTime); dropOsc.frequency.exponentialRampToValueAtTime(20, audioCtx.currentTime + 2); dropGain.gain.setValueAtTime(1, audioCtx.currentTime); dropGain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 3); dropOsc.connect(dropGain); dropGain.connect(audioCtx.destination); dropOsc.start(); dropOsc.stop(audioCtx.currentTime + 3);
+            startBreathingDrone();
+        }
+        function startBreathingDrone() {
+            if (!isDronePlaying && audioCtx) {
+                const droneGain = audioCtx.createGain(); droneGain.gain.value = 0.02; const filter = audioCtx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.value = 150; const osc1 = audioCtx.createOscillator(); osc1.type = 'sine'; osc1.frequency.value = 43.65; const osc2 = audioCtx.createOscillator(); osc2.type = 'triangle'; osc2.frequency.value = 44.10; const lfo = audioCtx.createOscillator(); lfo.type = 'sine'; lfo.frequency.value = 0.04; const lfoGain = audioCtx.createGain(); lfoGain.gain.value = 0.015; 
+                lfo.connect(lfoGain); lfoGain.connect(droneGain.gain); osc1.connect(filter); osc2.connect(filter); filter.connect(droneGain); droneGain.connect(audioCtx.destination); osc1.start(); osc2.start(); lfo.start(); isDronePlaying = true;
+            }
+        }
+        function playEtherealChime() {
+            if (!audioCtx) return; const osc = audioCtx.createOscillator(), gainNode = audioCtx.createGain(), filter = audioCtx.createBiquadFilter(); osc.type = 'sine'; osc.frequency.setValueAtTime(70 + Math.random() * 40, audioCtx.currentTime); filter.type = 'lowpass'; filter.frequency.setValueAtTime(300, audioCtx.currentTime); gainNode.gain.setValueAtTime(0, audioCtx.currentTime); gainNode.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + 1.2); gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 8.0); osc.connect(filter); filter.connect(gainNode); gainNode.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 8.0);
+        }
+
+        // --- BACKGROUND EFFECTS ---
+        const grainCanvas = document.getElementById('lo-fi-grain'); const gCtx = grainCanvas.getContext('2d', { alpha: false }); let grainCache = null;
+        function initGrain() { grainCanvas.width = window.innerWidth; grainCanvas.height = window.innerHeight; const idata = gCtx.createImageData(grainCanvas.width, grainCanvas.height); const buffer32 = new Uint32Array(idata.data.buffer); for (let i = 0; i < buffer32.length; i++) buffer32[i] = Math.random() < 0.5 ? 0xff000000 : 0xffffffff; grainCache = document.createElement('canvas'); grainCache.width = grainCanvas.width; grainCache.height = grainCanvas.height; grainCache.getContext('2d').putImageData(idata, 0, 0); }
+        function drawGrain() { if (!grainCache) return; gCtx.clearRect(0, 0, grainCanvas.width, grainCanvas.height); gCtx.drawImage(grainCache, Math.floor((Math.random() * 30) - 15), Math.floor((Math.random() * 30) - 15)); }
+        window.addEventListener('resize', initGrain); initGrain(); setInterval(drawGrain, 50);
+
+        const dustCanvas = document.getElementById('void-dust'); const dCtx = dustCanvas.getContext('2d'); let dustParticles = [];
+        function initDust() { dustCanvas.width = window.innerWidth; dustCanvas.height = window.innerHeight; dustParticles = []; for(let i = 0; i < 200; i++) { dustParticles.push({ x: Math.random() * dustCanvas.width, y: Math.random() * dustCanvas.height, radius: Math.random() * 2.2, vx: (Math.random() - 0.5) * 0.15, vy: Math.random() * -0.4 - 0.1, alpha: Math.random() * 0.35 }); } }
+        window.addEventListener('resize', initDust); initDust();
+        function drawDust(cursorX, cursorY) { dCtx.clearRect(0, 0, dustCanvas.width, dustCanvas.height); dCtx.fillStyle = '#ffffff'; dustParticles.forEach(p => { const dx = p.x - cursorX, dy = p.y - cursorY, dist = Math.hypot(dx, dy); if (dist < 250) { const force = (250 - dist) / 250; p.vx += (dx / dist) * force * 0.04; p.vy += (dy / dist) * force * 0.04; } p.x += p.vx; p.y += p.vy; p.vx *= 0.98; p.vy *= 0.98; if (p.y < 0) p.y = dustCanvas.height; if (p.x < 0) p.x = dustCanvas.width; if (p.x > dustCanvas.width) p.x = 0; dCtx.globalAlpha = p.alpha; dCtx.beginPath(); dCtx.arc(p.x, p.y, p.radius, 0, Math.PI * 2); dCtx.fill(); }); }
+
+        // --- BRUTALIST CURSOR ---
+        const cursorCore = document.getElementById('cursor-core'); const cursorTrail = document.getElementById('cursor-trail');
+        let mouseX = window.innerWidth / 2, mouseY = window.innerHeight / 2; let trailX = mouseX, trailY = mouseY, rotationAngle = 0;
+        document.addEventListener('mousemove', (e) => { mouseX = e.clientX; mouseY = e.clientY; cursorCore.style.left = `${mouseX}px`; cursorCore.style.top = `${mouseY}px`; });
+        function animateCursor() {
+            const dx = mouseX - trailX, dy = mouseY - trailY, velocity = Math.hypot(dx, dy);
+            trailX += dx * 0.15; trailY += dy * 0.15; rotationAngle += velocity * 0.1;
+            cursorTrail.style.left = `${trailX}px`; cursorTrail.style.top = `${trailY}px`; cursorTrail.style.transform = `translate(-50%, -50%) rotate(${rotationAngle}deg)`;
+            drawDust(trailX, trailY);
+            const charNodes = document.querySelectorAll('.tx-char'); const timeOffset = Date.now() * 0.003;
+            charNodes.forEach((node, index) => {
+                const rect = node.getBoundingClientRect(), dist = Math.hypot(trailX - (rect.left + rect.width / 2), trailY - (rect.top + rect.height / 2));
+                if (dist < 120) {
+                    const inf = 1 - (dist / 120), fX = Math.sin(timeOffset + index) * (inf * 8), fY = Math.cos(timeOffset * 1.2 + index) * (inf * 8);
+                    node.style.transition = 'none'; node.style.transform = `translate(${fX}px, ${fY}px) rotate(${Math.sin(timeOffset + index)*(inf*15)}deg)`; node.style.color = `rgba(255, 255, 255, ${0.8 + inf * 0.2})`; node.style.textShadow = `0 0 ${inf * 15}px rgba(255, 255, 255, ${inf * 0.6})`;
+                } else if (node.style.transform !== '') { node.style.transition = 'transform 0.6s cubic-bezier(0.19, 1, 0.22, 1), color 0.6s, text-shadow 0.6s'; node.style.transform = ''; node.style.color = 'var(--ash)'; node.style.textShadow = 'none'; }
+            }); requestAnimationFrame(animateCursor);
+        } animateCursor();
+
+        // --- WAVEFORM ---
+        const waveCanvas = document.getElementById('ethereal-wave'); const wCtx = waveCanvas.getContext('2d'); let wWidth, wHeight, time = 0, typingIntensity = 0;
+        function resizeWave() { wWidth = waveCanvas.width = window.innerWidth; wHeight = waveCanvas.height = window.innerHeight * 0.35; }
+        window.addEventListener('resize', resizeWave); resizeWave();
+        function drawWaveform() {
+            wCtx.clearRect(0, 0, wWidth, wHeight); typingIntensity *= 0.96; 
+            wCtx.beginPath(); wCtx.lineWidth = 1.5; wCtx.strokeStyle = `rgba(255, 255, 255, ${0.05 + (typingIntensity * 0.15)})`; wCtx.shadowBlur = 10 + (typingIntensity * 20); wCtx.shadowColor = 'rgba(255, 255, 255, 0.4)';
+            const yCenter = wHeight / 2, amp = 15 + (typingIntensity * 60); 
+            for (let x = 0; x < wWidth; x++) { let y = yCenter + Math.sin(x * 0.003 + time) * amp + Math.cos(x * 0.009 - time * 0.8) * (amp * 0.6); if (x === 0) wCtx.moveTo(x, y); else wCtx.lineTo(x, y); }
+            wCtx.stroke(); wCtx.shadowBlur = 0; time += 0.012 + (typingIntensity * 0.03); requestAnimationFrame(drawWaveform);
+        } drawWaveform();
+
     </script>
 </body>
 </html>
