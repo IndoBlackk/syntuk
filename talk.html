@@ -106,6 +106,29 @@
         .tx-content-container { font-family: var(--serif-font); font-style: italic; font-size: 2.6rem; font-weight: 300; line-height: 1.1; color: var(--ash); max-width: 850px; }
         .tx-char { display: inline-block; will-change: transform, color, text-shadow; transition: transform 0.6s cubic-bezier(0.19, 1, 0.22, 1), color 0.6s, text-shadow 0.6s; }
 
+        /* --- SECRETS: THE ARCHITECT PROTOCOL --- */
+        .tx-name.architect {
+            font-family: var(--serif-font);
+            font-style: italic;
+            font-size: 1.25em; 
+            letter-spacing: 4px;
+            color: var(--pure-light);
+            animation: architect-glow 4s cubic-bezier(0.16, 1, 0.3, 1) infinite alternate;
+        }
+
+        .host-badge {
+            color: rgba(255,255,255,0.15);
+            font-size: 0.45rem;
+            letter-spacing: 6px;
+            vertical-align: middle;
+            margin-right: 5px;
+        }
+
+        @keyframes architect-glow {
+            0% { text-shadow: 0 0 10px rgba(255,255,255,0.2); }
+            100% { text-shadow: 0 0 20px rgba(255,255,255,0.8), 0 0 40px rgba(255,255,255,0.3); }
+        }
+
         /* --- GENERATIVE INPUT MEMBRANE --- */
         .input-membrane { position: absolute; bottom: 40px; left: 15vw; right: 15vw; display: flex; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 15px; transition: border-color 0.8s ease; cursor: none; z-index: 100;}
         .input-membrane:focus-within { border-color: rgba(255,255,255,0.3); }
@@ -201,7 +224,6 @@
     <!-- MAIN CHAT INTERFACE -->
     <div class="brutalist-grid" id="main-interface">
         <div class="left-axis">
-            <!-- Hijacked Sigil for Admin Panel -->
             <a href="#" class="sigil" id="admin-trigger">†</a>
             <div class="vertical-marker">RELAY // ONLINE</div>
             <div class="vertical-marker" style="color: rgba(255,255,255,0.08);">0X1900</div>
@@ -225,10 +247,9 @@
     <!-- FIREBASE MODULES -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        // Added remove() and onValue() for admin privileges
         import { getDatabase, ref, set, get, push, onChildAdded, remove, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        // === REPLACE WITH YOUR CONFIG ===
+        // === UPDATE THIS WITH YOUR FIREBASE KEYS ===
         const firebaseConfig = {
             apiKey: "YOUR_API_KEY",
             authDomain: "synt-relay.firebaseapp.com",
@@ -238,7 +259,7 @@
             messagingSenderId: "88858140166",
             appId: "1:88858140166:web:b7be1b4b72a96dd98aed87"
         };
-        // ================================
+        // ============================================
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
@@ -267,6 +288,25 @@
             `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-dasharray="2 6"><animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="30s" repeatCount="indefinite"/></circle><circle cx="12" cy="12" r="5" stroke-dasharray="2 4"><animateTransform attributeName="transform" type="rotate" from="0 12 12" to="-360 12 12" dur="15s" repeatCount="indefinite"/></circle></svg>`
         ];
 
+        // --- SECRETS: THE ARCHITECT'S AVATAR ---
+        const secretArchitectSVG = `
+            <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="11" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/>
+                <circle cx="12" cy="12" r="11" stroke-dasharray="4 8" stroke-width="1">
+                    <animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="24s" repeatCount="indefinite"/>
+                </circle>
+                <polygon points="12,3 21,12 12,21 3,12" stroke-width="1.2">
+                    <animateTransform attributeName="transform" type="scale" values="1; 1.05; 1" keyTimes="0; 0.5; 1" dur="4s" repeatCount="indefinite" additive="sum"/>
+                </polygon>
+                <polygon points="12,7 16.33,14.5 7.67,14.5" stroke-width="1">
+                    <animateTransform attributeName="transform" type="rotate" from="0 12 12" to="-360 12 12" dur="8s" repeatCount="indefinite"/>
+                </polygon>
+                <circle cx="12" cy="12" r="1.5" fill="var(--pure-light)">
+                    <animate attributeName="opacity" values="0.2; 1; 0.2" dur="2s" repeatCount="indefinite"/>
+                </circle>
+            </svg>
+        `;
+
         const ribbon = document.getElementById('avatar-ribbon');
         geometricForms.forEach(svgStr => {
             const div = document.createElement('div');
@@ -274,7 +314,7 @@
             ribbon.appendChild(div);
         });
 
-        // --- GLOBAL STATE & LOCAL STORAGE (PERSISTENCE) ---
+        // --- GLOBAL STATE & LOCAL STORAGE ---
         let activeAvatarSVG = ''; let activeUserName = '';
         const initLayer = document.getElementById('initiation-layer');
         const avatarNodes = document.querySelectorAll('.avatar-node');
@@ -282,20 +322,15 @@
         const initMsg = document.getElementById('init-msg');
         let isSystemAwake = false;
 
-        // Auto-select avatar if stored in browser
         const storedAvatar = localStorage.getItem('synt_avatar');
         if (storedAvatar) {
             activeAvatarSVG = storedAvatar;
-            // Visual feedback for stored avatar
             const nodeToSelect = Array.from(avatarNodes).find(n => n.getAttribute('data-svg') === storedAvatar);
             if(nodeToSelect) nodeToSelect.classList.add('selected');
         }
 
-        // Auto-fill username if stored
         const storedName = localStorage.getItem('synt_identity');
-        if (storedName) {
-            idInput.value = storedName;
-        }
+        if (storedName) idInput.value = storedName;
 
         avatarNodes.forEach(node => {
             node.addEventListener('click', () => {
@@ -311,28 +346,29 @@
                 initMsg.innerText = "[ PRESS ENTER TO WAKE SYSTEM ]"; initMsg.style.opacity = '1';
             } else { initMsg.style.opacity = '0'; }
         }
-        checkInitStatus(); // Run on load in case localStorage filled it
+        checkInitStatus();
 
-        // DATABASE: IDENTITY CHECK & SESSION PERSISTENCE
+        // DATABASE: IDENTITY CHECK & OVERRIDE
         idInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter' && activeAvatarSVG !== '' && idInput.value.trim().length > 0) {
-                const requestedName = idInput.value.trim().toUpperCase();
+                let requestedName = idInput.value.trim().toUpperCase();
+                
+                // Trigger Easter Egg if Host logs in
+                if (requestedName === 'SYNT') activeAvatarSVG = secretArchitectSVG;
+
                 const userRef = ref(db, `users/${requestedName}`);
                 
                 get(userRef).then((snapshot) => {
                     if (snapshot.exists()) {
-                        // Check if the current browser OWNS this name
                         if (localStorage.getItem('synt_identity') === requestedName) {
                             activeUserName = requestedName;
-                            localStorage.setItem('synt_avatar', activeAvatarSVG); // Update avatar if they changed it
+                            localStorage.setItem('synt_avatar', activeAvatarSVG); 
                             wakeSystem();
                         } else {
-                            // Taken by someone else
                             initMsg.innerText = "[ IDENTITY TAKEN ]";
                             initMsg.classList.add('error');
                         }
                     } else {
-                        // Name is completely free - Register it and bind to this browser
                         set(userRef, { active: true, joined: Date.now() });
                         localStorage.setItem('synt_identity', requestedName);
                         localStorage.setItem('synt_avatar', activeAvatarSVG);
@@ -350,7 +386,7 @@
 
             document.getElementById('live-identity-badge').style.display = 'flex';
             document.getElementById('live-avatar-slot').innerHTML = activeAvatarSVG;
-            document.getElementById('live-name-slot').innerText = activeUserName;
+            document.getElementById('live-name-slot').innerHTML = activeUserName === 'SYNT' ? `<span class="tx-name architect">SYNT</span>` : activeUserName;
             document.getElementById('placeholder-text').style.left = 'auto';
             document.getElementById('placeholder-text').style.position = 'relative';
 
@@ -364,7 +400,7 @@
             listenForMessages(); 
         }
 
-        // --- DATABASE: MESSAGE SENDING, RECEIVING & LIVE PURGING ---
+        // --- DATABASE: MESSAGE SYNC ---
         const stream = document.getElementById('stream');
         const chatScroller = document.getElementById('chat-scroller');
         const messagesRef = ref(db, 'messages');
@@ -375,19 +411,34 @@
                 renderMessageToDOM(msg.text, msg.name, msg.avatar, msg.timestamp);
             });
 
-            // Listen for Admin Purge (If database is emptied, clear the screen)
             onValue(messagesRef, (snapshot) => {
-                if (!snapshot.exists()) {
-                    stream.innerHTML = '';
-                }
+                if (!snapshot.exists()) stream.innerHTML = '';
             });
         }
 
         function renderMessageToDOM(text, name, avatar, timestamp) {
             const date = new Date(timestamp), timeStr = `[ ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')} ]`;
             const splitText = text.split('').map(char => char === ' ' ? '&nbsp;' : `<span class="tx-char">${char}</span>`).join('');
-            const msgBlock = document.createElement('div'); msgBlock.className = 'tx-wrapper'; 
-            msgBlock.innerHTML = `<div class="tx-physics-body" style="animation: liquid-drift ${12 + Math.random() * 8}s ease-in-out ${Math.random() * -15}s infinite alternate;"><div class="tx-header"><div class="tx-avatar-display">${avatar}</div><div class="tx-meta"><span class="tx-name">${name}</span> // ${timeStr}</div></div><div class="tx-content-container">${splitText}</div></div>`;
+            
+            // Architect Typography Application
+            const isArchitect = name === 'SYNT';
+            const nameClass = isArchitect ? 'tx-name architect' : 'tx-name';
+            const hostBadge = isArchitect ? '<span class="host-badge">HOST //</span>' : '';
+
+            // Optional anomaly effect on render
+            const isAnomaly = Math.random() < 0.35;
+            const baseClass = isAnomaly ? 'tx-wrapper anomaly' : 'tx-wrapper';
+
+            const msgBlock = document.createElement('div'); msgBlock.className = baseClass; 
+            msgBlock.innerHTML = `
+                <div class="tx-physics-body" style="animation: liquid-drift ${12 + Math.random() * 8}s ease-in-out ${Math.random() * -15}s infinite alternate;">
+                    <div class="tx-header">
+                        <div class="tx-avatar-display">${avatar}</div>
+                        <div class="tx-meta">${hostBadge}<span class="${nameClass}">${name}</span> // ${timeStr}</div>
+                    </div>
+                    <div class="tx-content-container">${splitText}</div>
+                </div>`;
+            
             stream.appendChild(msgBlock);
             if (isSystemAwake) playEtherealChime();
             chatScroller.scrollTo({ top: chatScroller.scrollHeight, behavior: 'smooth' });
@@ -418,31 +469,23 @@
         const gateEntry = document.getElementById('gate-entry');
         const adminControls = document.getElementById('admin-controls');
         
-        // Buttons
         const btnPurgeMsg = document.getElementById('btn-purge-msg');
         const btnPurgeUsers = document.getElementById('btn-purge-users');
         const btnCloseAdmin = document.getElementById('btn-close-admin');
 
-        // Open Gate Overlay
         adminTrigger.addEventListener('click', (e) => {
             e.preventDefault();
             adminOverlay.style.display = 'flex';
-            hiddenInput.disabled = true; // Lock chat input
-            setTimeout(() => { 
-                adminOverlay.style.opacity = '1'; 
-                gateKeyInput.focus();
-            }, 50);
+            hiddenInput.disabled = true; 
+            setTimeout(() => { adminOverlay.style.opacity = '1'; gateKeyInput.focus(); }, 50);
         });
 
-        // Secret Password Check
         gateKeyInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 if (gateKeyInput.value.toLowerCase() === 'close') {
-                    // Password Accepted: Show Controls
                     gateEntry.style.display = 'none';
                     adminControls.style.display = 'flex';
                 } else {
-                    // Password Failed
                     gateKeyInput.value = '';
                     gateKeyInput.style.borderColor = '#ff3333';
                     setTimeout(() => { gateKeyInput.style.borderColor = 'rgba(255,255,255,0.1)'; }, 500);
@@ -450,7 +493,6 @@
             }
         });
 
-        // Purge Functions
         btnPurgeMsg.addEventListener('click', () => {
             remove(messagesRef).then(() => {
                 btnPurgeMsg.innerText = "[ TRANSMISSIONS DESTROYED ]";
@@ -465,12 +507,11 @@
             });
         });
 
-        // Close Admin Panel
         btnCloseAdmin.addEventListener('click', () => {
             adminOverlay.style.opacity = '0';
             setTimeout(() => { 
                 adminOverlay.style.display = 'none'; 
-                gateEntry.style.display = 'block'; // Reset for next time
+                gateEntry.style.display = 'block'; 
                 adminControls.style.display = 'none';
                 gateKeyInput.value = '';
                 hiddenInput.disabled = false;
