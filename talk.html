@@ -66,7 +66,6 @@
 
         .system-msg { margin-top: 30px; font-size: 0.6rem; color: var(--pure-light); letter-spacing: 4px; text-transform: uppercase; opacity: 0; transition: opacity 0.3s, color 0.3s; }
         
-        /* Error state for taken usernames */
         .system-msg.error { color: #ff3333; animation: glitch-text 0.1s infinite; text-shadow: 0 0 10px #ff3333; }
         @keyframes glitch-text {
             0% { transform: translate(0); } 20% { transform: translate(-2px, 1px); }
@@ -88,6 +87,7 @@
 
         .left-axis { border-right: 1px solid var(--ghost); display: flex; flex-direction: column; justify-content: space-between; padding: 40px 0; align-items: center; }
         .sigil { font-family: var(--serif-font); font-style: italic; font-size: 1.8rem; color: rgba(255,255,255,0.3); text-decoration: none; transition: all 1s ease; }
+        .sigil:hover { color: #ff3333; text-shadow: 0 0 15px #ff3333; }
         .vertical-marker { transform: rotate(-90deg); white-space: nowrap; font-size: 0.55rem; color: rgba(255, 255, 255, 0.15); letter-spacing: 8px; text-transform: uppercase;}
 
         .void-nave { display: flex; flex-direction: column; justify-content: flex-start; padding: 10vh 15vw 15vh 15vw; position: relative; overflow-y: auto; overflow-x: hidden; scrollbar-width: none; -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%); mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%); }
@@ -124,6 +124,39 @@
         .blinking-cursor { display: inline-block; width: 8px; height: 2px; background-color: var(--pure-light); margin-left: 4px; margin-top: auto; margin-bottom: 4px; animation: blink 1s infinite steps(2); box-shadow: 0 0 5px var(--pure-light); }
         @keyframes blink { 0% { opacity: 1; } 100% { opacity: 0; } }
 
+        /* --- SECRETS: ADMIN GATES --- */
+        #admin-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(2, 2, 2, 0.95); backdrop-filter: blur(30px); z-index: 6000;
+            display: none; flex-direction: column; justify-content: center; align-items: center;
+            opacity: 0; transition: opacity 0.5s;
+        }
+
+        .gate-title {
+            font-family: var(--serif-font); font-style: italic; font-size: 2.5rem;
+            color: rgba(255,255,255,0.5); letter-spacing: 2px; margin-bottom: 40px;
+        }
+
+        #gate-key-input {
+            background: transparent; border: none; border-bottom: 1px solid rgba(255,255,255,0.1);
+            color: #ff3333; font-family: var(--mono-font); font-size: 1.2rem; width: 200px;
+            text-align: center; letter-spacing: 10px; outline: none; transition: border-color 0.3s;
+        }
+        #gate-key-input:focus { border-color: #ff3333; text-shadow: 0 0 10px #ff3333; }
+
+        #admin-controls {
+            display: none; flex-direction: column; gap: 20px; text-align: center;
+        }
+
+        .admin-btn {
+            font-family: var(--mono-font); font-size: 0.8rem; color: var(--pure-light);
+            letter-spacing: 4px; border: 1px solid rgba(255,255,255,0.2); padding: 15px 30px;
+            transition: all 0.3s; text-transform: uppercase;
+        }
+        .admin-btn:hover { background: var(--pure-light); color: var(--void); box-shadow: 0 0 20px rgba(255,255,255,0.5); }
+        
+        .admin-btn.danger:hover { background: #ff3333; border-color: #ff3333; box-shadow: 0 0 20px #ff3333; }
+
     </style>
 </head>
 <body>
@@ -131,12 +164,26 @@
     <canvas id="lo-fi-grain"></canvas>
     <canvas id="void-dust"></canvas>
 
+    <!-- SECRETS: ADMIN GATES -->
+    <div id="admin-overlay">
+        <div id="gate-entry">
+            <div class="gate-title">do you wish to open the gates</div>
+            <input type="password" id="gate-key-input" autocomplete="off" autofocus>
+        </div>
+        <div id="admin-controls">
+            <div class="gate-title" style="color: #ff3333; text-shadow: 0 0 20px #ff3333;">SYSTEM // OVERRIDE</div>
+            <div class="admin-btn danger" id="btn-purge-msg">[ PURGE ALL TRANSMISSIONS ]</div>
+            <div class="admin-btn danger" id="btn-purge-users">[ PURGE ALL IDENTITIES ]</div>
+            <div class="admin-btn" id="btn-close-admin">[ SEAL GATES ]</div>
+        </div>
+    </div>
+
+    <!-- INITIATION LOBBY -->
     <div id="initiation-layer">
         <a href="index.html" class="lobby-back">[ ← ABORT ]</a>
         <div class="init-title">synt.</div>
         
         <div class="init-label" style="opacity: 0.5;">[ ← SCROLL → ]</div>
-        
         <div class="avatar-carousel" id="avatar-ribbon"></div>
 
         <div class="init-label">IDENTITY //</div>
@@ -146,13 +193,16 @@
         <div class="system-msg" id="init-msg">[ PRESS ENTER TO WAKE SYSTEM ]</div>
     </div>
 
+    <!-- OPTICS -->
     <div id="cursor-core">+</div>
     <div id="cursor-trail"></div>
     <canvas id="ethereal-wave"></canvas>
 
+    <!-- MAIN CHAT INTERFACE -->
     <div class="brutalist-grid" id="main-interface">
         <div class="left-axis">
-            <a href="index.html" class="sigil">†</a>
+            <!-- Hijacked Sigil for Admin Panel -->
+            <a href="#" class="sigil" id="admin-trigger">†</a>
             <div class="vertical-marker">RELAY // ONLINE</div>
             <div class="vertical-marker" style="color: rgba(255,255,255,0.08);">0X1900</div>
         </div>
@@ -172,22 +222,23 @@
         </div>
     </div>
 
+    <!-- FIREBASE MODULES -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, set, get, child, push, onChildAdded } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        // Added remove() and onValue() for admin privileges
+        import { getDatabase, ref, set, get, push, onChildAdded, remove, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        // === REPLACE THIS WITH YOUR FIREBASE CONFIG ===
+        // === REPLACE WITH YOUR CONFIG ===
         const firebaseConfig = {
-  apiKey: "AIzaSyDBjq5YHs2IeZP-qMgmL6WWt28xeiFM2x4",
-  authDomain: "synt-relay.firebaseapp.com",
-  databaseURL: "https://synt-relay-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "synt-relay",
-  storageBucket: "synt-relay.firebasestorage.app",
-  messagingSenderId: "88858140166",
-  appId: "1:88858140166:web:b7be1b4b72a96dd98aed87",
-  measurementId: "G-DZYMDQXX8G"
-};
-        // ===============================================
+            apiKey: "YOUR_API_KEY",
+            authDomain: "synt-relay.firebaseapp.com",
+            databaseURL: "https://synt-relay-default-rtdb.europe-west1.firebasedatabase.app/",
+            projectId: "synt-relay",
+            storageBucket: "synt-relay.firebasestorage.app",
+            messagingSenderId: "88858140166",
+            appId: "1:88858140166:web:b7be1b4b72a96dd98aed87"
+        };
+        // ================================
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
@@ -223,13 +274,28 @@
             ribbon.appendChild(div);
         });
 
-        // --- GLOBAL STATE ---
+        // --- GLOBAL STATE & LOCAL STORAGE (PERSISTENCE) ---
         let activeAvatarSVG = ''; let activeUserName = '';
         const initLayer = document.getElementById('initiation-layer');
         const avatarNodes = document.querySelectorAll('.avatar-node');
         const idInput = document.getElementById('identity-input');
         const initMsg = document.getElementById('init-msg');
         let isSystemAwake = false;
+
+        // Auto-select avatar if stored in browser
+        const storedAvatar = localStorage.getItem('synt_avatar');
+        if (storedAvatar) {
+            activeAvatarSVG = storedAvatar;
+            // Visual feedback for stored avatar
+            const nodeToSelect = Array.from(avatarNodes).find(n => n.getAttribute('data-svg') === storedAvatar);
+            if(nodeToSelect) nodeToSelect.classList.add('selected');
+        }
+
+        // Auto-fill username if stored
+        const storedName = localStorage.getItem('synt_identity');
+        if (storedName) {
+            idInput.value = storedName;
+        }
 
         avatarNodes.forEach(node => {
             node.addEventListener('click', () => {
@@ -238,17 +304,16 @@
             });
         });
 
-        idInput.addEventListener('input', () => {
-            initMsg.classList.remove('error'); checkInitStatus();
-        });
+        idInput.addEventListener('input', () => { initMsg.classList.remove('error'); checkInitStatus(); });
 
         function checkInitStatus() {
             if (activeAvatarSVG !== '' && idInput.value.trim().length > 0) {
                 initMsg.innerText = "[ PRESS ENTER TO WAKE SYSTEM ]"; initMsg.style.opacity = '1';
             } else { initMsg.style.opacity = '0'; }
         }
+        checkInitStatus(); // Run on load in case localStorage filled it
 
-        // DATABASE: IDENTITY CHECK
+        // DATABASE: IDENTITY CHECK & SESSION PERSISTENCE
         idInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter' && activeAvatarSVG !== '' && idInput.value.trim().length > 0) {
                 const requestedName = idInput.value.trim().toUpperCase();
@@ -256,24 +321,30 @@
                 
                 get(userRef).then((snapshot) => {
                     if (snapshot.exists()) {
-                        // Username Taken
-                        initMsg.innerText = "[ IDENTITY TAKEN ]";
-                        initMsg.classList.add('error');
+                        // Check if the current browser OWNS this name
+                        if (localStorage.getItem('synt_identity') === requestedName) {
+                            activeUserName = requestedName;
+                            localStorage.setItem('synt_avatar', activeAvatarSVG); // Update avatar if they changed it
+                            wakeSystem();
+                        } else {
+                            // Taken by someone else
+                            initMsg.innerText = "[ IDENTITY TAKEN ]";
+                            initMsg.classList.add('error');
+                        }
                     } else {
-                        // Username Free - Claim it
+                        // Name is completely free - Register it and bind to this browser
                         set(userRef, { active: true, joined: Date.now() });
+                        localStorage.setItem('synt_identity', requestedName);
+                        localStorage.setItem('synt_avatar', activeAvatarSVG);
                         activeUserName = requestedName;
                         wakeSystem();
                     }
-                }).catch((error) => {
-                    console.error("DB Error:", error);
-                });
+                }).catch((error) => console.error("DB Error:", error));
             }
         });
 
         function wakeSystem() {
-            isSystemAwake = true;
-            initAudioSystemWake();
+            isSystemAwake = true; initAudioSystemWake();
             initLayer.classList.add('dissolve');
             setTimeout(() => { initLayer.style.display = 'none'; }, 2000);
 
@@ -290,57 +361,44 @@
             hiddenInput.disabled = false;
             setTimeout(() => { hiddenInput.focus(); }, 1500);
             
-            listenForMessages(); // Start real-time DB listener
+            listenForMessages(); 
         }
 
-        // --- DATABASE: MESSAGE SENDING & RECEIVING ---
+        // --- DATABASE: MESSAGE SENDING, RECEIVING & LIVE PURGING ---
         const stream = document.getElementById('stream');
         const chatScroller = document.getElementById('chat-scroller');
+        const messagesRef = ref(db, 'messages');
 
         function listenForMessages() {
-            const messagesRef = ref(db, 'messages');
             onChildAdded(messagesRef, (data) => {
                 const msg = data.val();
                 renderMessageToDOM(msg.text, msg.name, msg.avatar, msg.timestamp);
             });
+
+            // Listen for Admin Purge (If database is emptied, clear the screen)
+            onValue(messagesRef, (snapshot) => {
+                if (!snapshot.exists()) {
+                    stream.innerHTML = '';
+                }
+            });
         }
 
         function renderMessageToDOM(text, name, avatar, timestamp) {
-            const date = new Date(timestamp);
-            const timeStr = `[ ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')} ]`;
-            
+            const date = new Date(timestamp), timeStr = `[ ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')} ]`;
             const splitText = text.split('').map(char => char === ' ' ? '&nbsp;' : `<span class="tx-char">${char}</span>`).join('');
-            
-            const msgBlock = document.createElement('div');
-            msgBlock.className = 'tx-wrapper'; // Removed anomaly for global sync consistency, but can be added back locally
-            
-            msgBlock.innerHTML = `
-                <div class="tx-physics-body" style="animation: liquid-drift ${12 + Math.random() * 8}s ease-in-out ${Math.random() * -15}s infinite alternate;">
-                    <div class="tx-header">
-                        <div class="tx-avatar-display">${avatar}</div>
-                        <div class="tx-meta"><span class="tx-name">${name}</span> // ${timeStr}</div>
-                    </div>
-                    <div class="tx-content-container">${splitText}</div>
-                </div>`;
-            
+            const msgBlock = document.createElement('div'); msgBlock.className = 'tx-wrapper'; 
+            msgBlock.innerHTML = `<div class="tx-physics-body" style="animation: liquid-drift ${12 + Math.random() * 8}s ease-in-out ${Math.random() * -15}s infinite alternate;"><div class="tx-header"><div class="tx-avatar-display">${avatar}</div><div class="tx-meta"><span class="tx-name">${name}</span> // ${timeStr}</div></div><div class="tx-content-container">${splitText}</div></div>`;
             stream.appendChild(msgBlock);
             if (isSystemAwake) playEtherealChime();
-            
-            // Auto scroll to bottom
             chatScroller.scrollTo({ top: chatScroller.scrollHeight, behavior: 'smooth' });
         }
 
-        const hiddenInput = document.getElementById('hidden-void-input');
-        const displayDiv = document.getElementById('custom-input-display');
-        const placeholder = document.getElementById('placeholder-text');
-        const membrane = document.getElementById('membrane-container');
+        const hiddenInput = document.getElementById('hidden-void-input'), displayDiv = document.getElementById('custom-input-display'), placeholder = document.getElementById('placeholder-text'), membrane = document.getElementById('membrane-container');
         let lastInputVal = "";
 
         membrane.addEventListener('click', () => { if(!hiddenInput.disabled) hiddenInput.focus(); });
-
         hiddenInput.addEventListener('input', (e) => {
-            const val = e.target.value;
-            placeholder.style.opacity = val.length > 0 ? '0' : '1'; displayDiv.innerHTML = '';
+            const val = e.target.value; placeholder.style.opacity = val.length > 0 ? '0' : '1'; displayDiv.innerHTML = '';
             for(let i=0; i<val.length; i++) { const char = val[i] === ' ' ? '&nbsp;' : val[i], isNewChar = (i === val.length - 1 && val.length > lastInputVal.length); displayDiv.innerHTML += `<span class="type-char ${isNewChar ? 'fade-in' : ''}">${char}</span>`; }
             displayDiv.innerHTML += `<span class="blinking-cursor"></span>`; lastInputVal = val;
         });
@@ -349,34 +407,82 @@
             if (e.key === 'Enter' && this.value.trim() !== '') {
                 const rawText = this.value; this.value = ''; lastInputVal = '';
                 displayDiv.innerHTML = '<span class="blinking-cursor"></span>'; placeholder.style.opacity = '1';
-                
-                // PUSH TO DATABASE instead of just rendering locally
-                push(ref(db, 'messages'), {
-                    text: rawText,
-                    name: activeUserName,
-                    avatar: activeAvatarSVG,
-                    timestamp: Date.now()
-                });
+                push(messagesRef, { text: rawText, name: activeUserName, avatar: activeAvatarSVG, timestamp: Date.now() });
             }
+        });
+
+        // --- THE GATEKEEPER: ADMIN PANEL ---
+        const adminTrigger = document.getElementById('admin-trigger');
+        const adminOverlay = document.getElementById('admin-overlay');
+        const gateKeyInput = document.getElementById('gate-key-input');
+        const gateEntry = document.getElementById('gate-entry');
+        const adminControls = document.getElementById('admin-controls');
+        
+        // Buttons
+        const btnPurgeMsg = document.getElementById('btn-purge-msg');
+        const btnPurgeUsers = document.getElementById('btn-purge-users');
+        const btnCloseAdmin = document.getElementById('btn-close-admin');
+
+        // Open Gate Overlay
+        adminTrigger.addEventListener('click', (e) => {
+            e.preventDefault();
+            adminOverlay.style.display = 'flex';
+            hiddenInput.disabled = true; // Lock chat input
+            setTimeout(() => { 
+                adminOverlay.style.opacity = '1'; 
+                gateKeyInput.focus();
+            }, 50);
+        });
+
+        // Secret Password Check
+        gateKeyInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                if (gateKeyInput.value.toLowerCase() === 'close') {
+                    // Password Accepted: Show Controls
+                    gateEntry.style.display = 'none';
+                    adminControls.style.display = 'flex';
+                } else {
+                    // Password Failed
+                    gateKeyInput.value = '';
+                    gateKeyInput.style.borderColor = '#ff3333';
+                    setTimeout(() => { gateKeyInput.style.borderColor = 'rgba(255,255,255,0.1)'; }, 500);
+                }
+            }
+        });
+
+        // Purge Functions
+        btnPurgeMsg.addEventListener('click', () => {
+            remove(messagesRef).then(() => {
+                btnPurgeMsg.innerText = "[ TRANSMISSIONS DESTROYED ]";
+                setTimeout(() => { btnPurgeMsg.innerText = "[ PURGE ALL TRANSMISSIONS ]"; }, 2000);
+            });
+        });
+
+        btnPurgeUsers.addEventListener('click', () => {
+            remove(ref(db, 'users')).then(() => {
+                btnPurgeUsers.innerText = "[ IDENTITIES VAPORIZED ]";
+                setTimeout(() => { btnPurgeUsers.innerText = "[ PURGE ALL IDENTITIES ]"; }, 2000);
+            });
+        });
+
+        // Close Admin Panel
+        btnCloseAdmin.addEventListener('click', () => {
+            adminOverlay.style.opacity = '0';
+            setTimeout(() => { 
+                adminOverlay.style.display = 'none'; 
+                gateEntry.style.display = 'block'; // Reset for next time
+                adminControls.style.display = 'none';
+                gateKeyInput.value = '';
+                hiddenInput.disabled = false;
+                hiddenInput.focus();
+            }, 500);
         });
 
         // --- AUDIO ENGINE ---
         let audioCtx; let isDronePlaying = false;
-        function initAudioSystemWake() {
-            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            const dropOsc = audioCtx.createOscillator(), dropGain = audioCtx.createGain(); dropOsc.type = 'sine'; dropOsc.frequency.setValueAtTime(200, audioCtx.currentTime); dropOsc.frequency.exponentialRampToValueAtTime(20, audioCtx.currentTime + 2); dropGain.gain.setValueAtTime(1, audioCtx.currentTime); dropGain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 3); dropOsc.connect(dropGain); dropGain.connect(audioCtx.destination); dropOsc.start(); dropOsc.stop(audioCtx.currentTime + 3);
-            startBreathingDrone();
-        }
-        function startBreathingDrone() {
-            if (!isDronePlaying && audioCtx) {
-                const droneGain = audioCtx.createGain(); droneGain.gain.value = 0.02; const filter = audioCtx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.value = 150; const osc1 = audioCtx.createOscillator(); osc1.type = 'sine'; osc1.frequency.value = 43.65; const osc2 = audioCtx.createOscillator(); osc2.type = 'triangle'; osc2.frequency.value = 44.10; const lfo = audioCtx.createOscillator(); lfo.type = 'sine'; lfo.frequency.value = 0.04; const lfoGain = audioCtx.createGain(); lfoGain.gain.value = 0.015; 
-                lfo.connect(lfoGain); lfoGain.connect(droneGain.gain); osc1.connect(filter); osc2.connect(filter); filter.connect(droneGain); droneGain.connect(audioCtx.destination); osc1.start(); osc2.start(); lfo.start(); isDronePlaying = true;
-            }
-        }
-        function playEtherealChime() {
-            if (!audioCtx) return; const osc = audioCtx.createOscillator(), gainNode = audioCtx.createGain(), filter = audioCtx.createBiquadFilter(); osc.type = 'sine'; osc.frequency.setValueAtTime(70 + Math.random() * 40, audioCtx.currentTime); filter.type = 'lowpass'; filter.frequency.setValueAtTime(300, audioCtx.currentTime); gainNode.gain.setValueAtTime(0, audioCtx.currentTime); gainNode.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + 1.2); gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 8.0); osc.connect(filter); filter.connect(gainNode); gainNode.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 8.0);
-        }
+        function initAudioSystemWake() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); if (audioCtx.state === 'suspended') audioCtx.resume(); const dropOsc = audioCtx.createOscillator(), dropGain = audioCtx.createGain(); dropOsc.type = 'sine'; dropOsc.frequency.setValueAtTime(200, audioCtx.currentTime); dropOsc.frequency.exponentialRampToValueAtTime(20, audioCtx.currentTime + 2); dropGain.gain.setValueAtTime(1, audioCtx.currentTime); dropGain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 3); dropOsc.connect(dropGain); dropGain.connect(audioCtx.destination); dropOsc.start(); dropOsc.stop(audioCtx.currentTime + 3); startBreathingDrone(); }
+        function startBreathingDrone() { if (!isDronePlaying && audioCtx) { const droneGain = audioCtx.createGain(); droneGain.gain.value = 0.02; const filter = audioCtx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.value = 150; const osc1 = audioCtx.createOscillator(); osc1.type = 'sine'; osc1.frequency.value = 43.65; const osc2 = audioCtx.createOscillator(); osc2.type = 'triangle'; osc2.frequency.value = 44.10; const lfo = audioCtx.createOscillator(); lfo.type = 'sine'; lfo.frequency.value = 0.04; const lfoGain = audioCtx.createGain(); lfoGain.gain.value = 0.015; lfo.connect(lfoGain); lfoGain.connect(droneGain.gain); osc1.connect(filter); osc2.connect(filter); filter.connect(droneGain); droneGain.connect(audioCtx.destination); osc1.start(); osc2.start(); lfo.start(); isDronePlaying = true; } }
+        function playEtherealChime() { if (!audioCtx) return; const osc = audioCtx.createOscillator(), gainNode = audioCtx.createGain(), filter = audioCtx.createBiquadFilter(); osc.type = 'sine'; osc.frequency.setValueAtTime(70 + Math.random() * 40, audioCtx.currentTime); filter.type = 'lowpass'; filter.frequency.setValueAtTime(300, audioCtx.currentTime); gainNode.gain.setValueAtTime(0, audioCtx.currentTime); gainNode.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + 1.2); gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 8.0); osc.connect(filter); filter.connect(gainNode); gainNode.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 8.0); }
 
         // --- BACKGROUND EFFECTS ---
         const grainCanvas = document.getElementById('lo-fi-grain'); const gCtx = grainCanvas.getContext('2d', { alpha: false }); let grainCache = null;
