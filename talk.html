@@ -25,7 +25,6 @@
         #lo-fi-grain { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 9999; opacity: 0.035; mix-blend-mode: overlay; }
         #void-dust { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 0; pointer-events: none; opacity: 0.85; }
 
-        /* --- OVERHAULED ABORT TRIGGER --- */
         .lobby-back {
             position: absolute; top: 40px; left: 40px; font-family: var(--mono-font);
             font-size: 0.8rem; color: rgba(255,255,255,0.6); letter-spacing: 4px;
@@ -125,18 +124,20 @@
         .sigil:hover { color: #ff3333; text-shadow: 0 0 15px #ff3333; }
         .vertical-marker { transform: rotate(-90deg); white-space: nowrap; font-size: 0.55rem; color: rgba(255, 255, 255, 0.15); letter-spacing: 8px; text-transform: uppercase;}
 
+        /* UPDATED: Height restricted to calc(100vh - 120px) to physically stop overlapping the text box */
         .void-nave { 
             display: flex; 
             flex-direction: column; 
             justify-content: flex-start; 
-            padding: 10vh 15vw 15vh 15vw; 
+            padding: 10vh 15vw 0 15vw; 
+            height: calc(100vh - 120px);
             position: relative; 
             overflow-y: auto; 
             overflow-x: hidden; 
             scrollbar-width: thin; 
             scrollbar-color: var(--ash) transparent;
-            -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%); 
-            mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%); 
+            -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 10%, black 90%, transparent 100%); 
+            mask-image: linear-gradient(to bottom, transparent 0%, black 10%, black 90%, transparent 100%); 
         }
 
         .void-nave::-webkit-scrollbar { 
@@ -154,12 +155,12 @@
             background: var(--pure-light); 
         }
 
-        /* UPDATED: Increased padding-bottom to 160px so last message stays above the input bar */
+        /* UPDATED: Gap reduced to 35px to bring transmissions closer together */
         .message-stream { 
             display: flex; 
             flex-direction: column; 
-            gap: 60px; 
-            padding-bottom: 160px; 
+            gap: 35px; 
+            padding-bottom: 40px; 
             width: 100%; 
             min-height: 100%; 
             justify-content: flex-start; 
@@ -192,15 +193,19 @@
         #live-name-slot { font-size: 0.6rem; color: var(--pure-light); letter-spacing: 2px; text-transform: uppercase; }
 
         #hidden-void-input { position: absolute; opacity: 0; pointer-events: none; }
+        
+        /* NEW: Input Wrapper to control placeholder physics natively */
+        #input-text-wrapper { position: relative; display: flex; flex-grow: 1; align-items: center; }
         #custom-input-display { font-family: var(--serif-font); font-style: italic; font-size: 1.6rem; color: var(--pure-light); letter-spacing: 1px; display: flex; flex-wrap: wrap; flex-grow: 1; }
         
-        /* UPDATED: Brutalist placeholder text styling */
+        /* UPDATED: Absolute positioning forced to 0 within the new wrapper */
         .input-placeholder { 
             color: rgba(255,255,255,0.15); 
             font-family: var(--mono-font); 
             font-size: 0.75rem; 
             letter-spacing: 4px;
             position: absolute; 
+            left: 0;
             pointer-events: none; 
             transition: opacity 0.3s; 
             text-transform: uppercase;
@@ -212,10 +217,9 @@
         .blinking-cursor { display: inline-block; width: 8px; height: 2px; background-color: var(--pure-light); margin-left: 4px; margin-top: auto; margin-bottom: 4px; animation: blink 1s infinite steps(2); box-shadow: 0 0 5px var(--pure-light); }
         @keyframes blink { 0% { opacity: 1; } 100% { opacity: 0; } }
 
-        /* NEW: Global Typing Indicator Styling */
         #global-typing-indicator {
             position: absolute;
-            bottom: 85px;
+            bottom: 95px;
             left: 15vw;
             font-family: var(--mono-font);
             font-size: 0.6rem;
@@ -319,7 +323,6 @@
             <div class="message-stream" id="stream"></div>
         </div>
 
-        <!-- NEW: Typing Indicator Node -->
         <div id="global-typing-indicator">[ SIGNAL INCOMING... ]</div>
         
         <div class="input-membrane" id="membrane-container">
@@ -327,15 +330,18 @@
                 <div id="live-avatar-slot"></div>
                 <div id="live-name-slot"></div>
             </div>
-            <!-- UPDATED: Stylized Brutalist Placeholder -->
-            <div class="input-placeholder" id="placeholder-text">[ TYPE YOUR MESSAGE... ]</div>
-            <div id="custom-input-display"><span class="blinking-cursor"></span></div>
+            
+            <!-- NEW WRAPPER: Encapsulates both text elements to fix the spacing glitch -->
+            <div id="input-text-wrapper">
+                <div class="input-placeholder" id="placeholder-text">[ TYPE YOUR MESSAGE... ]</div>
+                <div id="custom-input-display"><span class="blinking-cursor"></span></div>
+            </div>
+            
             <input type="text" id="hidden-void-input" autocomplete="off" disabled>
         </div>
     </div>
 
     <script type="module">
-        // UPDATED: Added onDisconnect import for typing system
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, set, get, push, onChildAdded, remove, onValue, onDisconnect } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
@@ -396,11 +402,10 @@
         });
 
         let activeAvatarSVG = ''; let activeUserName = '';
-        let currentUID = null; // Stored for typing mechanics
+        let currentUID = null; 
         let isLoginMode = false; 
         let isAudioEnabled = true;
         
-        // Typing Status Variables
         let typingRef = null;
         let isTyping = false;
         let typingTimeout = null;
@@ -576,17 +581,14 @@
             document.getElementById('live-avatar-slot').innerHTML = activeAvatarSVG;
             document.getElementById('live-name-slot').innerHTML = activeUserName === 'SYNT' ? `<span class="tx-name architect">SYNT</span>` : activeUserName;
 
-            // Updated Placeholder Handling logic to maintain strict formatting structure
-            document.getElementById('placeholder-text').style.left = 'auto';
-            document.getElementById('placeholder-text').style.position = 'relative';
+            // REMOVED old positioning overrides here to fix placeholder gap glitch
 
             document.getElementById('ethereal-wave').classList.add('active');
             document.getElementById('main-interface').classList.add('active');
 
-            // Initialize Typing Status Network
             if (currentUID) {
                 typingRef = ref(db, `typing/${currentUID}`);
-                onDisconnect(typingRef).remove(); // Clear on exit
+                onDisconnect(typingRef).remove(); 
                 
                 const globalTypingRef = ref(db, 'typing');
                 const typingIndicator = document.getElementById('global-typing-indicator');
@@ -698,7 +700,6 @@
             displayDiv.innerHTML += `<span class="blinking-cursor"></span>`; 
             lastInputVal = val;
 
-            // Typing System Detection
             if (val.length > 0) {
                 if (!isTyping && typingRef) {
                     isTyping = true;
@@ -721,7 +722,6 @@
                 displayDiv.innerHTML = '<span class="blinking-cursor"></span>'; placeholder.style.opacity = '1';
                 push(messagesRef, { text: rawText, name: activeUserName, avatar: activeAvatarSVG, timestamp: Date.now() });
                 
-                // Clear typing indicator upon transmission sent
                 isTyping = false;
                 if(typingRef) remove(typingRef);
             }
