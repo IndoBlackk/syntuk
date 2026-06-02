@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title> T A L K </title>
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23020202'/%3E%3Cpath d='M4,6 H28 V22 H18 L12,28 V22 H4 Z' fill='none' stroke='%23ffffff' stroke-width='2'/%3E%3Cpath d='M9,11 L13,14 L9,17' fill='none' stroke='%23ffffff' stroke-width='2'/%3E%3Crect x='15' y='16' width='6' height='2' fill='%23ffffff'/%3E%3C/svg%3E">
+    <!-- SYNT TALK FAVICON -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23020202'/%3E%3Cpath d='M4,6 H28 V22 H18 L12,28 V22 H4 Z' fill='none' stroke='%23ffffff' stroke-width='2'/%3E%3Cpath d='M9,11 L13,14 L9,17' fill='none' stroke='%23ffffff' stroke-width='2'/%3E%3Crect x='15' y='16' width='6' height='2' fill='%23ffffff'/%3E%3C/svg%3E">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,300;1,400&family=Space+Mono:wght@400&display=swap');
 
@@ -109,16 +110,23 @@
 
         .left-axis { border-right: 1px solid var(--ghost); display: flex; flex-direction: column; justify-content: space-between; padding: 40px 0; align-items: center; }
         
-        .axis-controls { display: flex; flex-direction: column; gap: 40px; align-items: center; margin-bottom: 20px;}
+        /* UPDATED: Increased gap to prevent rotated buttons from overlapping */
+        .axis-controls { display: flex; flex-direction: column; gap: 100px; align-items: center; margin-bottom: 20px;}
         .axis-btn { transform: rotate(-90deg); white-space: nowrap; font-size: 0.55rem; color: rgba(255, 255, 255, 0.3); letter-spacing: 6px; text-transform: uppercase; transition: color 0.3s; }
         .axis-btn:hover { color: var(--pure-light); text-shadow: 0 0 10px var(--pure-light); }
-        .axis-btn.danger:hover { color: #ff3333; text-shadow: 0 0 10px #ff3333; }
+        
+        /* UPDATED: Bolder and brighter exit button styling */
+        .axis-btn.danger {
+            color: #ff5555; 
+            font-weight: bold;
+            text-shadow: 0 0 8px rgba(255, 51, 51, 0.4);
+        }
+        .axis-btn.danger:hover { color: #ff1111; text-shadow: 0 0 15px #ff1111; }
 
         .sigil { font-family: var(--serif-font); font-style: italic; font-size: 1.8rem; color: rgba(255,255,255,0.3); text-decoration: none; transition: all 1s ease; }
         .sigil:hover { color: #ff3333; text-shadow: 0 0 15px #ff3333; }
         .vertical-marker { transform: rotate(-90deg); white-space: nowrap; font-size: 0.55rem; color: rgba(255, 255, 255, 0.15); letter-spacing: 8px; text-transform: uppercase;}
 
-        /* UPDATED: void-nave with active scrollbar properties */
         .void-nave { 
             display: flex; 
             flex-direction: column; 
@@ -133,7 +141,6 @@
             mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%); 
         }
 
-        /* NEW: Brutalist Geometric Scrollbar */
         .void-nave::-webkit-scrollbar { 
             width: 6px; 
         }
@@ -149,7 +156,6 @@
             background: var(--pure-light); 
         }
 
-        /* UPDATED: message-stream with fixed scrolling */
         .message-stream { 
             display: flex; 
             flex-direction: column; 
@@ -251,7 +257,7 @@
                 <input type="text" class="auth-input" id="auth-name" placeholder="DISPLAY NAME" autocomplete="off">
             </div>
 
-            <div class="auth-btn" id="btn-auth-submit">[ SIGN UP ]</div>
+            <div class="auth-btn" id="btn-auth-submit">[ INITIATE ]</div>
             
             <div class="auth-btn" id="btn-auth-reset" style="display: none; margin-top: 10px; background: transparent; color: rgba(255,255,255,0.3); border-color: rgba(255,255,255,0.3);">[ FORGOT PASSWORD? ]</div>
         </div>
@@ -537,8 +543,9 @@
         const btnExit = document.getElementById('btn-exit-relay');
         const btnAudio = document.getElementById('btn-toggle-audio');
 
+        // UPDATED: Redirects to index.html instead of reloading
         btnExit.addEventListener('click', () => {
-            signOut(auth).then(() => { window.location.reload(); });
+            signOut(auth).then(() => { window.location.href = 'index.html'; });
         });
 
         btnAudio.addEventListener('click', () => {
