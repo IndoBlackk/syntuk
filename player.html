@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title> S O U N D </title>
-    <!-- TRACKS FAVICON -->
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23020202'/%3E%3Crect x='5' y='16' width='4' height='10' fill='%23ffffff'/%3E%3Crect x='11' y='8' width='4' height='18' fill='%23ffffff'/%3E%3Crect x='17' y='12' width='4' height='14' fill='%23ffffff'/%3E%3Crect x='23' y='18' width='4' height='8' fill='%23ffffff'/%3E%3C/svg%3E">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23020202'/%3E%3Crect x='5' y='16' width='4' height='10' fill='%23ffffff'/%3E%3Crect x='11' y='8' width='4' height='18' fill='%23ffffff'/%3E%3Crect x='17' y='12' width='4' height='14' fill='%23ffffff'/%3E%3Crect x='23' y='18' width='4' height='8' fill='%23ffffff'/%3E%3C/svg%3E">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,400;1,600&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
 
@@ -45,7 +44,7 @@
             pointer-events: none; z-index: 9999; opacity: 0.05; mix-blend-mode: overlay;
         }
 
-        /* --- 3D GEOMETRIC CURSOR --- */
+        /* --- 3D GEOMETRIC AUDIO CURSOR --- */
         #cursor-wrapper {
             position: fixed; top: 0; left: 0; width: 30px; height: 30px;
             pointer-events: none; z-index: 10000;
@@ -54,28 +53,29 @@
         }
 
         #geo-cursor {
-            width: 100%; height: 100%;
+            width: 24px; height: 24px;
+            display: flex; gap: 4px; align-items: center; justify-content: center;
             transform-style: preserve-3d;
-            animation: slowSpin 6s linear infinite;
-            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        .cursor-ring {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            border-radius: 50%;
+        .cursor-bar {
+            width: 2px; height: 100%;
+            background-color: rgba(255, 255, 255, 0.4);
+            animation: waveOscillate 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite alternate;
         }
 
-        .cursor-ring:nth-child(2) { transform: rotateX(60deg) rotateY(45deg); border-radius: 0; }
-        .cursor-ring:nth-child(3) { transform: rotateX(-60deg) rotateY(-45deg); border-radius: 0; }
+        .cursor-bar:nth-child(1) { animation-delay: 0.0s; height: 60%; }
+        .cursor-bar:nth-child(2) { animation-delay: 0.3s; height: 100%; }
+        .cursor-bar:nth-child(3) { animation-delay: 0.6s; height: 60%; }
 
-        .hovering #geo-cursor { transform: scale(1.5); }
-        .hovering .cursor-ring { border-color: var(--pure-light); box-shadow: 0 0 8px rgba(255,255,255,0.4); }
-        .clicking #geo-cursor { transform: scale(0.6) rotate(45deg); animation-duration: 1s; }
+        .hovering #geo-cursor { transform: scale(1.5) rotate(90deg); }
+        .hovering .cursor-bar { background-color: var(--pure-light); box-shadow: 0 0 8px rgba(255,255,255,0.6); animation-duration: 0.6s; }
+        .clicking #geo-cursor { transform: scale(0.8) rotate(-45deg); }
 
-        @keyframes slowSpin {
-            0% { transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg); }
-            100% { transform: rotateX(360deg) rotateY(360deg) rotateZ(360deg); }
+        @keyframes waveOscillate {
+            0% { transform: scaleY(0.3); }
+            100% { transform: scaleY(1); }
         }
 
         /* --- BRUTALIST UI ARCHITECTURE --- */
@@ -131,7 +131,7 @@
 
         .wave-bar {
             flex: 1; background-color: var(--ghost); border-radius: 1px;
-            transition: background-color 0.1s, height 0.2s ease;
+            transition: background-color 0.1s, height 0.4s cubic-bezier(0.16, 1, 0.3, 1);
             transform-origin: bottom; pointer-events: none;
         }
 
@@ -144,12 +144,29 @@
         .volume-wrapper:hover .volume-icon { color: var(--pure-light); text-shadow: 0 0 5px rgba(255,255,255,0.5); }
         
         .volume-dropdown { 
-            position: absolute; bottom: 35px; left: 50%; transform: translateX(-50%); 
-            width: 30px; height: 100px; background: var(--void); border: 1px solid rgba(255,255,255,0.2); 
-            display: flex; align-items: center; justify-content: center; 
-            opacity: 0; pointer-events: none; transition: opacity 0.2s, bottom 0.2s; padding: 10px 0; 
+            position: absolute; 
+            bottom: 30px; 
+            left: 50%; 
+            transform: translateX(-50%) translateY(10px); 
+            width: 30px; 
+            height: 110px; 
+            background: var(--void); 
+            border: 1px solid rgba(255,255,255,0.2); 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            opacity: 0; 
+            visibility: hidden; 
+            transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.3s;
+            padding-bottom: 10px; 
         }
-        .volume-wrapper:hover .volume-dropdown { opacity: 1; pointer-events: auto; bottom: 40px; }
+        
+        .volume-wrapper:hover .volume-dropdown,
+        .volume-dropdown:hover { 
+            opacity: 1; 
+            visibility: visible;
+            transform: translateX(-50%) translateY(0); 
+        }
         
         .vol-track-bg { width: 4px; height: 100%; background: var(--ghost); position: relative; cursor: pointer; }
         .vol-fill { position: absolute; bottom: 0; left: 0; width: 100%; height: 100%; background: var(--pure-light); box-shadow: 0 0 5px var(--pure-light); pointer-events: none; }
@@ -192,11 +209,13 @@
             .right-cloisters { height: auto; padding: 40px 20px; background: #000;}
             .center-nave { padding: 40px 20px; }
             body { overflow: auto; cursor: auto;}
-            #cursor-wrapper, #lo-fi-grain, #visual-engine { display: none; }
+            #cursor-wrapper, #lo-fi-grain, #visual-engine, #strobe-layer { display: none; }
         }
     </style>
 </head>
 <body>
+
+    <div id="strobe-layer" style="position:fixed; top:0; left:0; width:100vw; height:100vh; background: var(--pure-light); mix-blend-mode: exclusion; opacity: 0; pointer-events: none; z-index: 9998;"></div>
 
     <audio id="audio-source" crossorigin="anonymous"></audio>
 
@@ -208,9 +227,9 @@
     
     <div id="cursor-wrapper">
         <div id="geo-cursor">
-            <div class="cursor-ring"></div>
-            <div class="cursor-ring"></div>
-            <div class="cursor-ring"></div>
+            <div class="cursor-bar"></div>
+            <div class="cursor-bar"></div>
+            <div class="cursor-bar"></div>
         </div>
     </div>
 
@@ -334,20 +353,33 @@
             el.addEventListener('mouseleave', () => cursorWrapper.classList.remove('hovering'));
         });
 
-        // --- 3. WAVEFORM GENERATOR ---
+        // --- 3. GENERATIVE WAVEFORM SYSTEM ---
         const waveformBg = document.getElementById('waveform-bg');
         const numBars = 80; 
         const bars = [];
         
+        // Build the DOM elements once
         for(let i=0; i<numBars; i++) {
             const bar = document.createElement('div');
             bar.classList.add('wave-bar');
-            // Generate a random aesthetic sine-like height
-            const pseudoHeight = Math.abs(Math.sin(i * 0.2)) * 60 + Math.random() * 40;
-            bar.style.height = `${Math.max(10, pseudoHeight)}%`;
             waveformBg.appendChild(bar);
             bars.push(bar);
         }
+
+        // Procedurally generate a unique looking waveform based on a track index
+        function generateProceduralWaveform(seed) {
+            bars.forEach((bar, i) => {
+                // Mix sine waves with the seed to create structural variance
+                const structuralNoise = Math.sin(i * 0.15 + seed) * Math.cos(i * 0.25 - seed * 2);
+                const digitalGrit = Math.random() * 15; 
+                const pseudoHeight = Math.abs(structuralNoise) * 75 + digitalGrit;
+                
+                bar.style.height = `${Math.max(10, pseudoHeight)}%`;
+            });
+        }
+        
+        // Initialize with default look
+        generateProceduralWaveform(0);
 
         // --- 4. AUDIO ENGINE & PULSE LOGIC ---
         const audioEl = document.getElementById('audio-source');
@@ -407,6 +439,9 @@
             isDecoupling = true;
             decoupleIntensity = 1.0; 
             displayTitle.style.opacity = 0; 
+            
+            // Re-generate the UI waveform based on track number to make it unique
+            generateProceduralWaveform(parseInt(index));
             
             decoupleFilter.frequency.setTargetAtTime(300, audioCtx.currentTime, 0.1);
 
@@ -483,7 +518,7 @@
             }
         });
 
-        // --- 5. VISUAL RENDER LOOP (RESTRICTED SIZES) ---
+        // --- 5. VISUAL RENDER LOOP ---
         function renderVisualizer() {
             if (!isPlaying && !isDecoupling) return;
             animationFrameId = requestAnimationFrame(renderVisualizer);
@@ -498,17 +533,37 @@
             let bassSum = 0; for(let i = 0; i < 6; i++) bassSum += dataArray[i];
             const bassAvg = bassSum / 6;
 
-            // Restrict bounds so it never scales infinitely off-screen
             const maxRadius = Math.min(window.innerWidth, window.innerHeight) * 0.35;
 
-            // --- KINETIC PULSE LOGIC (Replaces annoying strobes) ---
+            // --- KINETIC PULSE LOGIC (Isolated Kick Drum) ---
             if (pulseEnabled) {
                 const now = Date.now();
-                if (bassAvg > 210 && (now - lastPulseTime > 300)) { 
-                    // Subtle monochrome flash mapping to beat
-                    document.body.style.backgroundColor = 'rgba(30, 30, 30, 1)';
+                
+                // Isolate sub/kick frequencies
+                let kickSum = dataArray[1] + dataArray[2] + dataArray[3]; 
+                const kickAvg = kickSum / 3;
+
+                // Stricter threshold and debounce for massive hits
+                if (kickAvg > 240 && (now - lastPulseTime > 450)) { 
                     lastPulseTime = now;
-                    setTimeout(() => { document.body.style.backgroundColor = 'var(--void)'; }, 100);
+                    
+                    const strobeLayer = document.getElementById('strobe-layer');
+                    
+                    strobeLayer.style.transition = 'none';
+                    strobeLayer.style.opacity = '1';
+                    
+                    document.body.style.transition = 'none';
+                    document.body.style.transform = 'scale(1.003)';
+
+                    requestAnimationFrame(() => {
+                        requestAnimationFrame(() => {
+                            strobeLayer.style.transition = 'opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1)';
+                            strobeLayer.style.opacity = '0';
+                            
+                            document.body.style.transition = 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)';
+                            document.body.style.transform = 'scale(1)';
+                        });
+                    });
                 }
             }
 
@@ -527,7 +582,7 @@
                 const numNodes = 80;
                 const phi = Math.PI * (3 - Math.sqrt(5)); 
                 const baseRadius = 180 + (bassAvg * 0.4);
-                const radius = Math.min(baseRadius, maxRadius); // Boundary check
+                const radius = Math.min(baseRadius, maxRadius); 
                 const time = Date.now() * 0.0005;
 
                 for (let i = 0; i < numNodes; i++) {
@@ -588,7 +643,7 @@
                 for(let i = 0; i < numPillars; i++) {
                     const val = dataArray[i * 2] / 255; 
                     const heightRaw = 10 + Math.pow(val, 2) * 200;
-                    const height = Math.min(heightRaw, maxRadius * 1.5); // Cap vertical height
+                    const height = Math.min(heightRaw, maxRadius * 1.5); 
                     const angle = (i / numPillars) * Math.PI * 2 + time;
                     
                     const x3d = Math.cos(angle) * radius;
@@ -615,7 +670,7 @@
             else if (currentVisMode === 3) {
                 const time = Date.now() * 0.0005;
                 const baseSize = 160 + (bassAvg * 0.2); 
-                const size = Math.min(baseSize, maxRadius); // Boundary check
+                const size = Math.min(baseSize, maxRadius); 
                 
                 const nodes = [];
                 for(let i=0; i<8; i++) {
@@ -648,7 +703,7 @@
             visCtx.setLineDash([]);
         }
 
-        // --- 6. ADVANCED SCRUBBER & VOLUME UI FIXES ---
+        // --- 6. ADVANCED SCRUBBER & VOLUME UI ---
         const currentTimeEl = document.getElementById('current-time');
         const durationEl = document.getElementById('duration');
         
@@ -664,7 +719,6 @@
 
         audioEl.addEventListener('loadedmetadata', () => { durationEl.innerText = formatTime(audioEl.duration); });
         
-        // Scrubbing State
         let isScrubbing = false;
         
         waveformBg.addEventListener('mousedown', (e) => { isScrubbing = true; scrubTimeline(e); });
@@ -706,10 +760,7 @@
             if(animationFrameId) cancelAnimationFrame(animationFrameId);
         });
 
-        // Fixed Volume Logic
         let isVolDragging = false;
-        
-        // Initialize volume visually to max
         audioEl.volume = 1;
         
         volTrack.addEventListener('mousedown', (e) => { isVolDragging = true; scrubVolume(e); });
