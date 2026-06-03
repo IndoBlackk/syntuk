@@ -40,8 +40,8 @@
         }
 
         #lo-fi-grain {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            pointer-events: none; z-index: 9999; opacity: 0.05; mix-blend-mode: overlay;
+            position: fixed; top: 0; left: 0; pointer-events: none; 
+            z-index: 9999; opacity: 0.05; mix-blend-mode: overlay;
         }
 
         /* --- 3D GEOMETRIC AUDIO CURSOR --- */
@@ -162,7 +162,8 @@
         }
         
         .volume-wrapper:hover .volume-dropdown,
-        .volume-dropdown:hover { 
+        .volume-dropdown:hover,
+        .volume-dropdown.force-open { 
             opacity: 1; 
             visibility: visible;
             transform: translateX(-50%) translateY(0); 
@@ -307,16 +308,22 @@
     </div>
 
     <script>
-        // --- 1. SUBTLE B&W DUST ENGINE ---
+        // --- 1. SUBTLE B&W DUST ENGINE (WITH CLIPPING FIX) ---
         const grainCanvas = document.getElementById('lo-fi-grain');
         const grainCtx = grainCanvas.getContext('2d', { alpha: false });
         let noiseCacheCanvas = null;
         
         function initNoiseEngine() {
-            grainCanvas.width = window.innerWidth; grainCanvas.height = window.innerHeight;
+            // Add a 60px buffer zone to the canvas to prevent edge-clipping during jitter
+            const buffer = 60;
+            grainCanvas.width = window.innerWidth + buffer; 
+            grainCanvas.height = window.innerHeight + buffer;
+            grainCanvas.style.transform = `translate(-${buffer/2}px, -${buffer/2}px)`;
+
             const idata = grainCtx.createImageData(grainCanvas.width, grainCanvas.height);
             const buffer32 = new Uint32Array(idata.data.buffer);
             for (let i = 0; i < buffer32.length; i++) buffer32[i] = Math.random() < 0.04 ? 0xff000000 : 0xffffffff; 
+            
             noiseCacheCanvas = document.createElement('canvas');
             noiseCacheCanvas.width = grainCanvas.width; noiseCacheCanvas.height = grainCanvas.height;
             noiseCacheCanvas.getContext('2d').putImageData(idata, 0, 0);
@@ -358,7 +365,6 @@
         const numBars = 80; 
         const bars = [];
         
-        // Build the DOM elements once
         for(let i=0; i<numBars; i++) {
             const bar = document.createElement('div');
             bar.classList.add('wave-bar');
@@ -366,19 +372,15 @@
             bars.push(bar);
         }
 
-        // Procedurally generate a unique looking waveform based on a track index
         function generateProceduralWaveform(seed) {
             bars.forEach((bar, i) => {
-                // Mix sine waves with the seed to create structural variance
                 const structuralNoise = Math.sin(i * 0.15 + seed) * Math.cos(i * 0.25 - seed * 2);
                 const digitalGrit = Math.random() * 15; 
                 const pseudoHeight = Math.abs(structuralNoise) * 75 + digitalGrit;
-                
                 bar.style.height = `${Math.max(10, pseudoHeight)}%`;
             });
         }
         
-        // Initialize with default look
         generateProceduralWaveform(0);
 
         // --- 4. AUDIO ENGINE & PULSE LOGIC ---
@@ -440,7 +442,6 @@
             decoupleIntensity = 1.0; 
             displayTitle.style.opacity = 0; 
             
-            // Re-generate the UI waveform based on track number to make it unique
             generateProceduralWaveform(parseInt(index));
             
             decoupleFilter.frequency.setTargetAtTime(300, audioCtx.currentTime, 0.1);
@@ -539,12 +540,12 @@
             if (pulseEnabled) {
                 const now = Date.now();
                 
-                // Isolate sub/kick frequencies
-                let kickSum = dataArray[1] + dataArray[2] + dataArray[3]; 
-                const kickAvg = kickSum / 3;
+                // dataArray[1] sits right around 86Hz-170Hz on a 512 FFT. 
+                // This isolates the fast punch of a kick drum and ignores the rolling 0-80Hz sub-bass.
+                const kickEnergy = dataArray[1]; 
 
-                // Stricter threshold and debounce for massive hits
-                if (kickAvg > 240 && (now - lastPulseTime > 450)) { 
+                // Threshold raised to 245 for a much tighter, more intentional strobe flash
+                if (kickEnergy > 245 && (now - lastPulseTime > 400)) { 
                     lastPulseTime = now;
                     
                     const strobeLayer = document.getElementById('strobe-layer');
@@ -710,6 +711,7 @@
         const volTrack = document.getElementById('vol-track');
         const volFill = document.getElementById('vol-fill');
         const volHandle = document.getElementById('vol-handle');
+        const volDropdown = document.querySelector('.volume-dropdown');
 
         function formatTime(seconds) {
             if (isNaN(seconds)) return "0:00";
@@ -760,12 +762,28 @@
             if(animationFrameId) cancelAnimationFrame(animationFrameId);
         });
 
+        // --- FIXED VOLUME DRAG LOGIC ---
         let isVolDragging = false;
-        audioEl.volume = 1;
         
-        volTrack.addEventListener('mousedown', (e) => { isVolDragging = true; scrubVolume(e); });
-        window.addEventListener('mousemove', (e) => { if(isVolDragging) scrubVolume(e); });
-        window.addEventListener('mouseup', () => { isVolDragging = false; });
+        // Initialize Default Volume to 75%
+        audioEl.volume = 0.75;
+        volFill.style.height = `75%`;
+        volHandle.style.top = `25%`;
+        
+        volTrack.addEventListener('mousedown', (e) => { 
+            isVolDragging = true; 
+            volDropdown.classList.add('force-open'); // Locks the UI open while dragging
+            scrubVolume(e); 
+        });
+        
+        window.addEventListener('mousemove', (e) => { 
+            if(isVolDragging) scrubVolume(e); 
+        });
+        
+        window.addEventListener('mouseup', () => { 
+            isVolDragging = false; 
+            volDropdown.classList.remove('force-open');
+        });
 
         function scrubVolume(e) {
             const rect = volTrack.getBoundingClientRect();
