@@ -24,7 +24,9 @@
             background-color: var(--void); color: var(--ash);
             font-family: var(--mono-font); overflow: hidden;
             height: 100vh; width: 100vw; position: relative;
-            transition: background-color 0.1s ease-out;
+            /* Ultra-smooth return from scaling impacts */
+            transition: background-color 0.1s ease-out, transform 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+            transform-origin: center center;
         }
 
         /* --- VISUAL ENGINE --- */
@@ -36,12 +38,13 @@
 
         #visualizer-canvas {
             position: absolute; width: 100%; height: 100%;
-            filter: drop-shadow(0 0 5px rgba(255,255,255,0.3));
+            /* Adds a high-end bloom effect to the geometry */
+            filter: drop-shadow(0 0 8px rgba(255,255,255,0.4)) drop-shadow(0 0 20px rgba(255,255,255,0.1));
         }
 
         #lo-fi-grain {
             position: fixed; top: 0; left: 0; pointer-events: none; 
-            z-index: 9999; opacity: 0.05; mix-blend-mode: overlay;
+            z-index: 9999; opacity: 0.06; mix-blend-mode: overlay;
         }
 
         /* --- 3D GEOMETRIC AUDIO CURSOR --- */
@@ -118,7 +121,7 @@
             padding: 10px 20px; transition: all 0.3s; color: rgba(255,255,255,0.7);
         }
         .btn-toggle:hover { border-color: var(--pure-light); color: var(--pure-light); text-shadow: 0 0 5px rgba(255,255,255,0.5); }
-        .btn-toggle.active { background: var(--pure-light); color: var(--void); }
+        .btn-toggle.active { background: var(--pure-light); color: var(--void); font-weight: bold; }
 
         /* --- INTERACTIVE WAVEFORM SCRUBBER --- */
         .timeline-container { width: 100%; display: flex; align-items: center; gap: 20px; pointer-events: auto; }
@@ -131,11 +134,11 @@
 
         .wave-bar {
             flex: 1; background-color: var(--ghost); border-radius: 1px;
-            transition: background-color 0.1s, height 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: background-color 0.15s, height 0.5s cubic-bezier(0.19, 1, 0.22, 1);
             transform-origin: bottom; pointer-events: none;
         }
 
-        .wave-bar.filled { background-color: var(--pure-light); box-shadow: 0 0 5px rgba(255,255,255,0.4); }
+        .wave-bar.filled { background-color: var(--pure-light); box-shadow: 0 0 5px rgba(255,255,255,0.5); }
         .waveform-wrapper:hover .wave-bar { opacity: 0.8; }
 
         /* --- DROPDOWN VOLUME CONTROLLER --- */
@@ -174,7 +177,7 @@
         .vol-handle { position: absolute; top: 0; left: 50%; width: 12px; height: 4px; background: #fff; transform: translate(-50%, -50%); pointer-events: none; }
 
         /* --- DIRECTORY (PLAYLIST) --- */
-        .right-cloisters { border-right: none; padding: 60px 50px; justify-content: center; background: linear-gradient(to right, rgba(0,0,0,0), rgba(2,2,2,0.9)); }
+        .right-cloisters { border-right: none; padding: 60px 50px; justify-content: center; background: linear-gradient(to right, rgba(0,0,0,0), rgba(2,2,2,0.95)); }
         .section-header { font-size: 0.6rem; color: rgba(255, 255, 255, 0.3); letter-spacing: 4px; text-transform: uppercase; margin-bottom: 50px; }
         .directory-list { display: flex; flex-direction: column; gap: 0; border-top: 1px solid var(--ghost); }
 
@@ -193,7 +196,7 @@
 
         .dir-node:hover, .dir-node.active-track {
             color: var(--pure-light); padding-left: 15px; 
-            background: linear-gradient(90deg, rgba(255, 255, 255, 0.03) 0%, transparent 100%);
+            background: linear-gradient(90deg, rgba(255, 255, 255, 0.05) 0%, transparent 100%);
         }
         .dir-node:hover::before, .dir-node.active-track::before { opacity: 1; transform: translateX(0); }
         
@@ -201,7 +204,7 @@
         .dir-node:hover .dir-index, .dir-node.active-track .dir-index { color: var(--pure-light); }
         
         .dir-title { font-size: 1.1rem; font-weight: 700; letter-spacing: -0.5px; transition: letter-spacing 0.4s cubic-bezier(0.16, 1, 0.3, 1), text-shadow 0.3s; text-transform: uppercase; }
-        .dir-node:hover .dir-title, .dir-node.active-track .dir-title { letter-spacing: 2px; text-shadow: 0 0 8px rgba(255,255,255,0.3); }
+        .dir-node:hover .dir-title, .dir-node.active-track .dir-title { letter-spacing: 2px; text-shadow: 0 0 10px rgba(255,255,255,0.4); }
         .dir-spec { font-size: 0.55rem; margin-top: 6px; letter-spacing: 2px; text-transform: uppercase; opacity: 0.5; }
 
         @media (max-width: 1024px) {
@@ -216,7 +219,11 @@
 </head>
 <body>
 
-    <div id="strobe-layer" style="position:fixed; top:0; left:0; width:100vw; height:100vh; background: var(--pure-light); mix-blend-mode: exclusion; opacity: 0; pointer-events: none; z-index: 9998;"></div>
+    <div id="strobe-layer" style="
+        position:fixed; top:0; left:0; width:100vw; height:100vh; 
+        background: radial-gradient(circle at center, #ffffff 0%, rgba(255,255,255,0.8) 40%, rgba(0,0,0,1) 100%); 
+        mix-blend-mode: exclusion; opacity: 0; pointer-events: none; z-index: 9998;">
+    </div>
 
     <audio id="audio-source" crossorigin="anonymous"></audio>
 
@@ -249,15 +256,14 @@
                 <div class="current-title" id="display-title">SELECT TRACK</div>
                 <div class="controls-row">
                     <div class="btn-toggle interactive" id="play-btn">PLAY</div>
-                    <div class="btn-toggle interactive" id="sync-btn">SYNC PULSE: OFF</div>
+                    <div class="btn-toggle interactive" id="sync-btn">STR0.BE: OFF</div>
                 </div>
             </div>
 
             <div class="timeline-container" id="timeline">
                 <div class="time-display" id="current-time">0:00</div>
                 
-                <div class="waveform-wrapper interactive" id="waveform-bg">
-                    </div>
+                <div class="waveform-wrapper interactive" id="waveform-bg"></div>
                 
                 <div class="time-display" id="duration">0:00</div>
                 
@@ -314,8 +320,7 @@
         let noiseCacheCanvas = null;
         
         function initNoiseEngine() {
-            // Add a 60px buffer zone to the canvas to prevent edge-clipping during jitter
-            const buffer = 60;
+            const buffer = 80; // Large buffer so jitter never shows edges
             grainCanvas.width = window.innerWidth + buffer; 
             grainCanvas.height = window.innerHeight + buffer;
             grainCanvas.style.transform = `translate(-${buffer/2}px, -${buffer/2}px)`;
@@ -331,13 +336,13 @@
 
         function drawBlitNoise() {
             if (!noiseCacheCanvas) return;
-            const jitterX = Math.floor((Math.random() * 30) - 15);
-            const jitterY = Math.floor((Math.random() * 30) - 15);
+            const jitterX = Math.floor((Math.random() * 40) - 20);
+            const jitterY = Math.floor((Math.random() * 40) - 20);
             grainCtx.clearRect(0, 0, grainCanvas.width, grainCanvas.height);
             grainCtx.drawImage(noiseCacheCanvas, jitterX, jitterY);
         }
         window.addEventListener('resize', initNoiseEngine);
-        initNoiseEngine(); setInterval(drawBlitNoise, 60); 
+        initNoiseEngine(); setInterval(drawBlitNoise, 50); 
 
         // --- 2. 3D CURSOR PHYSICS ---
         const cursorWrapper = document.getElementById('cursor-wrapper');
@@ -383,7 +388,7 @@
         
         generateProceduralWaveform(0);
 
-        // --- 4. AUDIO ENGINE & PULSE LOGIC ---
+        // --- 4. AUDIO ENGINE & PHYSICS STATE ---
         const audioEl = document.getElementById('audio-source');
         const visCanvas = document.getElementById('visualizer-canvas');
         const visCtx = visCanvas.getContext('2d');
@@ -404,8 +409,11 @@
         let currentVisMode = 1;
         let animationFrameId = null;
 
+        // PHYSICS STATE FOR CONCERT FEEL
         let pulseEnabled = false;
         let lastPulseTime = 0;
+        let previousKickEnergy = 0;
+        let kickImpact = 0; // Feeds directly into the geometry rendering
 
         function resizeCanvas() { visCanvas.width = window.innerWidth; visCanvas.height = window.innerHeight; }
         window.addEventListener('resize', resizeCanvas); resizeCanvas();
@@ -510,12 +518,12 @@
         syncBtn.addEventListener('click', () => {
             pulseEnabled = !pulseEnabled;
             if (pulseEnabled) {
-                syncBtn.innerText = "SYNC PULSE: ON";
+                syncBtn.innerText = "STR0.BE: ON";
                 syncBtn.classList.add('active');
             } else {
-                syncBtn.innerText = "SYNC PULSE: OFF";
+                syncBtn.innerText = "STR0.BE: OFF";
                 syncBtn.classList.remove('active');
-                document.body.style.backgroundColor = 'var(--void)';
+                document.body.style.transform = 'scale(1)';
             }
         });
 
@@ -525,65 +533,79 @@
             animationFrameId = requestAnimationFrame(renderVisualizer);
 
             analyser.getByteFrequencyData(dataArray);
-            visCtx.clearRect(0, 0, visCanvas.width, visCanvas.height);
+            
+            // Motion Blur / Fog effect (instead of clearRect)
+            visCtx.fillStyle = 'rgba(2, 2, 2, 0.35)';
+            visCtx.fillRect(0, 0, visCanvas.width, visCanvas.height);
 
             const uiOffset = window.innerWidth > 1024 ? -185 : 0; 
             const centerX = (visCanvas.width / 2) + uiOffset; 
             const centerY = visCanvas.height / 2;
             
-            let bassSum = 0; for(let i = 0; i < 6; i++) bassSum += dataArray[i];
-            const bassAvg = bassSum / 6;
+            // Sub-Bass calculations for glowing atmosphere
+            let subSum = dataArray[0] + dataArray[1]; 
+            const subAvg = subSum / 2;
+            const subGlow = subAvg / 255; // 0.0 to 1.0
 
             const maxRadius = Math.min(window.innerWidth, window.innerHeight) * 0.35;
 
-            // --- KINETIC PULSE LOGIC (Isolated Kick Drum) ---
+            // --- KINETIC PULSE LOGIC (Edge Detection + Physics Impact) ---
             if (pulseEnabled) {
                 const now = Date.now();
                 
-                // dataArray[1] sits right around 86Hz-170Hz on a 512 FFT. 
-                // This isolates the fast punch of a kick drum and ignores the rolling 0-80Hz sub-bass.
-                const kickEnergy = dataArray[1]; 
+                const currentKickEnergy = (dataArray[1] + dataArray[2]) / 2;
+                const energyDelta = currentKickEnergy - previousKickEnergy;
 
-                // Threshold raised to 245 for a much tighter, more intentional strobe flash
-                if (kickEnergy > 245 && (now - lastPulseTime > 400)) { 
+                if (energyDelta > 30 && currentKickEnergy > 180 && (now - lastPulseTime > 300)) { 
                     lastPulseTime = now;
+                    kickImpact = 1.0; // Max out the geometry impact variable
                     
                     const strobeLayer = document.getElementById('strobe-layer');
                     
                     strobeLayer.style.transition = 'none';
-                    strobeLayer.style.opacity = '1';
+                    strobeLayer.style.opacity = '0.9'; // Almost blinding
                     
                     document.body.style.transition = 'none';
-                    document.body.style.transform = 'scale(1.003)';
+                    // The whole UI violently pops out
+                    document.body.style.transform = 'scale(1.02)';
 
                     requestAnimationFrame(() => {
                         requestAnimationFrame(() => {
-                            strobeLayer.style.transition = 'opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1)';
+                            strobeLayer.style.transition = 'opacity 0.6s cubic-bezier(0.19, 1, 0.22, 1)';
                             strobeLayer.style.opacity = '0';
                             
-                            document.body.style.transition = 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)';
+                            // Smooth, expensive-feeling decay back to normal size
+                            document.body.style.transition = 'transform 0.8s cubic-bezier(0.19, 1, 0.22, 1)';
                             document.body.style.transform = 'scale(1)';
                         });
                     });
                 }
+                previousKickEnergy = currentKickEnergy;
             }
+
+            // Decay the geometry impact frame by frame
+            kickImpact *= 0.85;
 
             if (isDecoupling) {
                 visCtx.setLineDash([2, 15 + (decoupleIntensity * 30)]);
                 visCtx.strokeStyle = `rgba(255, 255, 255, ${1 - decoupleIntensity})`;
             } else {
                 visCtx.setLineDash([]);
-                visCtx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+                // The architecture glows brighter when the sub-bass hits
+                visCtx.strokeStyle = `rgba(255, 255, 255, ${0.4 + (subGlow * 0.6)})`;
             }
-            visCtx.lineWidth = 1.5;
+            
+            // Lines get aggressively thicker on the kick transient
+            visCtx.lineWidth = 1.5 + (kickImpact * 6);
 
             // --- VIS 1: KINETIC GEODE ---
             if (currentVisMode === 1) {
                 const nodes = [];
                 const numNodes = 80;
                 const phi = Math.PI * (3 - Math.sqrt(5)); 
-                const baseRadius = 180 + (bassAvg * 0.4);
-                const radius = Math.min(baseRadius, maxRadius); 
+                // Base radius expands massively on kick impact
+                const baseRadius = 180 + (subAvg * 0.4) + (kickImpact * 100);
+                const radius = Math.min(baseRadius, maxRadius * 1.5); 
                 const time = Date.now() * 0.0005;
 
                 for (let i = 0; i < numNodes; i++) {
@@ -595,7 +617,8 @@
                     let z = Math.sin(theta) * r;
 
                     const freqVal = dataArray[(i * 3) % bufferLength] / 255;
-                    const push = 1 + (freqVal * 0.8);
+                    // Push out individual nodes based on frequency + impact
+                    const push = 1 + (freqVal * 0.8) + (kickImpact * 0.5);
                     
                     x *= push;
                     let yPush = y * push;
@@ -614,13 +637,12 @@
                     nodes.push({ x: centerX + rx * radius * scale + jX, y: centerY + ry * radius * scale + jY });
                 }
 
-                visCtx.strokeStyle = `rgba(255, 255, 255, ${isDecoupling ? (1 - decoupleIntensity) : 0.3})`;
                 visCtx.beginPath();
                 for (let i = 0; i < numNodes; i++) {
                     for (let j = i + 1; j < numNodes; j++) {
                         const dx = nodes[i].x - nodes[j].x;
                         const dy = nodes[i].y - nodes[j].y;
-                        if (Math.sqrt(dx*dx + dy*dy) < 80 * (1 + bassAvg/255)) { 
+                        if (Math.sqrt(dx*dx + dy*dy) < 80 * (1 + subAvg/255)) { 
                             visCtx.moveTo(nodes[i].x, nodes[i].y);
                             visCtx.lineTo(nodes[j].x, nodes[j].y);
                         }
@@ -630,21 +652,21 @@
                 
                 visCtx.fillStyle = `rgba(255, 255, 255, ${1 - decoupleIntensity})`;
                 nodes.forEach(n => {
-                    visCtx.beginPath(); visCtx.arc(n.x, n.y, 2, 0, Math.PI*2); visCtx.fill();
+                    visCtx.beginPath(); visCtx.arc(n.x, n.y, 2 + (kickImpact * 3), 0, Math.PI*2); visCtx.fill();
                 });
             }
 
             // --- VIS 2: DATA MONOLITHS ---
             else if (currentVisMode === 2) {
                 const numPillars = 40;
-                const baseRadius = 220 + (bassAvg * 0.3) + (decoupleIntensity * 150);
-                const radius = Math.min(baseRadius, maxRadius * 1.2); 
+                const baseRadius = 220 + (subAvg * 0.3) + (decoupleIntensity * 150) + (kickImpact * 80);
+                const radius = Math.min(baseRadius, maxRadius * 1.5); 
                 const time = Date.now() * 0.0005;
 
                 for(let i = 0; i < numPillars; i++) {
                     const val = dataArray[i * 2] / 255; 
-                    const heightRaw = 10 + Math.pow(val, 2) * 200;
-                    const height = Math.min(heightRaw, maxRadius * 1.5); 
+                    const heightRaw = 10 + Math.pow(val, 2) * 200 + (kickImpact * 150);
+                    const height = Math.min(heightRaw, maxRadius * 1.8); 
                     const angle = (i / numPillars) * Math.PI * 2 + time;
                     
                     const x3d = Math.cos(angle) * radius;
@@ -655,7 +677,7 @@
                     const jY = (Math.random() - 0.5) * (decoupleIntensity * 150);
 
                     const x = centerX + (x3d * scale) + jX;
-                    const y = centerY + 100 + jY; 
+                    const y = centerY + 100 + jY + (kickImpact * 20); 
 
                     visCtx.beginPath();
                     visCtx.strokeStyle = `rgba(255,255,255,${(0.1 + (val * 0.8)) * (1 - decoupleIntensity)})`;
@@ -663,26 +685,27 @@
                     
                     visCtx.beginPath();
                     visCtx.fillStyle = `rgba(255,255,255,${1 - decoupleIntensity})`;
-                    visCtx.arc(x, y - (height * scale), 2 * scale, 0, Math.PI*2); visCtx.fill();
+                    visCtx.arc(x, y - (height * scale), 2 * scale + (kickImpact * 2), 0, Math.PI*2); visCtx.fill();
                 }
             }
 
             // --- VIS 3: THE TESSERACT ---
             else if (currentVisMode === 3) {
                 const time = Date.now() * 0.0005;
-                const baseSize = 160 + (bassAvg * 0.2); 
-                const size = Math.min(baseSize, maxRadius); 
+                const baseSize = 160 + (subAvg * 0.2) + (kickImpact * 120); 
+                const size = Math.min(baseSize, maxRadius * 1.5); 
                 
                 const nodes = [];
                 for(let i=0; i<8; i++) {
                     let x = (i & 1 ? 1 : -1); let y = (i & 2 ? 1 : -1); let z = (i & 4 ? 1 : -1);
                     const freqVal = dataArray[10 + (i * 5)] / 255;
-                    const push = 1 + (freqVal * 0.6);
+                    const push = 1 + (freqVal * 0.6) + (kickImpact * 0.3);
                     x *= push; y *= push; z *= push;
 
                     const rx = x * Math.cos(time) - z * Math.sin(time);
                     const rz = x * Math.sin(time) + z * Math.cos(time);
-                    const ry = y * Math.cos(time*0.7) - rz * Math.sin(time*0.7);
+                    // Add erratic rotation on kick impact
+                    const ry = y * Math.cos(time*0.7) - rz * Math.sin(time*0.7) + (kickImpact * 0.5 * (i%2 ? 1 : -1));
                     
                     const decoupleZ = rz + (decoupleIntensity * (i % 2 === 0 ? 500 : -500));
                     const scale = 600 / (600 + decoupleZ);
@@ -765,14 +788,13 @@
         // --- FIXED VOLUME DRAG LOGIC ---
         let isVolDragging = false;
         
-        // Initialize Default Volume to 75%
         audioEl.volume = 0.75;
         volFill.style.height = `75%`;
         volHandle.style.top = `25%`;
         
         volTrack.addEventListener('mousedown', (e) => { 
             isVolDragging = true; 
-            volDropdown.classList.add('force-open'); // Locks the UI open while dragging
+            volDropdown.classList.add('force-open'); 
             scrubVolume(e); 
         });
         
