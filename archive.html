@@ -85,23 +85,16 @@
         .season-link:hover { color: var(--pure-light); text-shadow: 0 0 30px rgba(255,255,255,0.3); }
         .season-link:hover::after { opacity: 1; top: 100%; }
 
-        /* --- AUTUMN '26: DEAD BULB STATE --- */
+        /* --- AUTUMN '26: MINIMALIST STATE --- */
         #autumn-coming-soon {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
-            z-index: 40; opacity: 0; pointer-events: none; transition: opacity 1s ease;
+            z-index: 40; opacity: 0; pointer-events: none; transition: opacity 1.5s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        #flicker-text {
-            font-family: var(--serif-font); font-style: italic; font-size: 5rem; 
-            color: var(--pure-light); text-transform: lowercase; letter-spacing: -2px;
-            opacity: 0.02; /* Almost completely invisible, like a dead neon tube */
-            transition: opacity 0.02s, text-shadow 0.02s; /* Instantaneous updates for electricity effect */
-            text-align: center; line-height: 1;
-        }
-        .flicker-sub {
-            display: block; font-family: var(--mono-font); font-style: normal;
-            font-size: 0.7rem; letter-spacing: 8px; margin-top: 20px; font-weight: 700;
+        #coming-soon-text {
+            font-family: var(--serif-font); font-style: italic; font-size: 2.5rem; 
+            color: rgba(255,255,255,0.4); letter-spacing: 2px;
         }
 
         /* --- INTERACTIVE CANVAS & 3D PHYSICS (SPRING) --- */
@@ -153,18 +146,18 @@
         </div>
     </nav>
 
+    <!-- THE MENU STATE -->
     <div id="seasons-menu">
         <a href="#" class="season-link interactive" onclick="loadCollection('spring')">spring '26</a>
         <a href="#" class="season-link interactive" onclick="loadAutumn()">autumn '26</a>
     </div>
 
+    <!-- THE AUTUMN MINIMALIST STATE -->
     <div id="autumn-coming-soon">
-        <div id="flicker-text">
-            autumn '26
-            <span class="flicker-sub">COMING SOON</span>
-        </div>
+        <div id="coming-soon-text">coming soon...</div>
     </div>
 
+    <!-- THE SPRING TACTILE CANVAS STATE -->
     <div id="archive-canvas">
         <img src="archiveimages/1.png" class="draggable-artifact interactive" data-season="spring" alt="Artifact">
         <img src="archiveimages/2.png" class="draggable-artifact interactive" data-season="spring" alt="Artifact">
@@ -255,7 +248,7 @@
                 droneOsc1.start();
                 droneOsc2.start();
 
-                // Fade in the drone immediately
+                // Fade in the drone smoothly
                 droneGain.gain.setTargetAtTime(0.12, audioCtx.currentTime, 2.0);
                 
                 isAudioInit = true;
@@ -266,96 +259,28 @@
         document.body.addEventListener('mousemove', initGenerativeAudio, { once: true });
         document.body.addEventListener('click', initGenerativeAudio, { once: true });
 
-        // --- THE BROKEN FLUORESCENT BULB GENERATOR ---
-        let isAutumnActive = false;
-        let autumnTimeout;
-
-        function triggerElectricSpark(duration, intensity) {
+        // --- CINEMATIC SUB BOOM ---
+        function playSoftSubBoom() {
             if (!audioCtx) return;
-
-            // 1. High frequency electrical arc (White noise through a bandpass filter)
-            const bufferSize = audioCtx.sampleRate * duration;
-            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-            const data = buffer.getChannelData(0);
-            for (let i = 0; i < bufferSize; i++) data[i] = (Math.random() * 2 - 1) * intensity;
+            const t = audioCtx.currentTime;
             
-            const noise = audioCtx.createBufferSource();
-            noise.buffer = buffer;
+            const osc = audioCtx.createOscillator();
+            osc.type = 'sine';
             
-            const bandpass = audioCtx.createBiquadFilter();
-            bandpass.type = 'bandpass';
-            bandpass.frequency.value = 2500 + (Math.random() * 1500);
-            bandpass.Q.value = 1.5;
-
-            const noiseGain = audioCtx.createGain();
-            noiseGain.gain.setValueAtTime(0, audioCtx.currentTime);
-            noiseGain.gain.linearRampToValueAtTime(0.8, audioCtx.currentTime + 0.01);
-            noiseGain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
-
-            noise.connect(bandpass);
-            bandpass.connect(noiseGain);
-            noiseGain.connect(audioCtx.destination);
+            // Frequency drops from 60Hz to 20Hz creating a heavy "thud"
+            osc.frequency.setValueAtTime(60, t);
+            osc.frequency.exponentialRampToValueAtTime(20, t + 1.5);
             
-            // 2. Heavy 60Hz Ballast Thump
-            const subOsc = audioCtx.createOscillator();
-            subOsc.type = 'sine';
-            subOsc.frequency.setValueAtTime(60, audioCtx.currentTime); 
+            const gain = audioCtx.createGain();
+            gain.gain.setValueAtTime(0, t);
+            gain.gain.linearRampToValueAtTime(0.5, t + 0.1); // Soft attack
+            gain.gain.exponentialRampToValueAtTime(0.001, t + 3.0); // Long, echoing release
             
-            const subGain = audioCtx.createGain();
-            subGain.gain.setValueAtTime(0.5 * intensity, audioCtx.currentTime);
-            subGain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
-
-            subOsc.connect(subGain);
-            subGain.connect(audioCtx.destination);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
             
-            noise.start();
-            subOsc.start();
-            subOsc.stop(audioCtx.currentTime + duration);
-        }
-
-        function runAutumnFlickerLoop() {
-            if (!isAutumnActive) return;
-            
-            const textEl = document.getElementById('flicker-text');
-            const timeUntilNextStrike = Math.random() * 3000 + 1000; // Wait 1 to 4 seconds between bursts
-            
-            autumnTimeout = setTimeout(() => {
-                if (!isAutumnActive) return;
-                
-                // Generate a random cluster of rapid flickers
-                let flickers = Math.floor(Math.random() * 4) + 2;
-                let count = 0;
-                
-                function strike() {
-                    if(!isAutumnActive) return;
-                    
-                    // VISUAL: Bright flash
-                    const flashIntensity = Math.random() * 0.6 + 0.4;
-                    textEl.style.opacity = flashIntensity.toString();
-                    textEl.style.textShadow = `0 0 ${flashIntensity * 40}px rgba(255,255,255,1), 0 0 ${flashIntensity * 10}px rgba(255,255,255,0.8)`;
-                    
-                    // AUDIO: Synced spark
-                    triggerElectricSpark(Math.random() * 0.06 + 0.02, flashIntensity);
-                    
-                    setTimeout(() => {
-                        if(!isAutumnActive) return;
-                        
-                        // VISUAL: Back to dead
-                        textEl.style.opacity = '0.02';
-                        textEl.style.textShadow = 'none';
-                        
-                        count++;
-                        if(count < flickers) {
-                            setTimeout(strike, Math.random() * 120 + 40); // Rapid succession
-                        } else {
-                            runAutumnFlickerLoop(); // Schedule the next big event
-                        }
-                    }, Math.random() * 50 + 20); // Length of a single flash
-                }
-                
-                strike();
-                
-            }, timeUntilNextStrike);
+            osc.start(t);
+            osc.stop(t + 3.1);
         }
 
         // --- SPA NAVIGATION LOGIC ---
@@ -383,12 +308,9 @@
             autumnContainer.style.opacity = '1';
             backBtn.classList.add('visible');
 
-            // Audio State
-            if (droneGain) droneGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.5); // Fade out drone
-
-            // Start Generative Flicker
-            isAutumnActive = true;
-            runAutumnFlickerLoop();
+            // Audio State: Fade out the drone, trigger the deep cinematic boom
+            if (droneGain) droneGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.5); 
+            playSoftSubBoom();
         }
 
         function loadCollection(season) {
@@ -397,7 +319,7 @@
             backBtn.classList.add('visible');
 
             // Audio State
-            if (droneGain) droneGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.5); // Fade out drone
+            if (droneGain) droneGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.5); 
 
             if (season === 'spring') {
                 springAudio.volume = 0; springAudio.play().catch(e => console.log("Interaction required"));
@@ -442,12 +364,6 @@
             // Spring Reset
             if (currentAudio) { fadeOutAudio(currentAudio); currentAudio = null; }
             physicsObjects.forEach(obj => obj.el.classList.remove('visible'));
-
-            // Autumn Reset
-            isAutumnActive = false;
-            clearTimeout(autumnTimeout);
-            document.getElementById('flicker-text').style.opacity = '0.02';
-            document.getElementById('flicker-text').style.textShadow = 'none';
 
             // Bring the Drone back
             if (droneGain) droneGain.gain.setTargetAtTime(0.12, audioCtx.currentTime, 1.5);
