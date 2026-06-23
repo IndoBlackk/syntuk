@@ -48,138 +48,111 @@
         .hovering #crosshair-cursor::before, .hovering #crosshair-cursor::after { background-color: var(--pure-light); }
         .grabbing #crosshair-cursor { transform: translate(-50%, -50%) rotate(45deg); width: 30px; height: 30px;}
 
-        /* --- BRUTALIST ARCHITECTURE GRID --- */
-        .brutalist-grid {
-            display: grid; grid-template-columns: 80px 1fr 450px;
-            height: 100vh; width: 100vw; position: relative; z-index: 10;
+        /* --- MINIMALIST HEADER NAV --- */
+        .top-nav {
+            position: absolute; top: 40px; left: 40px; right: 40px; z-index: 100;
+            display: flex; justify-content: space-between; align-items: flex-start; pointer-events: none;
         }
 
-        .panel {
-            border-right: 1px solid var(--ghost); position: relative;
-            height: 100%; display: flex; flex-direction: column; justify-content: space-between;
+        .nav-btn {
+            font-size: 0.6rem; font-weight: 700; letter-spacing: 4px; color: rgba(255,255,255,0.5);
+            text-decoration: none; text-transform: uppercase; transition: color 0.3s, letter-spacing 0.3s;
+            pointer-events: auto; padding: 10px 0; display: block;
+        }
+        .nav-btn:hover { color: var(--pure-light); letter-spacing: 6px; }
+
+        .header-titles { text-align: right; pointer-events: auto;}
+        .brand-name { font-family: var(--serif-font); font-style: italic; font-size: 2.5rem; font-weight: 400; line-height: 0.8; color: var(--pure-light); }
+        .title-subtext { font-size: 0.55rem; color: rgba(255, 255, 255, 0.3); margin-top: 10px; letter-spacing: 3px; text-transform: uppercase; }
+
+        /* --- SEASONS MENU --- */
+        #seasons-menu {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 40px;
+            z-index: 50; transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        .left-axis { padding: 40px 0; align-items: center; border-right: 1px solid rgba(255,255,255,0.08); }
-        .vertical-marker { transform: rotate(-90deg); white-space: nowrap; font-size: 0.55rem; color: rgba(255, 255, 255, 0.3); letter-spacing: 6px; text-transform: uppercase;}
-
-        .center-nave { position: relative; padding: 0; overflow: hidden; display: flex; justify-content: center; align-items: center;}
-        
-        .header-block { position: absolute; top: 60px; left: 80px; z-index: 50; pointer-events: none;}
-        .brand-name { font-family: var(--serif-font); font-style: italic; font-size: 4rem; font-weight: 400; line-height: 0.7; color: var(--pure-light); pointer-events: auto;}
-        .title-subtext { font-size: 0.6rem; color: rgba(255, 255, 255, 0.4); margin-top: 20px; letter-spacing: 2px; text-transform: uppercase; pointer-events: auto;}
+        .season-link {
+            font-family: var(--serif-font); font-style: italic; font-size: 6rem; color: rgba(255,255,255,0.2);
+            text-decoration: none; line-height: 0.8; transition: all 0.4s ease; pointer-events: auto;
+            text-transform: lowercase; letter-spacing: -2px; position: relative;
+        }
+        .season-link::after {
+            content: 'VIEW ARCHIVE'; position: absolute; left: 50%; top: 110%; transform: translateX(-50%);
+            font-family: var(--mono-font); font-size: 0.55rem; font-style: normal; font-weight: 700; letter-spacing: 6px;
+            color: var(--pure-light); opacity: 0; transition: opacity 0.3s, top 0.3s; white-space: nowrap;
+        }
+        .season-link:hover { color: var(--pure-light); text-shadow: 0 0 30px rgba(255,255,255,0.3); }
+        .season-link:hover::after { opacity: 1; top: 100%; }
 
         /* --- INTERACTIVE CANVAS & ARTIFACTS --- */
-        .canvas-area {
+        #archive-canvas {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: auto; z-index: 1;
+            pointer-events: auto; z-index: 10; opacity: 0; pointer-events: none;
+            transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .draggable-artifact {
-            position: absolute;
-            max-width: 350px; 
-            max-height: 450px;
-            object-fit: contain;
+            position: absolute; max-width: 350px; max-height: 450px; object-fit: contain;
             filter: grayscale(20%) drop-shadow(0 15px 30px rgba(0,0,0,0.8));
-            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), filter 0.4s ease;
-            transform-origin: center center;
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), filter 0.4s ease, opacity 0.5s ease;
+            transform-origin: center center; opacity: 0; pointer-events: none;
         }
 
-        .draggable-artifact.active-drag {
-            filter: grayscale(0%) drop-shadow(0 25px 50px rgba(0,0,0,0.9));
-        }
+        .draggable-artifact.visible { opacity: 1; pointer-events: auto; }
+        .draggable-artifact.active-drag { filter: grayscale(0%) drop-shadow(0 25px 50px rgba(0,0,0,0.9)); z-index: 9999 !important; }
 
-        /* --- INDEX ARCHIVE --- */
-        .right-cloisters { border-right: none; padding: 60px 50px; justify-content: center; background: linear-gradient(to right, rgba(0,0,0,0), rgba(2,2,2,0.9)); pointer-events: auto; z-index: 50;}
-        .section-header { font-size: 0.6rem; color: rgba(255, 255, 255, 0.3); letter-spacing: 4px; text-transform: uppercase; margin-bottom: 50px; }
-        .directory-list { display: flex; flex-direction: column; gap: 0; border-top: 1px solid var(--ghost); }
+        #back-to-seasons { opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+        #back-to-seasons.visible { opacity: 1; pointer-events: auto; margin-top: 15px; }
 
-        .dir-node {
-            display: grid; grid-template-columns: 40px 1fr; align-items: center;
-            padding: 30px 0; border-bottom: 1px solid var(--ghost);
-            text-decoration: none; color: rgba(255, 255, 255, 0.4);
-            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); position: relative;
-        }
-        .dir-node::before {
-            content: ''; position: absolute; left: -20px; top: 50%; transform: translateY(-50%);
-            width: 0px; height: 1px; background-color: var(--pure-light); transition: width 0.4s, left 0.4s;
-        }
-        .dir-node:hover { color: var(--pure-light); padding-left: 20px; background: linear-gradient(90deg, rgba(255, 255, 255, 0.04) 0%, transparent 100%); }
-        .dir-node:hover::before { width: 30px; left: -10px; }
-        
-        .dir-index { font-family: var(--serif-font); font-style: italic; font-size: 1.2rem; }
-        .dir-title { font-size: 1.1rem; font-weight: 700; letter-spacing: -0.5px; transition: letter-spacing 0.4s; }
-        .dir-node:hover .dir-title { letter-spacing: 2px; }
-        .dir-spec { font-size: 0.55rem; margin-top: 6px; letter-spacing: 2px; text-transform: uppercase; opacity: 0.5; }
-
-        @media (max-width: 1024px) {
-            .brutalist-grid { grid-template-columns: 1fr; height: auto; }
-            .left-axis, #crosshair-cursor, #lo-fi-grain { display: none; }
-            .right-cloisters { padding: 40px 20px;}
-            .center-nave { height: 80vh; overflow: hidden; }
-            body { overflow: auto; cursor: auto; }
-        }
     </style>
 </head>
 <body>
 
+    <audio id="spring-audio" src="spring26.mp3" loop></audio>
+
     <canvas id="lo-fi-grain"></canvas>
     <div id="crosshair-cursor"></div>
 
-    <div class="brutalist-grid">
-        <div class="panel left-axis">
-            <div class="vertical-marker" style="margin-top: auto; color: rgba(255,255,255,0.8);">0X1900</div>
+    <nav class="top-nav">
+        <div>
+            <a href="index.html" class="nav-btn interactive">[ ← RETURN TO CORE ]</a>
+            <div id="back-to-seasons" class="nav-btn interactive" onclick="returnToMenu()">[ ← BACK TO SEASONS ]</div>
         </div>
-
-        <div class="panel center-nave">
-            <div class="header-block">
-                <h1 class="brand-name interactive">archive.</h1>
-                <p class="title-subtext">Click and drag to arrange artifacts.<br>Physical momentum retained.</p>
-            </div>
-
-            <div class="canvas-area" id="archive-canvas">
-                <img src="archiveimages/1.png" class="draggable-artifact interactive" alt="Archive 01">
-                <img src="archiveimages/2.png" class="draggable-artifact interactive" alt="Archive 02">
-                <img src="archiveimages/3.png" class="draggable-artifact interactive" alt="Archive 03">
-                <img src="archiveimages/4.png" class="draggable-artifact interactive" alt="Archive 04">
-                <img src="archiveimages/5.png" class="draggable-artifact interactive" alt="Archive 05">
-                <img src="archiveimages/6.png" class="draggable-artifact interactive" alt="Archive 06">
-                <img src="archiveimages/7.png" class="draggable-artifact interactive" alt="Archive 07">
-                <img src="archiveimages/8.png" class="draggable-artifact interactive" alt="Archive 08">
-                <img src="archiveimages/9.png" class="draggable-artifact interactive" alt="Archive 09">
-                <img src="archiveimages/10.png" class="draggable-artifact interactive" alt="Archive 10">
-                <img src="archiveimages/11.png" class="draggable-artifact interactive" alt="Archive 11">
-                <img src="archiveimages/12.png" class="draggable-artifact interactive" alt="Archive 12">
-                <img src="archiveimages/13.png" class="draggable-artifact interactive" alt="Archive 13">
-                <img src="archiveimages/14.png" class="draggable-artifact interactive" alt="Archive 14">
-                <img src="archiveimages/15.png" class="draggable-artifact interactive" alt="Archive 15">
-                <img src="archiveimages/16.png" class="draggable-artifact interactive" alt="Archive 16">
-                <img src="archiveimages/17.png" class="draggable-artifact interactive" alt="Archive 17">
-                <img src="archiveimages/18.png" class="draggable-artifact interactive" alt="Archive 18">
-                <img src="archiveimages/19.png" class="draggable-artifact interactive" alt="Archive 19">
-                <img src="archiveimages/20.png" class="draggable-artifact interactive" alt="Archive 20">
-                <img src="archiveimages/21.png" class="draggable-artifact interactive" alt="Archive 21">
-            </div>
+        <div class="header-titles">
+            <h1 class="brand-name">archive.</h1>
+            <p class="title-subtext">Visual Memory Bank</p>
         </div>
+    </nav>
 
-        <div class="panel right-cloisters">
-            <div class="section-header">// ROOT DIRECTORY</div>
-            <nav class="directory-list">
-                <a href="index.html" class="dir-node interactive">
-                    <div class="dir-index">00</div>
-                    <div class="dir-content">
-                        <div class="dir-title">TERMINAL</div>
-                        <div class="dir-spec">Return to Core</div>
-                    </div>
-                </a>
-                <a href="player.html" class="dir-node interactive">
-                    <div class="dir-index">01</div>
-                    <div class="dir-content">
-                        <div class="dir-title">TRACKS</div>
-                        <div class="dir-spec">Master Audio</div>
-                    </div>
-                </a>
-            </nav>
-        </div>
+    <div id="seasons-menu">
+        <a href="#" class="season-link interactive" onclick="loadCollection('spring')">spring '26</a>
+        <a href="#" class="season-link interactive" onclick="loadCollection('autumn')">autumn '26</a>
+    </div>
+
+    <div id="archive-canvas">
+        <img src="archiveimages/1.png" class="draggable-artifact interactive" data-season="spring" alt="Spring 01">
+        <img src="archiveimages/2.png" class="draggable-artifact interactive" data-season="spring" alt="Spring 02">
+        <img src="archiveimages/3.png" class="draggable-artifact interactive" data-season="spring" alt="Spring 03">
+        <img src="archiveimages/4.png" class="draggable-artifact interactive" data-season="spring" alt="Spring 04">
+        <img src="archiveimages/5.png" class="draggable-artifact interactive" data-season="spring" alt="Spring 05">
+        <img src="archiveimages/6.png" class="draggable-artifact interactive" data-season="spring" alt="Spring 06">
+        <img src="archiveimages/7.png" class="draggable-artifact interactive" data-season="spring" alt="Spring 07">
+        <img src="archiveimages/8.png" class="draggable-artifact interactive" data-season="spring" alt="Spring 08">
+        <img src="archiveimages/9.png" class="draggable-artifact interactive" data-season="spring" alt="Spring 09">
+        <img src="archiveimages/10.png" class="draggable-artifact interactive" data-season="spring" alt="Spring 10">
+
+        <img src="archiveimages/11.png" class="draggable-artifact interactive" data-season="autumn" alt="Autumn 11">
+        <img src="archiveimages/12.png" class="draggable-artifact interactive" data-season="autumn" alt="Autumn 12">
+        <img src="archiveimages/13.png" class="draggable-artifact interactive" data-season="autumn" alt="Autumn 13">
+        <img src="archiveimages/14.png" class="draggable-artifact interactive" data-season="autumn" alt="Autumn 14">
+        <img src="archiveimages/15.png" class="draggable-artifact interactive" data-season="autumn" alt="Autumn 15">
+        <img src="archiveimages/16.png" class="draggable-artifact interactive" data-season="autumn" alt="Autumn 16">
+        <img src="archiveimages/17.png" class="draggable-artifact interactive" data-season="autumn" alt="Autumn 17">
+        <img src="archiveimages/18.png" class="draggable-artifact interactive" data-season="autumn" alt="Autumn 18">
+        <img src="archiveimages/19.png" class="draggable-artifact interactive" data-season="autumn" alt="Autumn 19">
+        <img src="archiveimages/20.png" class="draggable-artifact interactive" data-season="autumn" alt="Autumn 20">
+        <img src="archiveimages/21.png" class="draggable-artifact interactive" data-season="autumn" alt="Autumn 21">
     </div>
 
     <script>
@@ -190,14 +163,12 @@
         
         function initNoiseEngine() {
             if(!canvas) return;
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
+            canvas.width = window.innerWidth; canvas.height = window.innerHeight;
             const idata = ctx.createImageData(canvas.width, canvas.height);
             const buffer32 = new Uint32Array(idata.data.buffer);
-            for (let i = 0; i < buffer32.length; i++) buffer32[i] = Math.random() < 0.15 ? 0xff000000 : 0xffffffff; 
+            for (let i = 0; i < buffer32.length; i++) buffer32[i] = Math.random() < 0.12 ? 0xff000000 : 0xffffffff; 
             noiseCacheCanvas = document.createElement('canvas');
-            noiseCacheCanvas.width = canvas.width;
-            noiseCacheCanvas.height = canvas.height;
+            noiseCacheCanvas.width = canvas.width; noiseCacheCanvas.height = canvas.height;
             noiseCacheCanvas.getContext('2d').putImageData(idata, 0, 0);
         }
 
@@ -206,27 +177,18 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.drawImage(noiseCacheCanvas, Math.floor((Math.random() * 30) - 15), Math.floor((Math.random() * 30) - 15));
         }
-        window.addEventListener('resize', initNoiseEngine);
-        initNoiseEngine();
-        setInterval(drawBlitNoise, 40);
+        window.addEventListener('resize', initNoiseEngine); initNoiseEngine(); setInterval(drawBlitNoise, 40);
 
         // --- CURSOR TRACKING ---
         const crosshairCursor = document.getElementById('crosshair-cursor');
         let curX = window.innerWidth / 2, curY = window.innerHeight / 2;
         let tarX = curX, tarY = curY;
 
-        document.addEventListener('mousemove', (e) => {
-            tarX = e.clientX;
-            tarY = e.clientY;
-        });
+        document.addEventListener('mousemove', (e) => { tarX = e.clientX; tarY = e.clientY; });
 
         function renderCursor() {
-            curX += (tarX - curX) * 0.25; 
-            curY += (tarY - curY) * 0.25;
-            if(crosshairCursor) {
-                crosshairCursor.style.left = curX + 'px';
-                crosshairCursor.style.top = curY + 'px';
-            }
+            curX += (tarX - curX) * 0.25; curY += (tarY - curY) * 0.25;
+            if(crosshairCursor) { crosshairCursor.style.left = curX + 'px'; crosshairCursor.style.top = curY + 'px'; }
             requestAnimationFrame(renderCursor);
         }
         renderCursor();
@@ -236,33 +198,101 @@
             el.addEventListener('mouseleave', () => document.body.classList.remove('hovering'));
         });
 
+        // --- SPA NAVIGATION & AUDIO LOGIC ---
+        const menu = document.getElementById('seasons-menu');
+        const archiveCanvas = document.getElementById('archive-canvas');
+        const backBtn = document.getElementById('back-to-seasons');
+        const springAudio = document.getElementById('spring-audio');
+        let currentAudio = null;
+
+        function fadeOutAudio(audioElement) {
+            if (!audioElement) return;
+            let vol = audioElement.volume;
+            const fade = setInterval(() => {
+                if (vol > 0.05) { vol -= 0.05; audioElement.volume = vol; } 
+                else { clearInterval(fade); audioElement.pause(); audioElement.volume = 1; }
+            }, 50);
+        }
+
+        function loadCollection(season) {
+            // Hide Menu, Show Canvas
+            menu.style.opacity = '0';
+            menu.style.pointerEvents = 'none';
+            archiveCanvas.style.opacity = '1';
+            archiveCanvas.style.pointerEvents = 'auto';
+            backBtn.classList.add('visible');
+
+            // Handle Audio
+            if (season === 'spring') {
+                springAudio.volume = 0;
+                springAudio.play().catch(e => console.log("Audio requires interaction first"));
+                currentAudio = springAudio;
+                
+                // Fade in audio
+                let vol = 0;
+                const fade = setInterval(() => {
+                    if (vol < 0.95) { vol += 0.05; springAudio.volume = vol; } else { clearInterval(fade); }
+                }, 100);
+            }
+
+            // Scatter and show ONLY the selected season's images
+            const artifacts = document.querySelectorAll('.draggable-artifact');
+            let highestZ = 100;
+
+            artifacts.forEach((artifact, index) => {
+                if (artifact.getAttribute('data-season') === season) {
+                    artifact.classList.add('visible');
+                    
+                    const randomRotation = (Math.random() * 20) - 10; 
+                    artifact.dataset.rotation = randomRotation;
+                    
+                    const startX = 100 + (Math.random() * (window.innerWidth - 450));
+                    const startY = 150 + (Math.random() * (window.innerHeight - 500));
+                    
+                    artifact.style.left = `${startX}px`;
+                    artifact.style.top = `${startY}px`;
+                    artifact.style.transform = `rotate(${randomRotation}deg)`;
+                    artifact.style.zIndex = highestZ + index;
+                    highestZ++;
+                } else {
+                    artifact.classList.remove('visible');
+                }
+            });
+        }
+
+        function returnToMenu() {
+            // Hide Canvas, Show Menu
+            archiveCanvas.style.opacity = '0';
+            archiveCanvas.style.pointerEvents = 'none';
+            menu.style.opacity = '1';
+            menu.style.pointerEvents = 'auto';
+            backBtn.classList.remove('visible');
+
+            // Fade out any playing audio
+            if (currentAudio) { fadeOutAudio(currentAudio); currentAudio = null; }
+
+            // Hide all images so they re-scatter fresh next time
+            document.querySelectorAll('.draggable-artifact').forEach(a => a.classList.remove('visible'));
+        }
+
         // --- TACTILE DRAG & DROP ENGINE ---
-        const artifacts = document.querySelectorAll('.draggable-artifact');
-        const canvasArea = document.getElementById('archive-canvas');
-        
-        let highestZ = 100;
         let activeElement = null;
         let offsetX = 0, offsetY = 0;
 
-        artifacts.forEach((artifact, index) => {
-            const randomRotation = (Math.random() * 20) - 10; 
-            artifact.dataset.rotation = randomRotation;
-            
-            // Distributes the 21 images dynamically across the container
-            const startX = 50 + (Math.random() * (canvasArea.clientWidth - 300));
-            const startY = 50 + (Math.random() * (canvasArea.clientHeight - 400));
-            
-            artifact.style.left = `${startX}px`;
-            artifact.style.top = `${startY}px`;
-            artifact.style.transform = `rotate(${randomRotation}deg)`;
-            artifact.style.zIndex = highestZ + index;
-            highestZ++;
-
+        document.querySelectorAll('.draggable-artifact').forEach(artifact => {
             artifact.addEventListener('mousedown', (e) => {
-                activeElement = artifact;
-                highestZ++;
+                if (!artifact.classList.contains('visible')) return;
                 
-                activeElement.style.zIndex = highestZ;
+                activeElement = artifact;
+                
+                // Find the highest current Z-index to always bring to front
+                let maxZ = 0;
+                document.querySelectorAll('.draggable-artifact.visible').forEach(a => {
+                    let z = parseInt(window.getComputedStyle(a).zIndex) || 0;
+                    if (z > maxZ) maxZ = z;
+                });
+                
+                activeElement.style.zIndex = maxZ + 1;
                 activeElement.classList.add('active-drag');
                 document.body.classList.add('grabbing');
                 
@@ -278,25 +308,20 @@
 
         window.addEventListener('mousemove', (e) => {
             if (!activeElement) return;
-
-            const canvasRect = canvasArea.getBoundingClientRect();
-            
-            let newX = e.clientX - canvasRect.left - offsetX;
-            let newY = e.clientY - canvasRect.top - offsetY;
-
+            let newX = e.clientX - offsetX;
+            let newY = e.clientY - offsetY;
             activeElement.style.left = `${newX}px`;
             activeElement.style.top = `${newY}px`;
         });
 
         window.addEventListener('mouseup', () => {
             if (!activeElement) return;
-            
             activeElement.style.transform = `rotate(${activeElement.dataset.rotation}deg) scale(1)`;
             activeElement.classList.remove('active-drag');
             document.body.classList.remove('grabbing');
-            
             activeElement = null;
         });
+
     </script>
 </body>
 </html>
