@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SYNT // VISUAL_ARCHIVE</title>
+    <title>SYNT // STUDIO_ARCHIVE</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,400;1,600&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
 
@@ -46,7 +46,7 @@
         #crosshair-cursor::after { height: 100%; width: 1px; }
         .hovering #crosshair-cursor { width: 60px; height: 60px; }
         .hovering #crosshair-cursor::before, .hovering #crosshair-cursor::after { background-color: var(--pure-light); }
-        .grabbing #crosshair-cursor { transform: translate(-50%, -50%) rotate(45deg); width: 30px; height: 30px;}
+        .grabbing #crosshair-cursor { transform: translate(-50%, -50%) rotate(45deg); width: 30px; height: 30px; border-color: rgba(255,255,255,0.2);}
 
         /* --- MINIMALIST HEADER NAV --- */
         .top-nav {
@@ -90,23 +90,29 @@
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             pointer-events: auto; z-index: 10; opacity: 0; pointer-events: none;
             transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1);
-            perspective: 1500px; /* Essential for the 3D corner lift effect */
+            perspective: 1500px; 
             perspective-origin: center;
         }
 
         .draggable-artifact {
-            position: absolute; top: 0; left: 0; /* Position reset, JS handles actual placement via transform */
-            max-width: 350px; max-height: 450px; object-fit: contain;
-            filter: grayscale(15%) drop-shadow(0 10px 20px rgba(0,0,0,0.8));
+            position: absolute; top: 0; left: 0; 
+            max-width: 320px; max-height: 420px; object-fit: contain;
+            /* Subtler base shadow for "flat on table" look */
+            filter: grayscale(15%) drop-shadow(0 8px 15px rgba(0,0,0,0.6));
             opacity: 0; pointer-events: none;
             transform-style: preserve-3d;
-            will-change: transform; /* Pushes element to the GPU for buttery smoothness */
-            transition: opacity 0.8s ease, filter 0.4s ease;
+            will-change: transform, filter; 
+            /* Filter transition handles the fluid shadow lifting */
+            transition: opacity 0.8s ease, filter 0.6s cubic-bezier(0.16, 1, 0.3, 1);
             transform-origin: center center;
         }
 
         .draggable-artifact.visible { opacity: 1; pointer-events: auto; }
-        .draggable-artifact.active-drag { filter: grayscale(0%) drop-shadow(0 30px 60px rgba(0,0,0,0.9)); }
+        
+        /* The "Lifted" State */
+        .draggable-artifact.active-drag { 
+            filter: grayscale(0%) drop-shadow(0 40px 60px rgba(0,0,0,0.9)); 
+        }
 
         #back-to-seasons { opacity: 0; pointer-events: none; transition: opacity 0.3s; }
         #back-to-seasons.visible { opacity: 1; pointer-events: auto; margin-top: 15px; }
@@ -115,7 +121,6 @@
 </head>
 <body>
 
-    <!-- Audio Engine -->
     <audio id="spring-audio" src="spring26.mp3" loop></audio>
 
     <canvas id="lo-fi-grain"></canvas>
@@ -132,36 +137,33 @@
         </div>
     </nav>
 
-    <!-- THE MENU STATE -->
     <div id="seasons-menu">
         <a href="#" class="season-link interactive" onclick="loadCollection('spring')">spring '26</a>
         <a href="#" class="season-link interactive" onclick="loadCollection('autumn')">autumn '26</a>
     </div>
 
-    <!-- THE TACTILE CANVAS STATE -->
     <div id="archive-canvas">
-        <!-- ALL 21 IMAGES MAPPED TO SPRING -->
-        <img src="archiveimages/1.png" class="draggable-artifact interactive" data-season="spring" alt="Spring Artifact">
-        <img src="archiveimages/2.png" class="draggable-artifact interactive" data-season="spring" alt="Spring Artifact">
-        <img src="archiveimages/3.png" class="draggable-artifact interactive" data-season="spring" alt="Spring Artifact">
-        <img src="archiveimages/4.png" class="draggable-artifact interactive" data-season="spring" alt="Spring Artifact">
-        <img src="archiveimages/5.png" class="draggable-artifact interactive" data-season="spring" alt="Spring Artifact">
-        <img src="archiveimages/6.png" class="draggable-artifact interactive" data-season="spring" alt="Spring Artifact">
-        <img src="archiveimages/7.png" class="draggable-artifact interactive" data-season="spring" alt="Spring Artifact">
-        <img src="archiveimages/8.png" class="draggable-artifact interactive" data-season="spring" alt="Spring Artifact">
-        <img src="archiveimages/9.png" class="draggable-artifact interactive" data-season="spring" alt="Spring Artifact">
-        <img src="archiveimages/10.png" class="draggable-artifact interactive" data-season="spring" alt="Spring Artifact">
-        <img src="archiveimages/11.png" class="draggable-artifact interactive" data-season="spring" alt="Spring Artifact">
-        <img src="archiveimages/12.png" class="draggable-artifact interactive" data-season="spring" alt="Spring Artifact">
-        <img src="archiveimages/13.png" class="draggable-artifact interactive" data-season="spring" alt="Spring Artifact">
-        <img src="archiveimages/14.png" class="draggable-artifact interactive" data-season="spring" alt="Spring Artifact">
-        <img src="archiveimages/15.png" class="draggable-artifact interactive" data-season="spring" alt="Spring Artifact">
-        <img src="archiveimages/16.png" class="draggable-artifact interactive" data-season="spring" alt="Spring Artifact">
-        <img src="archiveimages/17.png" class="draggable-artifact interactive" data-season="spring" alt="Spring Artifact">
-        <img src="archiveimages/18.png" class="draggable-artifact interactive" data-season="spring" alt="Spring Artifact">
-        <img src="archiveimages/19.png" class="draggable-artifact interactive" data-season="spring" alt="Spring Artifact">
-        <img src="archiveimages/20.png" class="draggable-artifact interactive" data-season="spring" alt="Spring Artifact">
-        <img src="archiveimages/21.png" class="draggable-artifact interactive" data-season="spring" alt="Spring Artifact">
+        <img src="archiveimages/1.png" class="draggable-artifact interactive" data-season="spring" alt="Artifact">
+        <img src="archiveimages/2.png" class="draggable-artifact interactive" data-season="spring" alt="Artifact">
+        <img src="archiveimages/3.png" class="draggable-artifact interactive" data-season="spring" alt="Artifact">
+        <img src="archiveimages/4.png" class="draggable-artifact interactive" data-season="spring" alt="Artifact">
+        <img src="archiveimages/5.png" class="draggable-artifact interactive" data-season="spring" alt="Artifact">
+        <img src="archiveimages/6.png" class="draggable-artifact interactive" data-season="spring" alt="Artifact">
+        <img src="archiveimages/7.png" class="draggable-artifact interactive" data-season="spring" alt="Artifact">
+        <img src="archiveimages/8.png" class="draggable-artifact interactive" data-season="spring" alt="Artifact">
+        <img src="archiveimages/9.png" class="draggable-artifact interactive" data-season="spring" alt="Artifact">
+        <img src="archiveimages/10.png" class="draggable-artifact interactive" data-season="spring" alt="Artifact">
+        <img src="archiveimages/11.png" class="draggable-artifact interactive" data-season="spring" alt="Artifact">
+        <img src="archiveimages/12.png" class="draggable-artifact interactive" data-season="spring" alt="Artifact">
+        <img src="archiveimages/13.png" class="draggable-artifact interactive" data-season="spring" alt="Artifact">
+        <img src="archiveimages/14.png" class="draggable-artifact interactive" data-season="spring" alt="Artifact">
+        <img src="archiveimages/15.png" class="draggable-artifact interactive" data-season="spring" alt="Artifact">
+        <img src="archiveimages/16.png" class="draggable-artifact interactive" data-season="spring" alt="Artifact">
+        <img src="archiveimages/17.png" class="draggable-artifact interactive" data-season="spring" alt="Artifact">
+        <img src="archiveimages/18.png" class="draggable-artifact interactive" data-season="spring" alt="Artifact">
+        <img src="archiveimages/19.png" class="draggable-artifact interactive" data-season="spring" alt="Artifact">
+        <img src="archiveimages/20.png" class="draggable-artifact interactive" data-season="spring" alt="Artifact">
+        <img src="archiveimages/21.png" class="draggable-artifact interactive" data-season="spring" alt="Artifact">
     </div>
 
     <script>
@@ -218,90 +220,74 @@
         }
 
         function loadCollection(season) {
-            menu.style.opacity = '0';
-            menu.style.pointerEvents = 'none';
-            archiveCanvas.style.opacity = '1';
-            archiveCanvas.style.pointerEvents = 'auto';
+            menu.style.opacity = '0'; menu.style.pointerEvents = 'none';
+            archiveCanvas.style.opacity = '1'; archiveCanvas.style.pointerEvents = 'auto';
             backBtn.classList.add('visible');
 
             if (season === 'spring') {
-                springAudio.volume = 0;
-                springAudio.play().catch(e => console.log("Audio requires interaction first"));
+                springAudio.volume = 0; springAudio.play().catch(e => console.log("Audio requires interaction first"));
                 currentAudio = springAudio;
-                
                 let vol = 0;
-                const fade = setInterval(() => {
-                    if (vol < 0.95) { vol += 0.05; springAudio.volume = vol; } else { clearInterval(fade); }
-                }, 100);
+                const fade = setInterval(() => { if (vol < 0.95) { vol += 0.05; springAudio.volume = vol; } else { clearInterval(fade); } }, 100);
             }
 
-            // Scatter artifacts if not already done
+            // Scatter artifacts in a beautiful, wider cascade
             if(!isScattered) {
                 let highestZ = 100;
                 physicsObjects.forEach((obj, index) => {
                     if (obj.el.getAttribute('data-season') === season) {
                         obj.el.classList.add('visible');
                         
-                        // Set random physical target destinations
-                        obj.tx = 100 + (Math.random() * (window.innerWidth - 450));
-                        obj.ty = 150 + (Math.random() * (window.innerHeight - 500));
-                        obj.r = (Math.random() * 24) - 12; // Base rotation
+                        // Scatter widely across the screen
+                        obj.tx = 50 + (Math.random() * (window.innerWidth - 300));
+                        obj.ty = 80 + (Math.random() * (window.innerHeight - 300));
+                        obj.tr = (Math.random() * 40) - 20; // Base random rotation
                         
-                        // Instantly teleport to start, they will smoothly Lerp in the physics loop
-                        obj.x = obj.tx; obj.y = obj.ty;
-                        
+                        obj.x = obj.tx; obj.y = obj.ty; obj.r = obj.tr;
                         obj.el.style.zIndex = highestZ + index;
                         highestZ++;
                     }
                 });
                 isScattered = true;
             } else {
-                physicsObjects.forEach(obj => {
-                    if (obj.el.getAttribute('data-season') === season) obj.el.classList.add('visible');
-                });
+                physicsObjects.forEach(obj => { if (obj.el.getAttribute('data-season') === season) obj.el.classList.add('visible'); });
             }
         }
 
         function returnToMenu() {
-            archiveCanvas.style.opacity = '0';
-            archiveCanvas.style.pointerEvents = 'none';
-            menu.style.opacity = '1';
-            menu.style.pointerEvents = 'auto';
+            archiveCanvas.style.opacity = '0'; archiveCanvas.style.pointerEvents = 'none';
+            menu.style.opacity = '1'; menu.style.pointerEvents = 'auto';
             backBtn.classList.remove('visible');
-
             if (currentAudio) { fadeOutAudio(currentAudio); currentAudio = null; }
             physicsObjects.forEach(obj => obj.el.classList.remove('visible'));
         }
 
-        // --- ADVANCED 3D LERP PHYSICS ENGINE ---
-        // This replaces CSS transitions with buttery smooth, frame-by-frame mathematics.
+        // --- THE INERTIAL PHYSICS ENGINE ---
         const artifacts = document.querySelectorAll('.draggable-artifact');
         let physicsObjects = [];
         let activeObj = null;
         let dragOffsetX = 0, dragOffsetY = 0;
 
-        // Initialize state for each image
         artifacts.forEach(el => {
             physicsObjects.push({
                 el: el,
-                x: 0, y: 0,           // Current Position
-                tx: 0, ty: 0,         // Target Position
-                prevX: 0, prevY: 0,   // For velocity calculation
-                r: 0,                 // Base 2D Rotation
-                tiltX: 0, tiltY: 0,   // Current 3D Tilt
-                tTiltX: 0, tTiltY: 0, // Target 3D Tilt
-                scale: 1, tScale: 1   // Scale
+                isDragging: false,
+                x: 0, y: 0, tx: 0, ty: 0,     // Position
+                vx: 0, vy: 0,                 // Velocity (Momentum)
+                r: 0, tr: 0, vr: 0,           // Rotation & Spin Momentum
+                tiltX: 0, tiltY: 0, tTiltX: 0, tTiltY: 0, // 3D Tilt
+                scale: 1, tScale: 1           // Scale (Lift)
             });
         });
 
-        // Mouse Down (Grab)
         physicsObjects.forEach(obj => {
             obj.el.addEventListener('mousedown', (e) => {
                 if (!obj.el.classList.contains('visible')) return;
                 
                 activeObj = obj;
+                obj.isDragging = true;
                 
-                // Bring to front
+                // Bring strictly to the top
                 let maxZ = 0;
                 physicsObjects.forEach(o => {
                     let z = parseInt(window.getComputedStyle(o.el).zIndex) || 0;
@@ -312,8 +298,8 @@
                 obj.el.classList.add('active-drag');
                 document.body.classList.add('grabbing');
                 
-                // Lift effect
-                obj.tScale = 1.08;
+                obj.tScale = 1.08; // Physical lift
+                obj.vr = 0; // Stop any spinning
 
                 const rect = obj.el.getBoundingClientRect();
                 dragOffsetX = e.clientX - rect.left;
@@ -323,64 +309,84 @@
             });
         });
 
-        // Mouse Move (Drag)
         window.addEventListener('mousemove', (e) => {
             if (!activeObj) return;
+            // Instantly update target to mouse, tracking velocity happens in render loop
             activeObj.tx = e.clientX - dragOffsetX;
             activeObj.ty = e.clientY - dragOffsetY;
         });
 
-        // Mouse Up (Release)
         window.addEventListener('mouseup', () => {
             if (!activeObj) return;
+            
+            // Release the artifact, allowing momentum to take over
+            activeObj.isDragging = false;
             activeObj.tScale = 1;
             activeObj.el.classList.remove('active-drag');
             document.body.classList.remove('grabbing');
             activeObj = null;
         });
 
-        // The master rendering loop (Runs ~60fps)
         function renderPhysics() {
-            // Update Cursor globally
             curX += (tarX - curX) * 0.25; curY += (tarY - curY) * 0.25;
             if(crosshairCursor) { crosshairCursor.style.left = curX + 'px'; crosshairCursor.style.top = curY + 'px'; }
 
             physicsObjects.forEach(obj => {
                 if(!obj.el.classList.contains('visible')) return;
 
-                // 1. Position Lerp (Smooth trailing)
-                obj.x += (obj.tx - obj.x) * 0.15;
-                obj.y += (obj.ty - obj.y) * 0.15;
-                
-                // 2. Scale Lerp
-                obj.scale += (obj.tScale - obj.scale) * 0.2;
-
-                // 3. Velocity & Tilt Math (The "Paper Lift" effect)
-                if (obj === activeObj) {
-                    let velX = obj.x - obj.prevX;
-                    let velY = obj.y - obj.prevY;
+                if (obj.isDragging) {
+                    // Calculate raw mouse velocity
+                    obj.vx = obj.tx - obj.x;
+                    obj.vy = obj.ty - obj.y;
                     
-                    // Map velocity to 3D rotation. Fast drag = more tilt.
-                    obj.tTiltX = -(velY * 0.6); // Dragging down tilts top edge back
-                    obj.tTiltY = (velX * 0.6);  // Dragging right tilts right edge back
+                    // Directly apply to position for tight control
+                    obj.x = obj.tx;
+                    obj.y = obj.ty;
                     
-                    // Clamp the maximum bend so it doesn't flip over
-                    obj.tTiltX = Math.max(-25, Math.min(25, obj.tTiltX));
-                    obj.tTiltY = Math.max(-25, Math.min(25, obj.tTiltY));
+                    // Physics Tilt (Corners bend based on drag speed)
+                    obj.tTiltX = -(obj.vy * 0.4); 
+                    obj.tTiltY = (obj.vx * 0.4);  
+                    
+                    // Cap the maximum bend to prevent clipping
+                    obj.tTiltX = Math.max(-30, Math.min(30, obj.tTiltX));
+                    obj.tTiltY = Math.max(-30, Math.min(30, obj.tTiltY));
+                    
                 } else {
-                    // Smoothly settle back to flat when dropped
+                    // APPLY INERTIA (Friction)
+                    obj.vx *= 0.90; // The glide factor
+                    obj.vy *= 0.90;
+                    obj.vr *= 0.95; // The spin factor
+
+                    obj.tx += obj.vx;
+                    obj.ty += obj.vy;
+                    obj.tr += obj.vr;
+
+                    // SOFT BOUNDARIES (Bounce off the walls)
+                    if (obj.tx < -100) { obj.tx = -100; obj.vx *= -0.5; }
+                    if (obj.ty < 0) { obj.ty = 0; obj.vy *= -0.5; }
+                    if (obj.tx > window.innerWidth - 200) { obj.tx = window.innerWidth - 200; obj.vx *= -0.5; }
+                    if (obj.ty > window.innerHeight - 200) { obj.ty = window.innerHeight - 200; obj.vy *= -0.5; }
+
+                    // Smoothly slide to target
+                    obj.x += (obj.tx - obj.x) * 0.2;
+                    obj.y += (obj.ty - obj.y) * 0.2;
+                    obj.r += (obj.tr - obj.r) * 0.2;
+                    
+                    // Settle back to flat
                     obj.tTiltX = 0;
                     obj.tTiltY = 0;
                 }
 
+                // Apply Lerps for smoothness
+                obj.scale += (obj.tScale - obj.scale) * 0.15;
                 obj.tiltX += (obj.tTiltX - obj.tiltX) * 0.1;
                 obj.tiltY += (obj.tTiltY - obj.tiltY) * 0.1;
 
-                // Save previous positions for next frame's velocity check
-                obj.prevX = obj.x;
-                obj.prevY = obj.y;
+                // Add slight random spin when thrown fast
+                if (!obj.isDragging && (Math.abs(obj.vx) > 10 || Math.abs(obj.vy) > 10)) {
+                    obj.vr = (obj.vx + obj.vy) * 0.05; 
+                }
 
-                // 4. Apply the hardware-accelerated matrix string
                 obj.el.style.transform = `
                     translate3d(${obj.x}px, ${obj.y}px, 0)
                     scale(${obj.scale})
@@ -393,7 +399,6 @@
             requestAnimationFrame(renderPhysics);
         }
         
-        // Kick off the physics engine
         renderPhysics();
 
     </script>
