@@ -85,7 +85,26 @@
         .season-link:hover { color: var(--pure-light); text-shadow: 0 0 30px rgba(255,255,255,0.3); }
         .season-link:hover::after { opacity: 1; top: 100%; }
 
-        /* --- INTERACTIVE CANVAS & 3D PHYSICS --- */
+        /* --- AUTUMN '26: DEAD BULB STATE --- */
+        #autumn-coming-soon {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 40; opacity: 0; pointer-events: none; transition: opacity 1s ease;
+        }
+
+        #flicker-text {
+            font-family: var(--serif-font); font-style: italic; font-size: 5rem; 
+            color: var(--pure-light); text-transform: lowercase; letter-spacing: -2px;
+            opacity: 0.02; /* Almost completely invisible, like a dead neon tube */
+            transition: opacity 0.02s, text-shadow 0.02s; /* Instantaneous updates for electricity effect */
+            text-align: center; line-height: 1;
+        }
+        .flicker-sub {
+            display: block; font-family: var(--mono-font); font-style: normal;
+            font-size: 0.7rem; letter-spacing: 8px; margin-top: 20px; font-weight: 700;
+        }
+
+        /* --- INTERACTIVE CANVAS & 3D PHYSICS (SPRING) --- */
         #archive-canvas {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             pointer-events: auto; z-index: 10; opacity: 0; pointer-events: none;
@@ -136,7 +155,14 @@
 
     <div id="seasons-menu">
         <a href="#" class="season-link interactive" onclick="loadCollection('spring')">spring '26</a>
-        <a href="#" class="season-link interactive" onclick="loadCollection('autumn')">autumn '26</a>
+        <a href="#" class="season-link interactive" onclick="loadAutumn()">autumn '26</a>
+    </div>
+
+    <div id="autumn-coming-soon">
+        <div id="flicker-text">
+            autumn '26
+            <span class="flicker-sub">COMING SOON</span>
+        </div>
     </div>
 
     <div id="archive-canvas">
@@ -199,14 +225,148 @@
             el.addEventListener('mouseleave', () => document.body.classList.remove('hovering'));
         });
 
-        // --- SPA NAVIGATION & AUDIO LOGIC ---
+        // --- MASTER AUDIO ENGINE (Web Audio API) ---
+        let audioCtx;
+        let droneGain, droneOsc1, droneOsc2;
+        let isAudioInit = false;
+
+        function initGenerativeAudio() {
+            if (isAudioInit) return;
+            try {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                
+                // Construct the deep menu drone (Sub-bass beating effect)
+                droneOsc1 = audioCtx.createOscillator();
+                droneOsc2 = audioCtx.createOscillator();
+                droneGain = audioCtx.createGain();
+
+                droneOsc1.type = 'triangle';
+                droneOsc1.frequency.value = 55.0; // A1
+                
+                droneOsc2.type = 'sine';
+                droneOsc2.frequency.value = 54.5; // Slight detune creates rhythmic beating
+
+                droneGain.gain.value = 0; // Start silent
+
+                droneOsc1.connect(droneGain);
+                droneOsc2.connect(droneGain);
+                droneGain.connect(audioCtx.destination);
+
+                droneOsc1.start();
+                droneOsc2.start();
+
+                // Fade in the drone immediately
+                droneGain.gain.setTargetAtTime(0.12, audioCtx.currentTime, 2.0);
+                
+                isAudioInit = true;
+            } catch (e) { console.error("Audio Context failed to initialize"); }
+        }
+
+        // Initialize audio secretly on the very first interaction
+        document.body.addEventListener('mousemove', initGenerativeAudio, { once: true });
+        document.body.addEventListener('click', initGenerativeAudio, { once: true });
+
+        // --- THE BROKEN FLUORESCENT BULB GENERATOR ---
+        let isAutumnActive = false;
+        let autumnTimeout;
+
+        function triggerElectricSpark(duration, intensity) {
+            if (!audioCtx) return;
+
+            // 1. High frequency electrical arc (White noise through a bandpass filter)
+            const bufferSize = audioCtx.sampleRate * duration;
+            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) data[i] = (Math.random() * 2 - 1) * intensity;
+            
+            const noise = audioCtx.createBufferSource();
+            noise.buffer = buffer;
+            
+            const bandpass = audioCtx.createBiquadFilter();
+            bandpass.type = 'bandpass';
+            bandpass.frequency.value = 2500 + (Math.random() * 1500);
+            bandpass.Q.value = 1.5;
+
+            const noiseGain = audioCtx.createGain();
+            noiseGain.gain.setValueAtTime(0, audioCtx.currentTime);
+            noiseGain.gain.linearRampToValueAtTime(0.8, audioCtx.currentTime + 0.01);
+            noiseGain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+
+            noise.connect(bandpass);
+            bandpass.connect(noiseGain);
+            noiseGain.connect(audioCtx.destination);
+            
+            // 2. Heavy 60Hz Ballast Thump
+            const subOsc = audioCtx.createOscillator();
+            subOsc.type = 'sine';
+            subOsc.frequency.setValueAtTime(60, audioCtx.currentTime); 
+            
+            const subGain = audioCtx.createGain();
+            subGain.gain.setValueAtTime(0.5 * intensity, audioCtx.currentTime);
+            subGain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+
+            subOsc.connect(subGain);
+            subGain.connect(audioCtx.destination);
+            
+            noise.start();
+            subOsc.start();
+            subOsc.stop(audioCtx.currentTime + duration);
+        }
+
+        function runAutumnFlickerLoop() {
+            if (!isAutumnActive) return;
+            
+            const textEl = document.getElementById('flicker-text');
+            const timeUntilNextStrike = Math.random() * 3000 + 1000; // Wait 1 to 4 seconds between bursts
+            
+            autumnTimeout = setTimeout(() => {
+                if (!isAutumnActive) return;
+                
+                // Generate a random cluster of rapid flickers
+                let flickers = Math.floor(Math.random() * 4) + 2;
+                let count = 0;
+                
+                function strike() {
+                    if(!isAutumnActive) return;
+                    
+                    // VISUAL: Bright flash
+                    const flashIntensity = Math.random() * 0.6 + 0.4;
+                    textEl.style.opacity = flashIntensity.toString();
+                    textEl.style.textShadow = `0 0 ${flashIntensity * 40}px rgba(255,255,255,1), 0 0 ${flashIntensity * 10}px rgba(255,255,255,0.8)`;
+                    
+                    // AUDIO: Synced spark
+                    triggerElectricSpark(Math.random() * 0.06 + 0.02, flashIntensity);
+                    
+                    setTimeout(() => {
+                        if(!isAutumnActive) return;
+                        
+                        // VISUAL: Back to dead
+                        textEl.style.opacity = '0.02';
+                        textEl.style.textShadow = 'none';
+                        
+                        count++;
+                        if(count < flickers) {
+                            setTimeout(strike, Math.random() * 120 + 40); // Rapid succession
+                        } else {
+                            runAutumnFlickerLoop(); // Schedule the next big event
+                        }
+                    }, Math.random() * 50 + 20); // Length of a single flash
+                }
+                
+                strike();
+                
+            }, timeUntilNextStrike);
+        }
+
+        // --- SPA NAVIGATION LOGIC ---
         const menu = document.getElementById('seasons-menu');
         const archiveCanvas = document.getElementById('archive-canvas');
+        const autumnContainer = document.getElementById('autumn-coming-soon');
         const backBtn = document.getElementById('back-to-seasons');
         const springAudio = document.getElementById('spring-audio');
         let currentAudio = null;
         let isScattered = false;
-        let globalZIndex = 100; // Track highest Z globally for perfect stacking
+        let globalZIndex = 100;
 
         function fadeOutAudio(audioElement) {
             if (!audioElement) return;
@@ -217,23 +377,39 @@
             }, 50);
         }
 
+        function loadAutumn() {
+            // UI State
+            menu.style.opacity = '0'; menu.style.pointerEvents = 'none';
+            autumnContainer.style.opacity = '1';
+            backBtn.classList.add('visible');
+
+            // Audio State
+            if (droneGain) droneGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.5); // Fade out drone
+
+            // Start Generative Flicker
+            isAutumnActive = true;
+            runAutumnFlickerLoop();
+        }
+
         function loadCollection(season) {
             menu.style.opacity = '0'; menu.style.pointerEvents = 'none';
             archiveCanvas.style.opacity = '1'; archiveCanvas.style.pointerEvents = 'auto';
             backBtn.classList.add('visible');
 
+            // Audio State
+            if (droneGain) droneGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.5); // Fade out drone
+
             if (season === 'spring') {
-                springAudio.volume = 0; springAudio.play().catch(e => console.log("Audio requires interaction first"));
+                springAudio.volume = 0; springAudio.play().catch(e => console.log("Interaction required"));
                 currentAudio = springAudio;
                 let vol = 0;
                 const fade = setInterval(() => { if (vol < 0.95) { vol += 0.05; springAudio.volume = vol; } else { clearInterval(fade); } }, 100);
             }
 
-            // Scatter artifacts beautifully from the center outwards
+            // Scatter artifacts radially
             if(!isScattered) {
                 const centerX = window.innerWidth / 2;
                 const centerY = window.innerHeight / 2;
-                // Define the "table" area, leaving comfortable padding on the edges
                 const spreadWidth = window.innerWidth * 0.7; 
                 const spreadHeight = window.innerHeight * 0.6;
 
@@ -241,10 +417,9 @@
                     if (obj.el.getAttribute('data-season') === season) {
                         obj.el.classList.add('visible');
                         
-                        // Scatter radially/randomly across the center of the screen
-                        obj.tx = centerX + ((Math.random() - 0.5) * spreadWidth) - 160; // -160 offsets half the image width
-                        obj.ty = centerY + ((Math.random() - 0.5) * spreadHeight) - 210; // -210 offsets half the image height
-                        obj.tr = (Math.random() * 60) - 30; // Wider base rotation for a messy table look
+                        obj.tx = centerX + ((Math.random() - 0.5) * spreadWidth) - 160; 
+                        obj.ty = centerY + ((Math.random() - 0.5) * spreadHeight) - 210; 
+                        obj.tr = (Math.random() * 60) - 30; 
                         
                         obj.x = obj.tx; obj.y = obj.ty; obj.r = obj.tr;
                         globalZIndex++;
@@ -258,11 +433,24 @@
         }
 
         function returnToMenu() {
+            // UI State Reset
             archiveCanvas.style.opacity = '0'; archiveCanvas.style.pointerEvents = 'none';
+            autumnContainer.style.opacity = '0';
             menu.style.opacity = '1'; menu.style.pointerEvents = 'auto';
             backBtn.classList.remove('visible');
+            
+            // Spring Reset
             if (currentAudio) { fadeOutAudio(currentAudio); currentAudio = null; }
             physicsObjects.forEach(obj => obj.el.classList.remove('visible'));
+
+            // Autumn Reset
+            isAutumnActive = false;
+            clearTimeout(autumnTimeout);
+            document.getElementById('flicker-text').style.opacity = '0.02';
+            document.getElementById('flicker-text').style.textShadow = 'none';
+
+            // Bring the Drone back
+            if (droneGain) droneGain.gain.setTargetAtTime(0.12, audioCtx.currentTime, 1.5);
         }
 
         // --- THE INERTIAL PHYSICS ENGINE ---
@@ -285,14 +473,12 @@
 
         physicsObjects.forEach(obj => {
             obj.el.addEventListener('mousedown', (e) => {
-                // BUG FIX: Prevent clicking through stacked images
                 if (!obj.el.classList.contains('visible') || activeObj) return;
                 e.stopPropagation(); 
                 
                 activeObj = obj;
                 obj.isDragging = true;
                 
-                // Push strictly to the very top of the pile
                 globalZIndex++;
                 obj.el.style.zIndex = globalZIndex;
                 
@@ -318,7 +504,6 @@
 
         window.addEventListener('mouseup', () => {
             if (!activeObj) return;
-            
             activeObj.isDragging = false;
             activeObj.tScale = 1;
             activeObj.el.classList.remove('active-drag');
@@ -347,7 +532,7 @@
                     obj.tTiltY = Math.max(-30, Math.min(30, obj.tTiltY));
                     
                 } else {
-                    obj.vx *= 0.88; // Slightly more friction so they settle faster
+                    obj.vx *= 0.88; 
                     obj.vy *= 0.88;
                     obj.vr *= 0.95; 
 
@@ -355,7 +540,6 @@
                     obj.ty += obj.vy;
                     obj.tr += obj.vr;
 
-                    // Boundaries (bounce)
                     if (obj.tx < -100) { obj.tx = -100; obj.vx *= -0.5; }
                     if (obj.ty < -100) { obj.ty = -100; obj.vy *= -0.5; }
                     if (obj.tx > window.innerWidth - 200) { obj.tx = window.innerWidth - 200; obj.vx *= -0.5; }
@@ -373,375 +557,6 @@
                 obj.tiltX += (obj.tTiltX - obj.tiltX) * 0.1;
                 obj.tiltY += (obj.tTiltY - obj.tiltY) * 0.1;
 
-                if (!obj.isDragging && (Math.abs(obj.vx) > 10 || Math.abs(obj.vy) > 10)) {
-                    obj.vr = (obj.vx + obj.vy) * 0.05; 
-                }
-
-                obj.el.style.transform = `
-                    translate3d(${obj.x}px, ${obj.y}px, 0)
-                    scale(${obj.scale})
-                    rotate(${obj.r}deg)
-                    rotateX(${obj.tiltX}deg)
-                    rotateY(${obj.tiltY}deg)
-                `;
-            });
-
-            requestAnimationFrame(renderPhysics);
-        }
-        
-        renderPhysics();
-
-    </script>
-</body>
-</html>            transform: translate(-50%, -50%); pointer-events: none; z-index: 10000;
-            display: flex; justify-content: center; align-items: center;
-            border-radius: 50%; border: 1px solid transparent;
-            transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1), height 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s;
-        }
-        #crosshair-cursor::before, #crosshair-cursor::after {
-            content: ''; position: absolute; background-color: rgba(255,255,255,0.5); transition: all 0.2s ease;
-        }
-        #crosshair-cursor::before { width: 100%; height: 1px; }
-        #crosshair-cursor::after { height: 100%; width: 1px; }
-        .hovering #crosshair-cursor { width: 60px; height: 60px; }
-        .hovering #crosshair-cursor::before, .hovering #crosshair-cursor::after { background-color: var(--pure-light); }
-        .grabbing #crosshair-cursor { transform: translate(-50%, -50%) rotate(45deg); width: 30px; height: 30px; border-color: rgba(255,255,255,0.2);}
-
-        /* --- MINIMALIST HEADER NAV --- */
-        .top-nav {
-            position: absolute; top: 40px; left: 40px; right: 40px; z-index: 100;
-            display: flex; justify-content: space-between; align-items: flex-start; pointer-events: none;
-        }
-
-        .nav-btn {
-            font-size: 0.6rem; font-weight: 700; letter-spacing: 4px; color: rgba(255,255,255,0.5);
-            text-decoration: none; text-transform: uppercase; transition: color 0.3s, letter-spacing 0.3s;
-            pointer-events: auto; padding: 10px 0; display: block;
-        }
-        .nav-btn:hover { color: var(--pure-light); letter-spacing: 6px; }
-
-        .header-titles { text-align: right; pointer-events: auto;}
-        .brand-name { font-family: var(--serif-font); font-style: italic; font-size: 2.5rem; font-weight: 400; line-height: 0.8; color: var(--pure-light); }
-        .title-subtext { font-size: 0.55rem; color: rgba(255, 255, 255, 0.3); margin-top: 10px; letter-spacing: 3px; text-transform: uppercase; }
-
-        /* --- SEASONS MENU --- */
-        #seasons-menu {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 40px;
-            z-index: 50; transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        .season-link {
-            font-family: var(--serif-font); font-style: italic; font-size: 6rem; color: rgba(255,255,255,0.2);
-            text-decoration: none; line-height: 0.8; transition: all 0.4s ease; pointer-events: auto;
-            text-transform: lowercase; letter-spacing: -2px; position: relative;
-        }
-        .season-link::after {
-            content: 'VIEW ARCHIVE'; position: absolute; left: 50%; top: 110%; transform: translateX(-50%);
-            font-family: var(--mono-font); font-size: 0.55rem; font-style: normal; font-weight: 700; letter-spacing: 6px;
-            color: var(--pure-light); opacity: 0; transition: opacity 0.3s, top 0.3s; white-space: nowrap;
-        }
-        .season-link:hover { color: var(--pure-light); text-shadow: 0 0 30px rgba(255,255,255,0.3); }
-        .season-link:hover::after { opacity: 1; top: 100%; }
-
-        /* --- INTERACTIVE CANVAS & 3D PHYSICS --- */
-        #archive-canvas {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: auto; z-index: 10; opacity: 0; pointer-events: none;
-            transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1);
-            perspective: 1500px; 
-            perspective-origin: center;
-        }
-
-        .draggable-artifact {
-            position: absolute; top: 0; left: 0; 
-            max-width: 320px; max-height: 420px; object-fit: contain;
-            /* Subtler base shadow for "flat on table" look */
-            filter: grayscale(15%) drop-shadow(0 8px 15px rgba(0,0,0,0.6));
-            opacity: 0; pointer-events: none;
-            transform-style: preserve-3d;
-            will-change: transform, filter; 
-            /* Filter transition handles the fluid shadow lifting */
-            transition: opacity 0.8s ease, filter 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-            transform-origin: center center;
-        }
-
-        .draggable-artifact.visible { opacity: 1; pointer-events: auto; }
-        
-        /* The "Lifted" State */
-        .draggable-artifact.active-drag { 
-            filter: grayscale(0%) drop-shadow(0 40px 60px rgba(0,0,0,0.9)); 
-        }
-
-        #back-to-seasons { opacity: 0; pointer-events: none; transition: opacity 0.3s; }
-        #back-to-seasons.visible { opacity: 1; pointer-events: auto; margin-top: 15px; }
-
-    </style>
-</head>
-<body>
-
-    <audio id="spring-audio" src="spring26.mp3" loop></audio>
-
-    <canvas id="lo-fi-grain"></canvas>
-    <div id="crosshair-cursor"></div>
-
-    <nav class="top-nav">
-        <div>
-            <a href="index.html" class="nav-btn interactive">[ ← RETURN TO CORE ]</a>
-            <div id="back-to-seasons" class="nav-btn interactive" onclick="returnToMenu()">[ ← BACK TO SEASONS ]</div>
-        </div>
-        <div class="header-titles">
-            <h1 class="brand-name">archive.</h1>
-            <p class="title-subtext">Visual Memory Bank</p>
-        </div>
-    </nav>
-
-    <div id="seasons-menu">
-        <a href="#" class="season-link interactive" onclick="loadCollection('spring')">spring '26</a>
-        <a href="#" class="season-link interactive" onclick="loadCollection('autumn')">autumn '26</a>
-    </div>
-
-    <div id="archive-canvas">
-        <img src="archiveimages/1.png" class="draggable-artifact interactive" data-season="spring" alt="Artifact">
-        <img src="archiveimages/2.png" class="draggable-artifact interactive" data-season="spring" alt="Artifact">
-        <img src="archiveimages/3.png" class="draggable-artifact interactive" data-season="spring" alt="Artifact">
-        <img src="archiveimages/4.png" class="draggable-artifact interactive" data-season="spring" alt="Artifact">
-        <img src="archiveimages/5.png" class="draggable-artifact interactive" data-season="spring" alt="Artifact">
-        <img src="archiveimages/6.png" class="draggable-artifact interactive" data-season="spring" alt="Artifact">
-        <img src="archiveimages/7.png" class="draggable-artifact interactive" data-season="spring" alt="Artifact">
-        <img src="archiveimages/8.png" class="draggable-artifact interactive" data-season="spring" alt="Artifact">
-        <img src="archiveimages/9.png" class="draggable-artifact interactive" data-season="spring" alt="Artifact">
-        <img src="archiveimages/10.png" class="draggable-artifact interactive" data-season="spring" alt="Artifact">
-        <img src="archiveimages/11.png" class="draggable-artifact interactive" data-season="spring" alt="Artifact">
-        <img src="archiveimages/12.png" class="draggable-artifact interactive" data-season="spring" alt="Artifact">
-        <img src="archiveimages/13.png" class="draggable-artifact interactive" data-season="spring" alt="Artifact">
-        <img src="archiveimages/14.png" class="draggable-artifact interactive" data-season="spring" alt="Artifact">
-        <img src="archiveimages/15.png" class="draggable-artifact interactive" data-season="spring" alt="Artifact">
-        <img src="archiveimages/16.png" class="draggable-artifact interactive" data-season="spring" alt="Artifact">
-        <img src="archiveimages/17.png" class="draggable-artifact interactive" data-season="spring" alt="Artifact">
-        <img src="archiveimages/18.png" class="draggable-artifact interactive" data-season="spring" alt="Artifact">
-        <img src="archiveimages/19.png" class="draggable-artifact interactive" data-season="spring" alt="Artifact">
-        <img src="archiveimages/20.png" class="draggable-artifact interactive" data-season="spring" alt="Artifact">
-        <img src="archiveimages/21.png" class="draggable-artifact interactive" data-season="spring" alt="Artifact">
-    </div>
-
-    <script>
-        // --- NOISE ENGINE ---
-        const canvas = document.getElementById('lo-fi-grain');
-        const ctx = canvas.getContext('2d', { alpha: false });
-        let noiseCacheCanvas = null;
-        
-        function initNoiseEngine() {
-            if(!canvas) return;
-            canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-            const idata = ctx.createImageData(canvas.width, canvas.height);
-            const buffer32 = new Uint32Array(idata.data.buffer);
-            for (let i = 0; i < buffer32.length; i++) buffer32[i] = Math.random() < 0.12 ? 0xff000000 : 0xffffffff; 
-            noiseCacheCanvas = document.createElement('canvas');
-            noiseCacheCanvas.width = canvas.width; noiseCacheCanvas.height = canvas.height;
-            noiseCacheCanvas.getContext('2d').putImageData(idata, 0, 0);
-        }
-
-        function drawBlitNoise() {
-            if (!noiseCacheCanvas) return;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.drawImage(noiseCacheCanvas, Math.floor((Math.random() * 30) - 15), Math.floor((Math.random() * 30) - 15));
-        }
-        window.addEventListener('resize', initNoiseEngine); initNoiseEngine(); setInterval(drawBlitNoise, 40);
-
-        // --- GLOBAL CURSOR TRACKING ---
-        const crosshairCursor = document.getElementById('crosshair-cursor');
-        let curX = window.innerWidth / 2, curY = window.innerHeight / 2;
-        let tarX = curX, tarY = curY;
-
-        document.addEventListener('mousemove', (e) => { tarX = e.clientX; tarY = e.clientY; });
-
-        document.querySelectorAll('.interactive').forEach(el => {
-            el.addEventListener('mouseenter', () => document.body.classList.add('hovering'));
-            el.addEventListener('mouseleave', () => document.body.classList.remove('hovering'));
-        });
-
-        // --- SPA NAVIGATION & AUDIO LOGIC ---
-        const menu = document.getElementById('seasons-menu');
-        const archiveCanvas = document.getElementById('archive-canvas');
-        const backBtn = document.getElementById('back-to-seasons');
-        const springAudio = document.getElementById('spring-audio');
-        let currentAudio = null;
-        let isScattered = false;
-
-        function fadeOutAudio(audioElement) {
-            if (!audioElement) return;
-            let vol = audioElement.volume;
-            const fade = setInterval(() => {
-                if (vol > 0.05) { vol -= 0.05; audioElement.volume = vol; } 
-                else { clearInterval(fade); audioElement.pause(); audioElement.volume = 1; }
-            }, 50);
-        }
-
-        function loadCollection(season) {
-            menu.style.opacity = '0'; menu.style.pointerEvents = 'none';
-            archiveCanvas.style.opacity = '1'; archiveCanvas.style.pointerEvents = 'auto';
-            backBtn.classList.add('visible');
-
-            if (season === 'spring') {
-                springAudio.volume = 0; springAudio.play().catch(e => console.log("Audio requires interaction first"));
-                currentAudio = springAudio;
-                let vol = 0;
-                const fade = setInterval(() => { if (vol < 0.95) { vol += 0.05; springAudio.volume = vol; } else { clearInterval(fade); } }, 100);
-            }
-
-            // Scatter artifacts in a beautiful, wider cascade
-            if(!isScattered) {
-                let highestZ = 100;
-                physicsObjects.forEach((obj, index) => {
-                    if (obj.el.getAttribute('data-season') === season) {
-                        obj.el.classList.add('visible');
-                        
-                        // Scatter widely across the screen
-                        obj.tx = 50 + (Math.random() * (window.innerWidth - 300));
-                        obj.ty = 80 + (Math.random() * (window.innerHeight - 300));
-                        obj.tr = (Math.random() * 40) - 20; // Base random rotation
-                        
-                        obj.x = obj.tx; obj.y = obj.ty; obj.r = obj.tr;
-                        obj.el.style.zIndex = highestZ + index;
-                        highestZ++;
-                    }
-                });
-                isScattered = true;
-            } else {
-                physicsObjects.forEach(obj => { if (obj.el.getAttribute('data-season') === season) obj.el.classList.add('visible'); });
-            }
-        }
-
-        function returnToMenu() {
-            archiveCanvas.style.opacity = '0'; archiveCanvas.style.pointerEvents = 'none';
-            menu.style.opacity = '1'; menu.style.pointerEvents = 'auto';
-            backBtn.classList.remove('visible');
-            if (currentAudio) { fadeOutAudio(currentAudio); currentAudio = null; }
-            physicsObjects.forEach(obj => obj.el.classList.remove('visible'));
-        }
-
-        // --- THE INERTIAL PHYSICS ENGINE ---
-        const artifacts = document.querySelectorAll('.draggable-artifact');
-        let physicsObjects = [];
-        let activeObj = null;
-        let dragOffsetX = 0, dragOffsetY = 0;
-
-        artifacts.forEach(el => {
-            physicsObjects.push({
-                el: el,
-                isDragging: false,
-                x: 0, y: 0, tx: 0, ty: 0,     // Position
-                vx: 0, vy: 0,                 // Velocity (Momentum)
-                r: 0, tr: 0, vr: 0,           // Rotation & Spin Momentum
-                tiltX: 0, tiltY: 0, tTiltX: 0, tTiltY: 0, // 3D Tilt
-                scale: 1, tScale: 1           // Scale (Lift)
-            });
-        });
-
-        physicsObjects.forEach(obj => {
-            obj.el.addEventListener('mousedown', (e) => {
-                if (!obj.el.classList.contains('visible')) return;
-                
-                activeObj = obj;
-                obj.isDragging = true;
-                
-                // Bring strictly to the top
-                let maxZ = 0;
-                physicsObjects.forEach(o => {
-                    let z = parseInt(window.getComputedStyle(o.el).zIndex) || 0;
-                    if (z > maxZ) maxZ = z;
-                });
-                obj.el.style.zIndex = maxZ + 1;
-                
-                obj.el.classList.add('active-drag');
-                document.body.classList.add('grabbing');
-                
-                obj.tScale = 1.08; // Physical lift
-                obj.vr = 0; // Stop any spinning
-
-                const rect = obj.el.getBoundingClientRect();
-                dragOffsetX = e.clientX - rect.left;
-                dragOffsetY = e.clientY - rect.top;
-                
-                e.preventDefault(); 
-            });
-        });
-
-        window.addEventListener('mousemove', (e) => {
-            if (!activeObj) return;
-            // Instantly update target to mouse, tracking velocity happens in render loop
-            activeObj.tx = e.clientX - dragOffsetX;
-            activeObj.ty = e.clientY - dragOffsetY;
-        });
-
-        window.addEventListener('mouseup', () => {
-            if (!activeObj) return;
-            
-            // Release the artifact, allowing momentum to take over
-            activeObj.isDragging = false;
-            activeObj.tScale = 1;
-            activeObj.el.classList.remove('active-drag');
-            document.body.classList.remove('grabbing');
-            activeObj = null;
-        });
-
-        function renderPhysics() {
-            curX += (tarX - curX) * 0.25; curY += (tarY - curY) * 0.25;
-            if(crosshairCursor) { crosshairCursor.style.left = curX + 'px'; crosshairCursor.style.top = curY + 'px'; }
-
-            physicsObjects.forEach(obj => {
-                if(!obj.el.classList.contains('visible')) return;
-
-                if (obj.isDragging) {
-                    // Calculate raw mouse velocity
-                    obj.vx = obj.tx - obj.x;
-                    obj.vy = obj.ty - obj.y;
-                    
-                    // Directly apply to position for tight control
-                    obj.x = obj.tx;
-                    obj.y = obj.ty;
-                    
-                    // Physics Tilt (Corners bend based on drag speed)
-                    obj.tTiltX = -(obj.vy * 0.4); 
-                    obj.tTiltY = (obj.vx * 0.4);  
-                    
-                    // Cap the maximum bend to prevent clipping
-                    obj.tTiltX = Math.max(-30, Math.min(30, obj.tTiltX));
-                    obj.tTiltY = Math.max(-30, Math.min(30, obj.tTiltY));
-                    
-                } else {
-                    // APPLY INERTIA (Friction)
-                    obj.vx *= 0.90; // The glide factor
-                    obj.vy *= 0.90;
-                    obj.vr *= 0.95; // The spin factor
-
-                    obj.tx += obj.vx;
-                    obj.ty += obj.vy;
-                    obj.tr += obj.vr;
-
-                    // SOFT BOUNDARIES (Bounce off the walls)
-                    if (obj.tx < -100) { obj.tx = -100; obj.vx *= -0.5; }
-                    if (obj.ty < 0) { obj.ty = 0; obj.vy *= -0.5; }
-                    if (obj.tx > window.innerWidth - 200) { obj.tx = window.innerWidth - 200; obj.vx *= -0.5; }
-                    if (obj.ty > window.innerHeight - 200) { obj.ty = window.innerHeight - 200; obj.vy *= -0.5; }
-
-                    // Smoothly slide to target
-                    obj.x += (obj.tx - obj.x) * 0.2;
-                    obj.y += (obj.ty - obj.y) * 0.2;
-                    obj.r += (obj.tr - obj.r) * 0.2;
-                    
-                    // Settle back to flat
-                    obj.tTiltX = 0;
-                    obj.tTiltY = 0;
-                }
-
-                // Apply Lerps for smoothness
-                obj.scale += (obj.tScale - obj.scale) * 0.15;
-                obj.tiltX += (obj.tTiltX - obj.tiltX) * 0.1;
-                obj.tiltY += (obj.tTiltY - obj.tiltY) * 0.1;
-
-                // Add slight random spin when thrown fast
                 if (!obj.isDragging && (Math.abs(obj.vx) > 10 || Math.abs(obj.vy) > 10)) {
                     obj.vr = (obj.vx + obj.vy) * 0.05; 
                 }
