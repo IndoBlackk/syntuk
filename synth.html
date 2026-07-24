@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>hello</title>
+    <title>Samplr</title>
     <style>
         body {
             margin: 0;
@@ -71,7 +71,7 @@
 </head>
 <body>
 
-    <button id="startBtn">Initiate Extreme Test</button>
+    <button id="startBtn">Click To Start</button>
 
     <div id="scareContainer">
         <img id="scareImage" src="img1.jpg" alt="Test Image">
@@ -79,7 +79,6 @@
 
     <div id="whiteFlash"></div>
 
-    <!-- Ensure your file is correctly named here -->
     <audio id="scareAudio" src="audio1.wav" loop></audio>
 
     <script>
@@ -88,10 +87,12 @@
         const whiteFlash = document.getElementById('whiteFlash');
         const scareAudio = document.getElementById('scareAudio');
 
-        // Error tracking to warn you if the filename is misspelled 
         scareAudio.addEventListener('error', (e) => {
-            alert("Error: The browser cannot find 'audio1.wav'. Check the spelling and make sure it is in the exact same folder as this HTML file.");
+            alert("Error: The browser cannot find 'audio1.wav'.");
         });
+
+        let audioCtx;
+        let audioContextInitialized = false;
 
         startBtn.addEventListener('click', () => {
             // 1. Force Fullscreen
@@ -106,9 +107,37 @@
             whiteFlash.style.display = 'block';
             whiteFlash.classList.add('active-pure-strobe');
 
-            // 3. Direct Audio Playback (Bypasses security blocks)
-            scareAudio.playbackRate = 16.0; // Max speed allowed by browsers
-            scareAudio.volume = 1.0;        // Max volume
+            // 3. Audio Amplification
+            if (!audioContextInitialized) {
+                try {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    audioCtx = new AudioContext();
+                    
+                    const track = audioCtx.createMediaElementSource(scareAudio);
+                    const gainNode = audioCtx.createGain();
+                    
+                    // Multiply the volume by 10 (Massive artificial boost)
+                    gainNode.gain.value = 10.0; 
+                    
+                    track.connect(gainNode);
+                    gainNode.connect(audioCtx.destination);
+                    
+                    audioContextInitialized = true;
+                } catch (e) {
+                    console.warn("Browser blocked the 10x amplifier (CORS). Playing at normal max volume instead.");
+                }
+            }
+
+            // Force wake up the audio context if it was suspended by the browser
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            // 4. Play at normal speed
+            scareAudio.playbackRate = 1.0; 
+            
+            // Standard fallback volume if the 10x amplifier gets blocked
+            scareAudio.volume = 1.0;        
             
             scareAudio.play().catch(error => {
                 console.error("Audio playback was blocked:", error);
