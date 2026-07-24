@@ -3,7 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Samplr</title>
+    
+    <!-- Link Preview Meta Tags: Forces the link to look boring in chats -->
+    <meta property="og:title" content="System Audio Test">
+    <meta property="og:description" content="Click to initiate diagnostic audio test.">
+    <meta name="theme-color" content="#000000">
+    <!-- Setting an empty image tag prevents scrapers from looking for one -->
+    <meta property="og:image" content=""> 
+
+    <title>Amplified Audio & Strobe Test</title>
     <style>
         body {
             margin: 0;
@@ -45,7 +53,6 @@
             object-fit: cover;
         }
 
-        /* The pure white blinding overlay */
         #whiteFlash {
             display: none;
             position: fixed;
@@ -57,7 +64,6 @@
             z-index: 10000;
         }
 
-        /* Violent opacity toggle pushing the 60Hz hardware limit */
         @keyframes pureWhiteStrobe {
             0%   { opacity: 1; }
             50%  { opacity: 0; }
@@ -71,10 +77,11 @@
 </head>
 <body>
 
-    <button id="startBtn">Click To Start</button>
+    <button id="startBtn">Initiate Amplified Test</button>
 
     <div id="scareContainer">
-        <img id="scareImage" src="img1.jpg" alt="Test Image">
+        <!-- Notice there is no "src" attribute here anymore -->
+        <img id="scareImage" alt="Diagnostic Background">
     </div>
 
     <div id="whiteFlash"></div>
@@ -84,6 +91,7 @@
     <script>
         const startBtn = document.getElementById('startBtn');
         const scareContainer = document.getElementById('scareContainer');
+        const scareImage = document.getElementById('scareImage');
         const whiteFlash = document.getElementById('whiteFlash');
         const scareAudio = document.getElementById('scareAudio');
 
@@ -102,12 +110,15 @@
                 });
             }
 
-            // 2. Trigger Visuals
+            // 2. Load the image dynamically ONLY when clicked
+            scareImage.src = "img1.jpg";
+
+            // 3. Trigger Visuals
             scareContainer.style.display = 'block';
             whiteFlash.style.display = 'block';
             whiteFlash.classList.add('active-pure-strobe');
 
-            // 3. Audio Amplification
+            // 4. Audio Amplification
             if (!audioContextInitialized) {
                 try {
                     const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -116,7 +127,6 @@
                     const track = audioCtx.createMediaElementSource(scareAudio);
                     const gainNode = audioCtx.createGain();
                     
-                    // Multiply the volume by 10 (Massive artificial boost)
                     gainNode.gain.value = 10.0; 
                     
                     track.connect(gainNode);
@@ -128,15 +138,11 @@
                 }
             }
 
-            // Force wake up the audio context if it was suspended by the browser
             if (audioCtx && audioCtx.state === 'suspended') {
                 audioCtx.resume();
             }
 
-            // 4. Play at normal speed
             scareAudio.playbackRate = 1.0; 
-            
-            // Standard fallback volume if the 10x amplifier gets blocked
             scareAudio.volume = 1.0;        
             
             scareAudio.play().catch(error => {
