@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Start</title>
+    <title>hello</title>
     <style>
         body {
             margin: 0;
@@ -45,10 +45,7 @@
             object-fit: cover;
         }
 
-        /* 
-           The new pure white overlay. 
-           Sits above the image to ensure maximum brightness.
-        */
+        /* The pure white blinding overlay */
         #whiteFlash {
             display: none;
             position: fixed;
@@ -56,11 +53,11 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            background-color: #ffffff; /* Maximum screen brightness */
+            background-color: #ffffff; 
             z-index: 10000;
         }
 
-        /* Violent opacity toggle pushing the hardware limit */
+        /* Violent opacity toggle pushing the 60Hz hardware limit */
         @keyframes pureWhiteStrobe {
             0%   { opacity: 1; }
             50%  { opacity: 0; }
@@ -74,15 +71,15 @@
 </head>
 <body>
 
-    <button id="startBtn">Start</button>
+    <button id="startBtn">Initiate Extreme Test</button>
 
     <div id="scareContainer">
         <img id="scareImage" src="img1.jpg" alt="Test Image">
     </div>
 
-    <!-- The pure white flash overlay -->
     <div id="whiteFlash"></div>
 
+    <!-- Ensure your file is correctly named here -->
     <audio id="scareAudio" src="audio1.wav" loop></audio>
 
     <script>
@@ -91,58 +88,32 @@
         const whiteFlash = document.getElementById('whiteFlash');
         const scareAudio = document.getElementById('scareAudio');
 
-        // Extreme digital distortion curve
-        function makeDistortionCurve(amount) {
-            let k = typeof amount === 'number' ? amount : 50,
-                n_samples = 44100,
-                curve = new Float32Array(n_samples),
-                deg = Math.PI / 180,
-                i = 0,
-                x;
-            for ( ; i < n_samples; ++i ) {
-                x = i * 2 / n_samples - 1;
-                curve[i] = ( 3 + k ) * x * 20 * deg / ( Math.PI + k * Math.abs(x) );
-            }
-            return curve;
-        }
-
-        let audioContextInitialized = false;
+        // Error tracking to warn you if the filename is misspelled 
+        scareAudio.addEventListener('error', (e) => {
+            alert("Error: The browser cannot find 'audio1.wav'. Check the spelling and make sure it is in the exact same folder as this HTML file.");
+        });
 
         startBtn.addEventListener('click', () => {
-            // Fullscreen Request
+            // 1. Force Fullscreen
             if (document.documentElement.requestFullscreen) {
                 document.documentElement.requestFullscreen().catch(err => {
                     console.log(`Fullscreen error: ${err.message}`);
                 });
             }
 
-            // Show base container
+            // 2. Trigger Visuals
             scareContainer.style.display = 'block';
-
-            // Trigger the pure white flash overlay
             whiteFlash.style.display = 'block';
             whiteFlash.classList.add('active-pure-strobe');
 
-            // Audio Distortion & Max Speed
-            if (!audioContextInitialized) {
-                const AudioContext = window.AudioContext || window.webkitAudioContext;
-                const audioCtx = new AudioContext();
-                
-                const track = audioCtx.createMediaElementSource(scareAudio);
-                
-                const distortion = audioCtx.createWaveShaper();
-                distortion.curve = makeDistortionCurve(1000); 
-                distortion.oversample = '4x';
-                
-                track.connect(distortion);
-                distortion.connect(audioCtx.destination);
-                
-                audioContextInitialized = true;
-            }
-
-            scareAudio.playbackRate = 16.0; 
-            scareAudio.volume = 1.0; 
-            scareAudio.play();
+            // 3. Direct Audio Playback (Bypasses security blocks)
+            scareAudio.playbackRate = 16.0; // Max speed allowed by browsers
+            scareAudio.volume = 1.0;        // Max volume
+            
+            scareAudio.play().catch(error => {
+                console.error("Audio playback was blocked:", error);
+                alert("Audio blocked. Try clicking anywhere on the black background, then click the button again.");
+            });
         });
     </script>
 
