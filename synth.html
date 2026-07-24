@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <!-- Link Preview Meta Tags: Protects the surprise in chats -->
-    <meta property="og:title" content="System Audio Test">
-    <meta property="og:description" content="Click to initiate diagnostic audio test.">
+    <meta property="og:title" content="Hello">
+    <meta property="og:description" content="Click to Enter">
     <meta name="theme-color" content="#000000">
     <meta property="og:image" content=""> 
 
@@ -76,7 +76,7 @@
 </head>
 <body>
 
-    <button id="startBtn">Initiate Diagnostic Test</button>
+    <button id="startBtn">Click To Enter</button>
 
     <div id="scareContainer">
         <img id="scareImage" alt="Diagnostic Background">
@@ -84,8 +84,8 @@
 
     <div id="whiteFlash"></div>
 
-    <!-- Reverted back to audio1.wav -->
-    <audio id="scareAudio" src="audio1.wav" loop crossorigin="anonymous"></audio>
+    <!-- Standard HTML5 Audio (Bypasses Web Audio API blocks) -->
+    <audio id="scareAudio" src="audio1.wav" loop></audio>
 
     <script>
         const startBtn = document.getElementById('startBtn');
@@ -94,13 +94,10 @@
         const whiteFlash = document.getElementById('whiteFlash');
         const scareAudio = document.getElementById('scareAudio');
 
-        // This will pop up an alert on your live GitHub site if the file is missing
+        // Alert if GitHub cannot find the file
         scareAudio.addEventListener('error', (e) => {
-            alert("GitHub Error: Cannot find 'audio1.wav'. Check case-sensitivity (WAV vs wav) and ensure it is pushed to the repo.");
+            alert("GitHub Error: Cannot find 'audio1.wav'. Check case-sensitivity (WAV vs wav).");
         });
-
-        let audioCtx;
-        let audioContextInitialized = false;
 
         startBtn.addEventListener('click', () => {
             // 1. Force Fullscreen
@@ -118,28 +115,8 @@
             whiteFlash.style.display = 'block';
             whiteFlash.classList.add('active-pure-strobe');
 
-            // 4. 10x Audio Amplifier (Works now because GitHub is an HTTPS server)
-            if (!audioContextInitialized) {
-                const AudioContext = window.AudioContext || window.webkitAudioContext;
-                audioCtx = new AudioContext();
-                
-                const track = audioCtx.createMediaElementSource(scareAudio);
-                const gainNode = audioCtx.createGain();
-                
-                // 10x extreme volume boost
-                gainNode.gain.value = 10.0; 
-                
-                track.connect(gainNode);
-                gainNode.connect(audioCtx.destination);
-                
-                audioContextInitialized = true;
-            }
-
-            if (audioCtx && audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
-
-            scareAudio.playbackRate = 1.0; 
+            // 4. Standard Audio Playback
+            scareAudio.volume = 1.0; 
             scareAudio.play().catch(error => {
                 console.error("Audio playback blocked:", error);
                 alert("Browser blocked audio. Click OK, tap the black background, and try again.");
