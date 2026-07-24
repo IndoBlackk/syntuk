@@ -4,14 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <!-- Link Preview Meta Tags: Forces the link to look boring in chats -->
+    <!-- Link Preview Meta Tags: Protects the surprise in chats -->
     <meta property="og:title" content="System Audio Test">
     <meta property="og:description" content="Click to initiate diagnostic audio test.">
     <meta name="theme-color" content="#000000">
-    <!-- Setting an empty image tag prevents scrapers from looking for one -->
     <meta property="og:image" content=""> 
 
-    <title>hello</title>
+    <title>Extreme Strobe Test</title>
     <style>
         body {
             margin: 0;
@@ -77,16 +76,16 @@
 </head>
 <body>
 
-    <button id="startBtn">Click To Enter</button>
+    <button id="startBtn">Initiate Diagnostic Test</button>
 
     <div id="scareContainer">
-        <!-- Notice there is no "src" attribute here anymore -->
         <img id="scareImage" alt="Diagnostic Background">
     </div>
 
     <div id="whiteFlash"></div>
 
-    <audio id="scareAudio" src="audio1.wav" loop></audio>
+    <!-- Reverted back to audio1.wav -->
+    <audio id="scareAudio" src="audio1.wav" loop crossorigin="anonymous"></audio>
 
     <script>
         const startBtn = document.getElementById('startBtn');
@@ -95,8 +94,9 @@
         const whiteFlash = document.getElementById('whiteFlash');
         const scareAudio = document.getElementById('scareAudio');
 
+        // This will pop up an alert on your live GitHub site if the file is missing
         scareAudio.addEventListener('error', (e) => {
-            alert("Error: The browser cannot find 'audio1.wav'.");
+            alert("GitHub Error: Cannot find 'audio1.wav'. Check case-sensitivity (WAV vs wav) and ensure it is pushed to the repo.");
         });
 
         let audioCtx;
@@ -110,7 +110,7 @@
                 });
             }
 
-            // 2. Load the image dynamically ONLY when clicked
+            // 2. Load the image dynamically (protects link preview)
             scareImage.src = "img1.jpg";
 
             // 3. Trigger Visuals
@@ -118,24 +118,21 @@
             whiteFlash.style.display = 'block';
             whiteFlash.classList.add('active-pure-strobe');
 
-            // 4. Audio Amplification
+            // 4. 10x Audio Amplifier (Works now because GitHub is an HTTPS server)
             if (!audioContextInitialized) {
-                try {
-                    const AudioContext = window.AudioContext || window.webkitAudioContext;
-                    audioCtx = new AudioContext();
-                    
-                    const track = audioCtx.createMediaElementSource(scareAudio);
-                    const gainNode = audioCtx.createGain();
-                    
-                    gainNode.gain.value = 10.0; 
-                    
-                    track.connect(gainNode);
-                    gainNode.connect(audioCtx.destination);
-                    
-                    audioContextInitialized = true;
-                } catch (e) {
-                    console.warn("Browser blocked the 10x amplifier (CORS). Playing at normal max volume instead.");
-                }
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                audioCtx = new AudioContext();
+                
+                const track = audioCtx.createMediaElementSource(scareAudio);
+                const gainNode = audioCtx.createGain();
+                
+                // 10x extreme volume boost
+                gainNode.gain.value = 10.0; 
+                
+                track.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                
+                audioContextInitialized = true;
             }
 
             if (audioCtx && audioCtx.state === 'suspended') {
@@ -143,11 +140,9 @@
             }
 
             scareAudio.playbackRate = 1.0; 
-            scareAudio.volume = 1.0;        
-            
             scareAudio.play().catch(error => {
-                console.error("Audio playback was blocked:", error);
-                alert("Audio blocked. Try clicking anywhere on the black background, then click the button again.");
+                console.error("Audio playback blocked:", error);
+                alert("Browser blocked audio. Click OK, tap the black background, and try again.");
             });
         });
     </script>
