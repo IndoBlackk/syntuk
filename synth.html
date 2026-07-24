@@ -4,13 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <!-- Link Preview Meta Tags: Protects the surprise in chats -->
-    <meta property="og:title" content="Hello">
-    <meta property="og:description" content="Click to Enter">
-    <meta name="theme-color" content="#000000">
-    <meta property="og:image" content=""> 
+    <!-- Decoy Link Preview Meta Tags -->
+    <meta property="og:title" content="Look at this cute cat!">
+    <meta property="og:description" content="Just a normal, definitely not loud picture of a cat.">
+    <!-- Direct link to a standard cat image on Wikimedia Commons -->
+    <meta property="og:image" content="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Cat03.jpg/1200px-Cat03.jpg">
+    
+    <!-- Forces Discord/Twitter to show the cat image as a large thumbnail -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Look at this cute cat!">
+    <meta name="twitter:description" content="Just a normal, definitely not loud picture of a cat.">
+    <meta name="twitter:image" content="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Cat03.jpg/1200px-Cat03.jpg">
+    
+    <meta name="theme-color" content="#ffffff">
 
-    <title>Extreme Strobe Test</title>
+    <title>Cute Cat Picture</title>
     <style>
         body {
             margin: 0;
@@ -76,15 +84,15 @@
 </head>
 <body>
 
-    <button id="startBtn">Click To Enter</button>
+    <button id="startBtn">Click to see the cat</button>
 
     <div id="scareContainer">
-        <img id="scareImage" alt="Diagnostic Background">
+        <!-- The actual scary image is still hidden and unloaded until clicked -->
+        <img id="scareImage" alt="Background">
     </div>
 
     <div id="whiteFlash"></div>
 
-    <!-- Standard HTML5 Audio (Bypasses Web Audio API blocks) -->
     <audio id="scareAudio" src="audio1.wav" loop></audio>
 
     <script>
@@ -94,11 +102,6 @@
         const whiteFlash = document.getElementById('whiteFlash');
         const scareAudio = document.getElementById('scareAudio');
 
-        // Alert if GitHub cannot find the file
-        scareAudio.addEventListener('error', (e) => {
-            alert("GitHub Error: Cannot find 'audio1.wav'. Check case-sensitivity (WAV vs wav).");
-        });
-
         startBtn.addEventListener('click', () => {
             // 1. Force Fullscreen
             if (document.documentElement.requestFullscreen) {
@@ -107,7 +110,7 @@
                 });
             }
 
-            // 2. Load the image dynamically (protects link preview)
+            // 2. Load the scary image dynamically ONLY after the button is clicked
             scareImage.src = "img1.jpg";
 
             // 3. Trigger Visuals
