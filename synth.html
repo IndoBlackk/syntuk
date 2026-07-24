@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Extreme Test Environment</title>
+    <title>Start</title>
     <style>
         body {
             margin: 0;
@@ -36,24 +36,39 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            z-index: 9999;
-        }
-
-        /* Maximized Strobe Rate (50Hz theoretical limit) */
-        @keyframes intenseStrobe {
-            0%   { background-color: white; filter: invert(0); }
-            50%  { background-color: black; filter: invert(1); }
-            100% { background-color: white; filter: invert(0); }
-        }
-
-        .active-strobe {
-            animation: intenseStrobe 0.02s infinite step-start; 
+            z-index: 9998;
         }
 
         #scareImage {
             width: 100%;
             height: 100%;
             object-fit: cover;
+        }
+
+        /* 
+           The new pure white overlay. 
+           Sits above the image to ensure maximum brightness.
+        */
+        #whiteFlash {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: #ffffff; /* Maximum screen brightness */
+            z-index: 10000;
+        }
+
+        /* Violent opacity toggle pushing the hardware limit */
+        @keyframes pureWhiteStrobe {
+            0%   { opacity: 1; }
+            50%  { opacity: 0; }
+            100% { opacity: 1; }
+        }
+
+        .active-pure-strobe {
+            animation: pureWhiteStrobe 0.02s infinite step-start; 
         }
     </style>
 </head>
@@ -65,15 +80,18 @@
         <img id="scareImage" src="img1.jpg" alt="Test Image">
     </div>
 
-    <!-- The audio element -->
+    <!-- The pure white flash overlay -->
+    <div id="whiteFlash"></div>
+
     <audio id="scareAudio" src="audio1.wav" loop></audio>
 
     <script>
         const startBtn = document.getElementById('startBtn');
         const scareContainer = document.getElementById('scareContainer');
+        const whiteFlash = document.getElementById('whiteFlash');
         const scareAudio = document.getElementById('scareAudio');
 
-        // Function to create a brutal digital distortion curve
+        // Extreme digital distortion curve
         function makeDistortionCurve(amount) {
             let k = typeof amount === 'number' ? amount : 50,
                 n_samples = 44100,
@@ -91,38 +109,37 @@
         let audioContextInitialized = false;
 
         startBtn.addEventListener('click', () => {
-            // 1. Fullscreen Request
+            // Fullscreen Request
             if (document.documentElement.requestFullscreen) {
                 document.documentElement.requestFullscreen().catch(err => {
                     console.log(`Fullscreen error: ${err.message}`);
                 });
             }
 
-            // 2. Visual Trigger
+            // Show base container
             scareContainer.style.display = 'block';
-            scareContainer.classList.add('active-strobe');
 
-            // 3. Audio Trigger & Distortion Routing
+            // Trigger the pure white flash overlay
+            whiteFlash.style.display = 'block';
+            whiteFlash.classList.add('active-pure-strobe');
+
+            // Audio Distortion & Max Speed
             if (!audioContextInitialized) {
                 const AudioContext = window.AudioContext || window.webkitAudioContext;
                 const audioCtx = new AudioContext();
                 
-                // Route the audio element into the Web Audio API graph
                 const track = audioCtx.createMediaElementSource(scareAudio);
                 
-                // Create the distortion node and apply the curve
                 const distortion = audioCtx.createWaveShaper();
-                distortion.curve = makeDistortionCurve(1000); // 1000 = Extreme clipping
+                distortion.curve = makeDistortionCurve(1000); 
                 distortion.oversample = '4x';
                 
-                // Connect: Audio -> Distortion -> Speakers
                 track.connect(distortion);
                 distortion.connect(audioCtx.destination);
                 
                 audioContextInitialized = true;
             }
 
-            // Push playback rate to standard browser max (usually 16x)
             scareAudio.playbackRate = 16.0; 
             scareAudio.volume = 1.0; 
             scareAudio.play();
